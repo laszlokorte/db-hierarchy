@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+{% block html_body %}
+<h1>Hierarchy</h1>
+
+<p>
+	<a href="{{ path('hierarchy_setup') }}">show schema</a>
+</p>
+
+{% for rootKey in rootKeys %}
+    <h2>{{ rootKey }}</h2>
+
+    <form action="{{ path('create_node',{key: rootKey}) }}" method="post" accept-charset="utf-8">
+    	<dl>{% for field in allFields[rootKey] %}
+	        <dt><label for="field_{{field}}">{{field}}</label>
+	        input</dt>
+	        <dd>
+	        <input type="text" id="field_{{field}}" name="field[{{field}}]">
+	    {% endfor %}</dd>
+	    </dl>
+    	<button>Create</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                {% for field in allFields[rootKey] %}
+                    <th>{{ field }}</th>
+                {% endfor %}
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if rootNodes[rootKey]|length %}
+                {% for rootNode in rootNodes[rootKey] %}
+                    <tr>
+                        <td><a href="{{ path('show_node', {key: rootKey, id: rootNode.id}) }}">{{ rootNode.id }}</a></td>
+                        {% for field in allFields[rootKey] %}
+                            <td>{{ rootNode[field] }}</td>
+                        {% endfor %}
+                        <td>
+                             <form action="{{ path('delete_node', {key: rootKey, id: rootNode.id}) }}" method="post" accept-charset="utf-8">
+                                <button>X</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="{{ allFields[rootKey]|length + 2 }}">empty</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endfor %}
+{% endblock %}
