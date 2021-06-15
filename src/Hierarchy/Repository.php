@@ -127,7 +127,7 @@ class Repository {
 					if($trans) {
 						$this->db->rollback();
 					}
-					throw new \Exception("limit reached");
+					throw new ConsistencyException("limit reached");
 				}
 			} while($dirty);
 		}
@@ -357,7 +357,7 @@ class Repository {
 		$self = $this->definition->structure[$key];
 
 		if(!$self) {
-			throw new Exception("not found");
+			throw new ConsistencyException("not found");
 		}
 
 		if($self['parent']) {
@@ -373,7 +373,7 @@ class Repository {
 		}
 
 		if(!$selfData) {
-			throw new Exception("not found");
+			throw new ConsistencyException("not found");
 		}
 
 		return $selfData;
@@ -620,11 +620,11 @@ class Repository {
 
 
 		if(($parent===NULL) !== empty($scopeId)) {
-			throw new \Exception("missing parent");
+			throw new ConsistencyException("missing parent");
 		}
 
 		if(($reflexive===FALSE) && !empty($parentId)) {
-			throw new \Exception($parentId);
+			throw new ConsistencyException($parentId);
 		}
 
 		if(!empty($scopeId) && !empty($parentId)) {
@@ -634,7 +634,7 @@ class Repository {
 			$validPositionStmt->execute();
 
 			if(!$validPositionStmt->fetchColumn()) {
-				throw new \Exception("invalid position");
+				throw new ConsistencyException("invalid position");
 			}
 		}
 
@@ -645,7 +645,7 @@ class Repository {
 			$checkCycleStmt->execute();
 
 			if($checkCycleStmt->fetchColumn()) {
-				throw new \Exception("invalid position");
+				throw new ConsistencyException("invalid position");
 			}
 		}
 
@@ -716,15 +716,15 @@ class Repository {
 		$order = $self['order'];
 
 		if(!$order) {
-			throw new \Exception("no order");
+			throw new ConsistencyException("no order");
 		}
 
 		if(($parent===NULL) !== empty($scopeId)) {
-			throw new \Exception("missing parent");
+			throw new ConsistencyException("missing parent");
 		}
 
 		if(($reflexive===FALSE) && !empty($parentId)) {
-			throw new \Exception($parentId);
+			throw new ConsistencyException($parentId);
 		}
 
 		if($parent) {
@@ -944,11 +944,11 @@ class Repository {
 
 
 		if(($parent===NULL) !== empty($scopeId)) {
-			throw new \Exception("parent");
+			throw new ConsistencyException("parent");
 		}
 
 		if(($reflexive===FALSE) && !empty($parentId)) {
-			throw new \Exception($parentId);
+			throw new ConsistencyException($parentId);
 		}
 
 		if(!empty($scopeId) && !empty($parentId)) {
@@ -958,7 +958,7 @@ class Repository {
 			$validPositionStmt->execute();
 
 			if(!$validPositionStmt->fetchColumn()) {
-				throw new \Exception("invalid position");
+				throw new ConsistencyException("invalid position");
 			}
 		}
 		try {
