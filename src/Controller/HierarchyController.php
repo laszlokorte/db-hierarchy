@@ -28,7 +28,7 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/full-tree', name: 'hierarchy_tree', methods: 'GET')]
+    #[Route('/_full-tree', name: 'hierarchy_tree', methods: 'GET')]
 	#[Template()]
     public function tree()
     {
@@ -85,7 +85,7 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
     }
 
-    #[Route('/normalize_order/{key}', name: 'normalize_key_order', methods: 'POST')]
+    #[Route('/_normalize_order/{key}', name: 'normalize_key_order', methods: 'POST')]
     public function normalizeKeyOrder(UrlGeneratorInterface $urlGen, $key)
     {
     	$this->repo->normalizedKeyAllRowOrder($key);
@@ -93,7 +93,7 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
     }
 
-    #[Route('/normalize_order', name: 'normalize_all_order', methods: 'POST')]
+    #[Route('/_normalize_order', name: 'normalize_all_order', methods: 'POST')]
     public function normalizeAllOrder(UrlGeneratorInterface $urlGen)
     {
     	$this->repo->normalizedAllRowOrder();
@@ -101,7 +101,7 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
     }
 
-    #[Route('/{key}/new', name: 'new_root_node', methods: 'GET')]
+    #[Route('/{key}/+', name: 'new_root_node', methods: 'GET')]
 	#[Template()]
     public function newRootNode(Request $request, $key)
     {
@@ -113,7 +113,7 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/{key}/{id}/{childKey}/new', name: 'new_child_node', methods: 'GET')]
+    #[Route('/{key}/{id}/{childKey}/+', name: 'new_child_node', methods: 'GET')]
 	#[Template()]
     public function newChildNode($key, $id, $childKey)
     {
@@ -146,7 +146,7 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/{key}/{id}/edit', name: 'edit_node', methods: 'GET')]
+    #[Route('/{key}/{id}/_edit', name: 'edit_node', methods: 'GET')]
 	#[Template()]
     public function editNode($key, $id)
     {
@@ -159,7 +159,7 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/{key}/{id}/delete', name: 'delete_node', methods: 'POST')]
+    #[Route('/{key}/{id}/-', name: 'delete_node', methods: 'POST')]
     public function deleteNode(UrlGeneratorInterface $urlGen, $key, $id)
     {
     	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
@@ -173,7 +173,7 @@ class HierarchyController {
     	}
     }
 
-    #[Route('/{key}/{id}/delete', name: 'ask_delete_node', methods: 'GET')]
+    #[Route('/{key}/{id}/-', name: 'ask_delete_node', methods: 'GET')]
 	#[Template()]
     public function askDeleteNode(UrlGeneratorInterface $urlGen, $key, $id)
     {
@@ -204,7 +204,7 @@ class HierarchyController {
     	}
     }
 
-    #[Route('/{key}/{id}/move', name: 'move_node', methods: 'POST')]
+    #[Route('/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
     public function moveNode(UrlGeneratorInterface $urlGen, Request $request, $key, $id)
     {
     	$target = explode('/', $request->request->get('target_scope-parent','/'), 2);
