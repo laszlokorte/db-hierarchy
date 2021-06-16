@@ -28,19 +28,51 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/setup', name: 'show_hierarchy_setup', methods: 'GET')]
+    #[Route('/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
 	#[Template()]
     public function showSetup()
     {
-    	return ['schemaSQL' => $this->repo->showSchema()];
+    	return [
+    		'rootKeys' => $this->repo->getRootKeys(),
+    		'schemaSQL' => $this->repo->showSchema()
+    	];
     }
 
-    #[Route('/setup', name: 'hierarchy_setup', methods: 'POST')]
+    #[Route('/_setup', name: 'hierarchy_setup', methods: 'POST')]
     public function setup(UrlGeneratorInterface $urlGen)
     {
     	$this->repo->createSchema();
 
     	return new RedirectResponse($urlGen->generate('hierarchy_root'));
+    }
+
+    #[Route('/{key}/new', name: 'new_root_node', methods: 'GET')]
+	#[Template()]
+    public function newRootNode(Request $request, $key)
+    {
+    	return [
+    		'key' => $key,
+    		'fields' => $this->repo->getFields($key),
+    		//'node' => $this->repo->loadNode($key, $id),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
+    }
+
+    #[Route('/{key}/{id}/{childKey}/new', name: 'new_child_node', methods: 'GET')]
+	#[Template()]
+    public function newChildNode($key, $id, $childKey)
+    {
+    	return [
+    		'key' => $key,
+    		'id' => $id,
+    		'childKey' => $childKey,
+    		'moveTargets' => $this->repo->loadMoveTargets($key, $id),
+    		'fields' => $this->repo->getFields($key),
+    		'childFields' => $this->repo->getFields($childKey),
+    		'node' => $this->repo->loadNode($key, $id),
+    		'childKeys' => $this->repo->getChildKeys($key),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
     }
 
     #[Route('/{key}/{id}', name: 'show_node', methods: 'GET')]
@@ -55,6 +87,20 @@ class HierarchyController {
     		'childFields' => $this->repo->getChildFields($key),
     		'node' => $this->repo->loadNode($key, $id),
     		'childKeys' => $this->repo->getChildKeys($key),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
+    }
+
+    #[Route('/{key}/{id}/edit', name: 'edit_node', methods: 'GET')]
+	#[Template()]
+    public function editNode($key, $id)
+    {
+    	return [
+    		'key' => $key,
+    		'id' => $id,
+    		'fields' => $this->repo->getFields($key),
+    		'node' => $this->repo->loadNode($key, $id),
+    		'rootKeys' => $this->repo->getRootKeys(),
     	];
     }
 
@@ -68,8 +114,22 @@ class HierarchyController {
 		if($lastParent) {
     		return new RedirectResponse($urlGen->generate('show_node', $lastParent));
     	} else {
-    		return new RedirectResponse($urlGen->generate('hierarchy_root'));
+    		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
     	}
+    }
+
+    #[Route('/{key}/{id}/delete', name: 'ask_delete_node', methods: 'GET')]
+	#[Template()]
+    public function askDeleteNode(UrlGeneratorInterface $urlGen, $key, $id)
+    {
+    	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
+
+		return [
+    		'key' => $key,
+    		'id' => $id,
+    		'node' => $this->repo->loadNode($key, $id),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
     }
 
     #[Route('/{key}', name: 'create_node', methods: 'POST')]
@@ -85,7 +145,7 @@ class HierarchyController {
     		$parentKey = $this->repo->getParentKey($key);
     		return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
     	} else {
-    		return new RedirectResponse($urlGen->generate('hierarchy_root'));
+    		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
     	}
     }
 
@@ -110,6 +170,32 @@ class HierarchyController {
     #[Route('/{key}/normalize_order', name: 'normalize_order', methods: 'POST')]
     public function normalizeOrder()
     {
+    }
+
+    #[Route('/{key}', name: 'list_root_nodes', methods: 'GET')]
+	#[Template()]
+    public function listRootNodes($key)
+    {
+    	return [
+    		'key' => $key,
+    		'fields' => $this->repo->getFields($key),
+    		'nodes' => $this->repo->loadKeyNodes($key),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
+    }
+
+    #[Route('/{key}/{id}/{childKey}', name: 'list_child_nodes', methods: 'GET')]
+	#[Template()]
+    public function listChildNodes($key, $id, $childKey)
+    {
+    	return [
+    		'key' => $key,
+    		'childKey' => $childKey,
+    		'node' => $this->repo->loadNode($key, $id),
+    		'childFields' => $this->repo->getFields($childKey),
+    		'childNodes' => $this->repo->loadChildKeyNodes($key, $id, $childKey),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
     }
 
 }

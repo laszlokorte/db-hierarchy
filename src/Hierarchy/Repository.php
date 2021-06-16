@@ -57,10 +57,10 @@ class Repository {
 		$baseKey = $key;
 
 		if($this->isReflexive($key)) {
-			$targets[$key] = $this->loadKeyHierarchy($key);
+			$targets[$key] = $this->loadPartialHierarchy($key);
 		}
 		if($this->isScoped($key)) {
-			$targets[$this->getParentKey($key)] = $this->loadKeyHierarchy($this->getParentKey($key));
+			$targets[$this->getParentKey($key)] = $this->loadPartialHierarchy($this->getParentKey($key));
 			$baseKey = $this->getParentKey($key);
 		}
 
@@ -301,7 +301,7 @@ class Repository {
 		return new StaticHierarchy($this->definition->structure, $result);
 	}
 
-	public function loadKeyHierarchy($key) {
+	public function loadPartialHierarchy($key) {
 		$self = $this->definition->structure[$key];
 		$parent = $self['parent'];
 		$reflexive = $self['reflexive'];
@@ -351,6 +351,59 @@ class Repository {
 		}
 
 		return $results;
+	}
+
+	public function loadKeyNodes($key) {
+		$self = $this->definition->structure[$key];
+		$parent = $self['parent'];
+		$reflexive = $self['reflexive'];
+
+		if($parent) {
+			throw new \Exception("not at root");
+		} else {
+			if($reflexive) {
+				$siteStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL', $key, $key);
+				$siteStmt->execute();
+				$result = $siteStmt->fetchAll();
+			} else {
+				$siteStmt = $this->buildQuery('SELECT "/", * FROM %s', $key);
+				$siteStmt->execute();
+				$result = $siteStmt->fetchAll();
+			}
+		}
+
+		return $result;
+	}
+
+	public function loadChildKeyNodes($key, $parentId, $childKey) {
+		$self = $this->definition->structure[$childKey];
+		$parent = $self['parent'];
+		$reflexive = $self['reflexive'];
+
+		if($parent) {
+			if($reflexive) {
+				$routeStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL AND h.%s_id = :id', $childKey, $childKey, $parent);
+				$routeStmt->bindValue('id', $parentId);
+				$routeStmt->execute();
+				$result = $routeStmt->fetchAll();
+			} else {
+				$routeStmt = $this->buildQuery('SELECT * FROM %s WHERE %s_id = :id', $childKey, $parent);
+				$routeStmt->bindValue('id', $parentId);
+				$routeStmt->execute();
+				$result = $routeStmt->fetchAll();
+			}
+		} else {
+			if($key === $childKey && $reflexive) {
+				$routeStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent = :id', $childKey, $childKey, $childKey);
+				$routeStmt->bindValue('id', $parentId);
+				$routeStmt->execute();
+				$result = $routeStmt->fetchAll();
+			} else {
+				throw new \Exception("not at root");
+			}
+		}
+
+		return $result;
 	}
 
 	public function loadNodeSelf($key, $id) {

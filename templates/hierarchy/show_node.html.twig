@@ -1,5 +1,5 @@
-{% extends 'base.html.twig' %}
-{% block html_body %}
+{% extends 'hierarchy/base.html.twig' %}
+{% block area_main %}
 
 
 {% set directParent = null %}
@@ -7,23 +7,19 @@
 {% for parents in node.parents %}
     {% for parentNode in parents.items %}
         / <a href="{{ path('show_node',{key: parents.type, id:parentNode.id}) }}" title="">
-            {{ parents.type }}-{{ parentNode.id }}
+            {{- parents.type }}-{{ parentNode.id -}}
         </a>
         {% set directParent = {key: parents.type, id: parentNode.id} %}
     {% endfor %}
 {% endfor %} / {{ node.type }}-{{ node.self.id }}
 
-{% if directParent %}
-<p>
-    <a href="{{ path('show_node', directParent) }}" title="go to parent">..</a>
-</p>
-{% else %}
-<p>
-    <a href="{{ path('hierarchy_root') }}" title="go to parent">..</a>
-</p>
-{% endif %}
 
 <h1>{{ key|capitalize }} {{id}}</h1>
+
+
+
+<a href="{{ path('edit_node', {key, id}) }}" title="">Edit</a>
+<a href="{{ path('ask_delete_node', {key, id}) }}" title="">Delete</a>
 
 {% if moveTargets is not null %}
 <h3>Move to</h3>
@@ -39,17 +35,20 @@
 {% endif %}
 
 <form action="{{ path('update_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
-    <dl>{% for field in fields %}
-        <dt><label for="field_{{field}}">{{field}}</label></dt>
-        <dd>
+    <dl class="form-container">{% for field in fields %}
+        <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+        <dd class="form-container-field">
         <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field] }}">
     {% endfor %}</dd>
+    <dt class="form-container-spacer"></dt>
+    <dd class="form-container-buttons">
+        <button>Update</button>
+    </dd>
     </dl>
-    <button>Update</button>
 </form>
 
 {% for childKey in childKeys %}
-    <h2>{{ childKey }}</h2>
+    <h2>{{ childKey }}s</h2>
 
 
     <form action="{{ path('create_node',{key: childKey}) }}" method="post" accept-charset="utf-8">
@@ -59,41 +58,62 @@
         {% else %}
             <input type="hidden" name="scope" value="{{ id }}">
         {% endif %}
-        {% for field in childFields[childKey] %}
-            <input type="text" name="field[{{field}}]">
-        {% endfor %}
-        <button>Create</button>
+
+        <dl class="form-container">{% for field in childFields[childKey] %}
+            <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+            <dd class="form-container-field">
+            <input type="text" id="field_{{field}}" name="field[{{field}}]" value="">
+        {% endfor %}</dd>
+        <dt class="form-container-spacer"></dt>
+        <dd class="form-container-buttons">
+            <button>Create</button>
+        </dd>
+        </dl>
     </form>
 
+    <a href="{{ path('new_child_node', {key, id, childKey}) }}" title="">New {{childKey}}</a>
 
-    <table>
-        <thead>
-            <tr>
-                <th>id</th>
+
+    <table class="data-table">
+        <thead class="data-table-head">
+            <tr class="data-table-head-row">
+                <th class="data-table-head-cell">id</th>
                 {% for field in childFields[childKey] %}
-                    <th>{{ field }}</th>
+                    <th class="data-table-head-cell">{{ field }}</th>
                 {% endfor %}
-                <th>actions</th>
+                <th class="data-table-head-cell" align="right">actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="data-table-body">
             {% if node['children'][childKey]|length %}
                 {% for childNode in node['children'][childKey] %}
-                    <tr>
-                        <td><a href="{{ path('show_node', {key: childKey, id: childNode.id}) }}">{{ childNode.id }}</a></td>
+                    <tr class="data-table-row">
+                        <td class="data-table-cell"><a href="{{ path('show_node', {key: childKey, id: childNode.id}) }}">{{ childNode.id }}</a></td>
                         {% for field in childFields[childKey] %}
-                            <td>{{ childNode[field] }}</td>
+                            <td class="data-table-cell">{{ childNode[field] }}</td>
                         {% endfor %}
-                        <td>
+                        <td class="data-table-cell" align="right">
                              <form action="{{ path('delete_node', {key: childKey, id: childNode.id}) }}" method="post" accept-charset="utf-8">
                                 <button>X</button>
                             </form>
+
+
+
+                            <a href="{{ path('ask_delete_node', {key: childKey, id: childNode.id}) }}" title="">Delete</a>
+
+                            <a href="{{ path('edit_node', {key: childKey, id: childNode.id}) }}" title="">Edit</a>
                         </td>
                     </tr>
                 {% endfor %}
-            {% else %}
+
                 <tr>
-                    <td colspan="{{ childFields[childKey]|length + 2 }}">empty</td>
+                    <td>
+                        <a href="{{ path('list_child_nodes', {key, id, childKey}) }}" title="">Show {{childKey}}s</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr class="data-table-empty-row">
+                    <td class="data-table-empty-cell" colspan="{{ childFields[childKey]|length + 2 }}">empty</td>
                 </tr>
             {% endif %}
         </tbody>

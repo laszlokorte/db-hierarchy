@@ -8,6 +8,39 @@
            and uncomment the following Encore helpers to start using Symfony UX #}
         {% block html_stylesheets %}
             {#{{ encore_entry_link_tags('app') }}#}
+            <style>
+                .data-table {
+                    min-width: 100%;
+                }
+                .data-table-row {
+                    
+                }
+
+                .data-table-cell {
+                    
+                }
+
+                .data-table-head-cell {
+                    border-bottom: 1px solid gray;
+                }
+
+                .data-table-empty-cell {
+                    padding: 1em;
+                    text-align: center;
+                    border: 2px dashed #eee;
+                    font-style: italic;
+                }
+
+                .form-container {
+                    display: grid;
+                    gap: 0.5em;
+                    grid-template-columns: min-content auto;
+                }
+
+                .inline-form {
+                    display: inline-block;
+                }
+            </style>
         {% endblock %}
 
         {% block html_javascripts %}
@@ -16,6 +49,12 @@
         {% endblock %}
     </head>
     <body>
-        {% block html_body %}{% endblock %}
+        {% block html_body %}
+
+            {% block area_main %}
+                
+            {% endblock %}
+
+        {% endblock %}
     </body>
 </html>

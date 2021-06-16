@@ -1,0 +1,59 @@
+{% extends 'hierarchy/base.html.twig' %}
+{% block area_main %}
+
+/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
+
+<h1>{{key|capitalize}}s</h1>
+
+    <form action="{{ path('create_node',{key: key}) }}" method="post" accept-charset="utf-8">
+    	<dl class="form-container">{% for field in fields %}
+	        <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+	        <dd class="form-container-field">
+	        <input type="text" id="field_{{field}}" name="field[{{field}}]">
+	    {% endfor %}</dd>
+        <dt class="form-container-spacer"></dt>
+        <dd class="form-container-buttons">
+            <button>Create</button>
+        </dd>
+	    </dl>
+    	
+    </form>
+
+    <a href="{{ path('new_root_node', {key}) }}" title="">New {{key}}</a>
+
+    <table class="data-table">
+        <thead class="data-table-head">
+            <tr class="data-table-head-row">
+                <th class="data-table-head-cell">id</th>
+                {% for field in fields %}
+                    <th class="data-table-head-cell">{{ field }}</th>
+                {% endfor %}
+                <th class="data-table-head-cell" align="right">actions</th>
+            </tr>
+        </thead>
+        <tbody class="data-table-body">
+            {% if nodes|length %}
+                {% for node in nodes %}
+                    <tr class="data-table-row">
+                        <td class="data-table-cell"><a href="{{ path('show_node', {key: key, id: node.id}) }}">{{ node.id }}</a></td>
+                        {% for field in fields %}
+                            <td class="data-table-cell">{{ node[field] }}</td>
+                        {% endfor %}
+                        <td class="data-table-cell" align="right">
+                             <form class="inline-form" action="{{ path('delete_node', {key: key, id: node.id}) }}" method="post" accept-charset="utf-8">
+                                <button class="inline-button">X</button>
+                            </form>
+                            <a href="{{ path('ask_delete_node', {key: key, id: node.id}) }}" title="">Delete</a>
+
+                            <a href="{{ path('edit_node', {key: key, id: node.id}) }}" title="">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="data-table-empty-row">
+                    <td class="data-table-empty-cell" colspan="{{ fields|length + 2 }}">empty</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}

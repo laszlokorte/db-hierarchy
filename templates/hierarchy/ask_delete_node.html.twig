@@ -1,0 +1,32 @@
+{% extends 'hierarchy/base.html.twig' %}
+{% block area_main %}
+
+
+{% set directParent = null %}
+/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
+{% for parents in node.parents %}
+    {% for parentNode in parents.items %}
+        / <a href="{{ path('show_node',{key: parents.type, id:parentNode.id}) }}" title="">
+            {{ parents.type }}-{{ parentNode.id }}
+        </a>
+        {% set directParent = {key: parents.type, id: parentNode.id} %}
+    {% endfor %}
+{% endfor %} / <a href="{{ path('show_node',{key, id}) }}" title="">{{ node.type }}-{{ node.self.id }}</a>
+/ delete
+
+<h1>{{ key|capitalize }} {{id}}</h1>
+
+
+
+<form action="{{ path('delete_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
+    <p>
+        Are you sure you want to delete this {{ key }}?
+    </p>
+
+    <button>Delete</button>
+
+    <p>
+        <a href="{{ path('show_node', {key, id}) }}" title="cancel">Cancel</a>
+    </p>
+</form>
+{% endblock %}
