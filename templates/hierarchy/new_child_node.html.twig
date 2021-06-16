@@ -1,4 +1,9 @@
 {% extends 'hierarchy/base.html.twig' %}
+
+{% block html_title -%}
+    New {{key|capitalize}} - {{ parent() }}
+{%- endblock %}
+
 {% block area_main %}
 
 / <a href="{{ path('hierarchy_root') }}" title="">Root</a>
@@ -21,7 +26,7 @@
             <input type="hidden" name="scope" value="{{ id }}">
         {% endif %}
     	<dl class="form-container">{% for field in childFields %}
-	        <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+	        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
 	        <dd class="form-container-field">
 	        <input type="text" id="field_{{field}}" name="field[{{field}}]">
 	    {% endfor %}</dd>

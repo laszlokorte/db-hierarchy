@@ -1,7 +1,10 @@
 {% extends 'hierarchy/base.html.twig' %}
+
+{% block html_title -%}
+    {{ key|capitalize }} {{id}} - {{ parent() }}
+{%- endblock %}
+
 {% block area_main %}
-
-
 {% set directParent = null %}
 / <a href="{{ path('hierarchy_root') }}" title="">Root</a>
 {% for parents in node.parents %}
@@ -19,7 +22,7 @@
 
 <form action="{{ path('update_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
     <dl class="form-container">{% for field in fields %}
-        <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
         <dd class="form-container-field">
         <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field] }}">
     {% endfor %}</dd>

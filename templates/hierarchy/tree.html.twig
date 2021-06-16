@@ -1,0 +1,36 @@
+{% extends 'hierarchy/base.html.twig' %}
+
+{% macro walkTree(nodes) %}
+    {% import _self as w %}
+    {% if nodes|length %}
+    <ul>
+        {% for node in nodes %}
+            {% if node.id is not null %}
+            <li>
+            <a href="{{path('show_node',{key:node.hierarchyKey, id: node.id})}}" title="">{{ node.hierarchyKey }}-{{ node.id }}</a>
+            {{ w.walkTree(node.children) }}
+            </li>
+            {% else %}
+            {{ w.walkTree(node.children) }}
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endmacro %}
+
+{% block html_title -%}
+    Tree - {{ parent() }}
+{%- endblock %}
+
+{% block area_main %}
+<h1>Tree</h1>
+
+{% import _self as w %}
+
+{% for node in tree.nodes %}
+    <h3>{{ node.hierarchyKey|capitalize }}</h3>
+    {{ w.walkTree(node.children) }}
+{% endfor %}
+
+
+{% endblock %}

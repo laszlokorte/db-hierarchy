@@ -1,6 +1,10 @@
 {% extends 'hierarchy/base.html.twig' %}
-{% block area_main %}
 
+{% block html_title -%}
+    {{ node.type }} {{ node.self.id }} - {{ parent() }}
+{%- endblock %}
+
+{% block area_main %}
 
 {% set directParent = null %}
 / <a href="{{ path('hierarchy_root') }}" title="">Root</a>
@@ -36,7 +40,7 @@
 
 <form action="{{ path('update_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
     <dl class="form-container">{% for field in fields %}
-        <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
         <dd class="form-container-field">
         <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field] }}">
     {% endfor %}</dd>
@@ -60,7 +64,7 @@
         {% endif %}
 
         <dl class="form-container">{% for field in childFields[childKey] %}
-            <dt class="form-container-label"><label for="field_{{field}}">{{field}}</label></dt>
+            <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
             <dd class="form-container-field">
             <input type="text" id="field_{{field}}" name="field[{{field}}]" value="">
         {% endfor %}</dd>
@@ -77,10 +81,11 @@
     <table class="data-table">
         <thead class="data-table-head">
             <tr class="data-table-head-row">
-                <th class="data-table-head-cell">id</th>
+                <th class="data-table-head-cell">ID</th>
                 {% for field in childFields[childKey] %}
-                    <th class="data-table-head-cell">{{ field }}</th>
+                    <th class="data-table-head-cell">{{ field|capitalize }}</th>
                 {% endfor %}
+                <th class="data-table-head-cell" width="50%"></th>
                 <th class="data-table-head-cell" align="right">actions</th>
             </tr>
         </thead>
@@ -103,6 +108,7 @@
 
                             <a href="{{ path('edit_node', {key: childKey, id: childNode.id}) }}" title="">Edit</a>
                         </td>
+                        <td></td>
                     </tr>
                 {% endfor %}
 
@@ -113,7 +119,7 @@
                 </tr>
             {% else %}
                 <tr class="data-table-empty-row">
-                    <td class="data-table-empty-cell" colspan="{{ childFields[childKey]|length + 2 }}">empty</td>
+                    <td class="data-table-empty-cell" colspan="{{ childFields[childKey]|length + 3 }}">empty</td>
                 </tr>
             {% endif %}
         </tbody>

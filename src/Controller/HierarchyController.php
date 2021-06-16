@@ -28,6 +28,18 @@ class HierarchyController {
     	];
     }
 
+    #[Route('/full-tree', name: 'hierarchy_tree', methods: 'GET')]
+	#[Template()]
+    public function tree()
+    {
+    	return [
+    		'rootKeys' => $this->repo->getRootKeys(),
+    		'allFields' => $this->repo->getAllFields(),
+    		'rootNodes' => $this->repo->loadRootNodes(),
+    		'tree' => $this->repo->loadHierarchy(),
+    	];
+    }
+
     #[Route('/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
 	#[Template()]
     public function showSetup()
@@ -152,7 +164,9 @@ class HierarchyController {
     #[Route('/{key}/{id}/move', name: 'move_node', methods: 'POST')]
     public function moveNode(UrlGeneratorInterface $urlGen, Request $request, $key, $id)
     {
-    	[$scope,$parent] = explode('/', $request->request->get('target_scope-parent','/'), 2);
+    	$target = explode('/', $request->request->get('target_scope-parent','/'), 2);
+    	$scope = $target[0]??null;
+    	$parent = $target[1]??null;
 
 		$this->repo->moveNode($key, $id, $scope?:null, $parent?:null);
 

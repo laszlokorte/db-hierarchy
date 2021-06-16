@@ -298,7 +298,7 @@ class Repository {
 			}
 		}
 
-		return new StaticHierarchy($this->definition->structure, $result);
+		return new Tree($this->definition, $result);
 	}
 
 	public function loadPartialHierarchy($key) {

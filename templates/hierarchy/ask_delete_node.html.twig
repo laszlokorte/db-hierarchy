@@ -1,6 +1,10 @@
 {% extends 'hierarchy/base.html.twig' %}
-{% block area_main %}
 
+{% block html_title -%}
+    {{ key|capitalize }} {{id}} - {{ parent() }}
+{%- endblock %}
+
+{% block area_main %}
 
 {% set directParent = null %}
 / <a href="{{ path('hierarchy_root') }}" title="">Root</a>
