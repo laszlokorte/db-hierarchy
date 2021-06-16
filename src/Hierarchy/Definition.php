@@ -17,6 +17,7 @@ class Definition {
 		'sorted_parent' => ['parent' => null, 'parent_single' => null, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
 		'sorted_child' => ['parent' => 'sorted_parent', 'parent_single' => false, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
 		'sorted_tree' => ['parent' => null, 'parent_single' => null, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'image' => ['parent' => null, 'parent_single' => null, 'reflexive' => false, 'order' => false, 'fields' => ['thumbnail' => ['type' => 'image']], 'templateString' => '{file}', 'tags' => []],
 
 		'site_generator' => ['parent' => 'site', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
 		'route_generator' => ['parent' => 'route', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],

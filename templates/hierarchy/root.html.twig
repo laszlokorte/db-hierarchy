@@ -37,7 +37,7 @@
                     <tr class="data-table-row">
                         <td class="data-table-cell"><a href="{{ path('show_node', {key: rootKey, id: rootNode.id}) }}">{{ rootNode.id }}</a></td>
                         {% for field in allFields[rootKey] %}
-                            <td class="{{ html_classes('data-table-cell', {'empty': rootNode[field] is empty}) }}">{{ rootNode[field] }}</td>
+                            <td class="{{ html_classes('data-table-cell', {'empty': rootNode[field] is empty}) }}">{{ rootNode[field]|join }}</td>
                         {% endfor %}
                 		<td></td>
                         <td class="data-table-cell" align="right">

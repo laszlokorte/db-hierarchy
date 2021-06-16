@@ -384,11 +384,11 @@ class Repository {
 			if($parent['reflexive']) {
 				$siteStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL', $key, $key);
 				$siteStmt->execute();
-				$results[$key] = $siteStmt->fetchAll();
+				$results[$key] = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			} else {
 				$siteStmt = $this->buildQuery('SELECT s.* FROM %s s', $key);
 				$siteStmt->execute();
-				$results[$key] = $siteStmt->fetchAll();
+				$results[$key] = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			}
 		}
 
@@ -418,11 +418,11 @@ class Repository {
 			if($reflexive) {
 				$siteStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL', $key, $key);
 				$siteStmt->execute();
-				$result = $siteStmt->fetchAll();
+				$result = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			} else {
 				$siteStmt = $this->buildQuery('SELECT "/", * FROM %s', $key);
 				$siteStmt->execute();
-				$result = $siteStmt->fetchAll();
+				$result = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			}
 		}
 
