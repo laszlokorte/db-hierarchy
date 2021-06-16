@@ -58,6 +58,49 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('hierarchy_root'));
     }
 
+    #[Route('/_defects', name: 'show_hierarchy_defects', methods: 'GET')]
+	#[Template()]
+    public function showDefects()
+    {
+    	return [
+    		'rootKeys' => $this->repo->getRootKeys(),
+    		'closureDefects' => $this->repo->loadAllClosureDefects(),
+    		'orderDefects' => $this->repo->loadAllRowOrder(),
+    	];
+    }
+
+    #[Route('/_defects', name: 'repair_hierarchy_defects', methods: 'POST')]
+    public function repairDefects(UrlGeneratorInterface $urlGen)
+    {
+    	$this->repo->repairAllClosureDefects(1);
+
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    }
+
+    #[Route('/_defects', name: 'repair_hierarchy_key_defects', methods: 'POST')]
+    public function repairKeyDefects(UrlGeneratorInterface $urlGen)
+    {
+    	$this->repo->repairKeyClosureDefects($key, 1);
+
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    }
+
+    #[Route('/normalize_order/{key}', name: 'normalize_key_order', methods: 'POST')]
+    public function normalizeKeyOrder(UrlGeneratorInterface $urlGen, $key)
+    {
+    	$this->repo->normalizedKeyAllRowOrder($key);
+
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    }
+
+    #[Route('/normalize_order', name: 'normalize_all_order', methods: 'POST')]
+    public function normalizeAllOrder(UrlGeneratorInterface $urlGen)
+    {
+    	$this->repo->normalizedAllRowOrder();
+
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    }
+
     #[Route('/{key}/new', name: 'new_root_node', methods: 'GET')]
 	#[Template()]
     public function newRootNode(Request $request, $key)
@@ -179,11 +222,6 @@ class HierarchyController {
 		$this->repo->updateNode($key, $id, $request->request->get('field', []));
 
     	return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
-    }
-
-    #[Route('/{key}/normalize_order', name: 'normalize_order', methods: 'POST')]
-    public function normalizeOrder()
-    {
     }
 
     #[Route('/{key}', name: 'list_root_nodes', methods: 'GET')]

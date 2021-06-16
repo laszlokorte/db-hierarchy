@@ -30,4 +30,8 @@ class TreeNode {
 
 		return $result;
 	}
+
+	public function isNotEmpty() {
+		return !empty($this->tree->data[$this->hierarchyKey][$this->scope.'/'.$this->parent]);
+	}
 }

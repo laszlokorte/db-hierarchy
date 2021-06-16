@@ -100,38 +100,75 @@ class Repository {
 		return $result;
 	}
 
-	public function repairClosures() {
+	public function loadKeyClosureDefects($key) {
+		$reflexive = $this->definition->structure[$key]['reflexive'];
+
+		$checkInvalid = $this->buildQuery('SELECT * FROM %s_closure_invalid', $key, $key);
+		$checkInvalid->execute();
+		$affectedInvalid = $checkInvalid->fetchAll();
+
+		$checkMissing = $this->buildQuery('SELECT * FROM %s_closure_missing', $key, $key);
+		$checkMissing->execute();
+		$affectedMissing = $checkMissing->fetchAll();
+		
+		return [
+			'invalid' => $affectedInvalid,
+			'missing' => $affectedMissing,
+		];
+	}
+
+	public function loadAllClosureDefects() {
+		$result = [];
+
 		foreach ($this->definition->structure as $key => $parent) {
 			if(!$parent['reflexive']) {
 				continue;
 			}
-			$limit = 5;
-			do {
-				$dirty = false;
-				$checkInvalid = $this->buildQuery('DELETE FROM %s_closure WHERE id IN (SELECT id FROM %s_closure_invalid)', $key, $key);
-				$checkInvalid->execute();
-				$affectedInvalid = $checkInvalid->rowCount();
-				if($affectedInvalid) {
-					$dirty = true;
-				}
 
-				$checkMissing = $this->buildQuery('INSERT INTO %s_closure SELECT * FROM %s_closure_missing;', $key, $key);
-				$checkMissing->execute();
-				$affectedMissing = $checkMissing->rowCount();
-
-				if($affectedMissing) {
-					$dirty = true;
-				}
-
-				if($limit-- < 0) {
-					if($trans) {
-						$this->db->rollback();
-					}
-					throw new ConsistencyException("limit reached");
-				}
-			} while($dirty);
+			$result[$key] = $this->loadKeyClosureDefects($key);
 		}
 
+		return $result;
+	}
+
+	public function repairKeyClosureDefects($key, $limit) {
+		if(!$this->definition->structure[$key]['reflexive']) {
+			return;
+		}
+
+		do {
+			if($limit-- < 0) {
+				throw new ConsistencyException("limit reached");
+			}
+
+			$dirty = false;
+
+			$checkInvalid = $this->buildQuery('DELETE FROM %s_closure WHERE id IN (SELECT id FROM %s_closure_invalid)', $key, $key);
+			$checkInvalid->execute();
+			$affectedInvalid = $checkInvalid->rowCount();
+			if($affectedInvalid) {
+				$dirty = true;
+			}
+
+			$checkMissing = $this->buildQuery('INSERT INTO %s_closure SELECT * FROM %s_closure_missing;', $key, $key);
+			$checkMissing->execute();
+			$affectedMissing = $checkMissing->rowCount();
+
+			if($affectedMissing) {
+				$dirty = true;
+			}
+
+		} while($dirty);
+	}
+
+	public function repairAllClosureDefects($limit) {
+		foreach ($this->definition->structure as $key => $parent) {
+			if(!$parent['reflexive']) {
+				continue;
+			}
+			
+			$this->repairKeyClosureDefects($key, $limit);
+		}
 	}
 
 	public function createSchema() {
@@ -753,7 +790,7 @@ class Repository {
 					$insStmt->execute();
 				}
 
-				$this->repairClosures();
+				$this->repairKeyClosureDefects($key, 5);
 			}
 			$this->db->commit();
 		} catch(\Exception $e) {
@@ -843,6 +880,168 @@ class Repository {
 					$key, $order, $order, $key
 				);
 				$stmt->execute();
+			}
+		}
+	}
+
+	public function normalizedAllRowOrder() {
+		foreach ($this->definition->structure as $key => $conf) {
+			if($conf['order']) {
+				$this->normalizedKeyAllRowOrder($key);
+			}
+		}
+	}
+
+	public function normalizedKeyAllRowOrder($key) {
+		$self = $this->definition->structure[$key];
+		$reflexive = $self['reflexive'];
+		$parent = $self['parent'];
+		$order = $self['order'];
+
+		if(!$order) {
+			throw new ConsistencyException("no order");
+		}
+
+		if($parent) {
+			if($reflexive) {
+				$stmt = $this->buildQuery('
+					UPDATE %s AS outer
+					SET %s = normalized FROM 
+					(
+						SELECT 
+							h.id AS inner_id,
+							ROW_NUMBER() OVER(PARTITION BY h.parent, h.%s_id ORDER BY h.%s ASC, h.id DESC) AS normalized FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
+						
+					) 
+					WHERE outer.id = inner_id', 
+					$key, $order, $parent, $order, $key, $key
+				);
+				$stmt->execute();
+			} else {
+				$stmt = $this->buildQuery('
+					UPDATE %s AS outer
+					SET %s = normalized FROM 
+					(
+						SELECT 
+							h.id AS inner_id,
+							ROW_NUMBER() OVER(PARTITION BY %s_id ORDER BY %s ASC, id DESC) AS normalized FROM %s h
+						
+					) 
+					WHERE outer.id = inner_id', 
+					$key, $order, $parent, $order, $key
+				);
+				$stmt->execute();
+			}
+		} else {
+			if($reflexive) {
+				$stmt = $this->buildQuery('
+					UPDATE %s AS outer
+					SET %s = normalized FROM 
+					(
+						SELECT 
+							h.id AS inner_id,
+							ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%s ASC, s.id DESC) AS normalized FROM %s_hierarchy h INNER JOIN %s s ON h.id=s.id
+						
+					) 
+					WHERE outer.id = inner_id', 
+					$key, $order, $order, $key, $key
+				);
+				$stmt->execute();
+			} else {
+				$stmt = $this->buildQuery('
+					UPDATE %s AS outer
+					SET %s = normalized FROM 
+					(
+						SELECT 
+							id AS inner_id,
+							ROW_NUMBER() OVER(ORDER BY %s ASC, id DESC) AS normalized FROM %s
+						
+					) 
+					WHERE outer.id = inner_id', 
+					$key, $order, $order, $key
+				);
+				$stmt->execute();
+			}
+		}
+	}
+
+	public function loadAllRowOrder() {
+		foreach ($this->definition->structure as $key => $conf) {
+			if(!$conf['order']) {
+				continue;
+			}
+
+			$result[$key] = $this->loadKeyRowOrder($key);
+		}
+
+		return $result;
+	}
+
+	public function loadKeyRowOrder($key) {
+		$self = $this->definition->structure[$key];
+		$reflexive = $self['reflexive'];
+		$parent = $self['parent'];
+		$order = $self['order'];
+
+		if(!$order) {
+			throw new ConsistencyException("no order");
+		}
+
+		if($parent) {
+			if($reflexive) {
+				$stmt = $this->buildQuery('
+				SELECT * FROM
+				(	SELECT 
+					s.id AS id,
+					s.%s AS stored_order,
+					ROW_NUMBER() OVER(PARTITION BY h.parent, h.%s_id ORDER BY h.%s ASC, h.id DESC) AS normalized_order FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
+				)	
+				WHERE stored_order <> normalized_order', 
+					$order, $parent, $order, $key, $key
+				);
+				$stmt->execute();
+				return $stmt->fetchAll();
+			} else {
+				$stmt = $this->buildQuery('
+				SELECT * FROM
+				(	SELECT 
+						s.id AS id,
+						s.%s AS stored_order,
+						ROW_NUMBER() OVER(PARTITION BY %s_id ORDER BY %s ASC, id DESC) AS normalized_order FROM %s s
+					)	
+					WHERE stored_order <> normalized_order', 
+					$order, $parent, $order, $key
+				);
+				$stmt->execute();
+				return $stmt->fetchAll();
+			}
+		} else {
+			if($reflexive) {
+				$stmt = $this->buildQuery('
+				SELECT * FROM
+				(	SELECT 
+						s.id AS id,
+						s.%s AS stored_order,
+						ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%s ASC, s.id DESC) AS normalized_order FROM %s_hierarchy h INNER JOIN %s s ON h.id=s.id
+					)	
+					WHERE stored_order <> normalized_order', 
+					$order, $order, $key, $key
+				);
+				$stmt->execute();
+				return $stmt->fetchAll();
+			} else {
+				$stmt = $this->buildQuery('
+				SELECT * FROM
+				(	SELECT 
+						s.id AS id,
+						s.%s AS stored_order,
+						ROW_NUMBER() OVER(ORDER BY %s ASC, id DESC) AS normalized_order FROM %s s
+)
+					WHERE stored_order <> normalized_order', 
+					$order, $order, $key
+				);
+				$stmt->execute();
+				return $stmt->fetchAll();
 			}
 		}
 	}
@@ -1061,7 +1260,7 @@ class Repository {
 					}
 				}
 			}
-			$this->repairClosures();
+			$this->repairKeyClosureDefects($key, 5);
 
 			if($order) {
 				$this->normalizeRowOrder($key, $scopeId?:null, $parentId?:null);
@@ -1307,8 +1506,8 @@ class Repository {
 				SELECT
 					t.%SCOPE%_id AS %SCOPE%_id,
 					t.id AS id,
-					t.parent_id AS x,
-					t.child_id AS y,
+					t.parent_id AS parent_id,
+					t.child_id AS child_id,
 					t.depth AS depth
 				FROM
 					%NAME%_closure t
@@ -1355,8 +1554,8 @@ class Repository {
 			return str_replace(['%NAME%'], [$table], <<<SQL
 				SELECT
 					t.id AS id,
-					t.parent_id AS x,
-					t.child_id AS y,
+					t.parent_id AS parent_id,
+					t.child_id AS child_id,
 					t.depth AS depth
 				FROM
 					%NAME%_closure t
