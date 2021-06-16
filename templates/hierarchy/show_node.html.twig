@@ -44,7 +44,7 @@
     <dl class="form-container">{% for field in fields %}
         <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label> <a href="{{ path('show_node_field',{key, id, field}) }}" title="">View</a></dt>
         <dd class="form-container-field">
-        <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field] }}">
+        <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field]|join }}">
     {% endfor %}</dd>
     <dt class="form-container-spacer"></dt>
     <dd class="form-container-buttons">
@@ -53,7 +53,9 @@
     </dl>
 </form>
 
+{% if childKeys|length %}
 <h2>Children</h2>
+{% endif %}
 
 {% for childKey in childKeys %}
     <h3>{{ childKey|capitalize }}s</h3>

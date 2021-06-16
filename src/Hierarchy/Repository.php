@@ -465,7 +465,7 @@ class Repository {
 			}
 		}
 
-		return $result;
+		return array_map(fn($row) => $this->definition->columnDataToFieldData($childKey, $row), $result);
 	}
 
 	public function loadNodeSelf($key, $id) {
@@ -648,14 +648,14 @@ class Repository {
 	}
 
 	public function loadNodeField($key, $id, $field) {
-		if(!in_array($field, $this->definition->hasField($key, $field))) {
+		if(!$this->definition->hasField($key, $field)) {
 			throw new \Exception("invalid field");
 		}
-		$selfStmt = $this->buildQuery('SELECT %s AS value FROM %s WHERE id = :selfId', $field, $key);
+		$selfStmt = $this->buildQuery('SELECT %s FROM %s WHERE id = :selfId', implode(', ', $this->definition->getFieldColumns($key, $field)), $key);
 		$selfStmt->bindValue('selfId', $id);
 		$selfStmt->execute();
 		
-		return $selfStmt->fetchColumn();
+		return $this->definition->columnDataToSingleFieldData($key, $field, $selfStmt->fetch());
 	}
 
 	public function deleteNode($key, $id) {

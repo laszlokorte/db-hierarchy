@@ -172,15 +172,20 @@ class Definition {
 		];
 
 		foreach ($this->structure[$key]['fields'] as $fieldName => $options) {
-			$type = $options['type'];
-			$reader = $this->fieldTypes[$type]['reader'];
-
-			$collectedColumns = $this->getFieldColumns($key, $fieldName);
-
-			$result[$fieldName] = $reader(...array_map(fn($c) => $columnData[$c], $collectedColumns));
+			$result[$fieldName] = $this->columnDataToSingleFieldData($key, $fieldName, $columnData);
 		}
 
 		return $result;
+	}
+
+	public function columnDataToSingleFieldData($key, $fieldName, $columnData) {
+		$options = $this->structure[$key]['fields'][$fieldName];
+		$type = $options['type'];
+		$reader = $this->fieldTypes[$type]['reader'];
+
+		$collectedColumns = $this->getFieldColumns($key, $fieldName);
+
+		return $reader(...array_map(fn($c) => $columnData[$c], $collectedColumns));
 	}
 
 	public function getColumns($key) {

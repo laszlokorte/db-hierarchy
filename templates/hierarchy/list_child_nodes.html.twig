@@ -19,7 +19,12 @@
 <h1>{{childKey|capitalize}}s</h1>
 
     <form action="{{ path('create_node',{key: childKey}) }}" method="post" accept-charset="utf-8">
-    	<input type="hidden" name="scope" value="{{node.self.id}}">
+    	{% if childKey == key %}
+            <input type="hidden" name="scope" value="{{ node.self._scope }}">
+            <input type="hidden" name="parent" value="{{ node.self.id }}">
+        {% else %}
+            <input type="hidden" name="scope" value="{{ node.self.id }}">
+        {% endif %}
     	<dl class="form-container">{% for field in childFields %}
 	        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
 	        <dd class="form-container-field">
@@ -49,7 +54,7 @@
                 <tr class="data-table-row">
                     <td class="data-table-cell"><a href="{{ path('show_node', {key: childKey, id: node.id}) }}">{{ node.id }}</a></td>
                     {% for field in childFields %}
-                        <td class="{{ html_classes('data-table-cell', {'empty': node[field] is empty}) }}">{{ node[field] }}</td>
+                        <td class="{{ html_classes('data-table-cell', {'empty': node[field] is empty}) }}">{{ node[field]|join }}</td>
                     {% endfor %}
             		<td></td>
                     <td class="data-table-cell" align="right">
@@ -77,7 +82,7 @@
         <tfoot class="data-table-foot">
             <tr class="data-table-foot-row">
                 <td class="data-table-foot-cell" colspan="{{ childFields|length + 2 }}">
-                    <a href="{{ path('list_child_nodes', {key, id: node.self.id, childKey}) }}" title="">Show {{childKey}}s</a>
+                    
                 </td>
                 <td class="data-table-foot-cell" align="right">
                     <a href="{{ path('new_child_node', {key, id: node.self.id, childKey}) }}" title="">New {{childKey|capitalize}}</a>

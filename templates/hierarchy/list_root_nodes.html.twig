@@ -28,9 +28,9 @@
     <table class="data-table">
         <thead class="data-table-head">
             <tr class="data-table-head-row">
-                <th class="data-table-head-cell">id</th>
+                <th class="data-table-head-cell">ID</th>
                 {% for field in fields %}
-                    <th class="data-table-head-cell">{{ field }}</th>
+                    <th class="data-table-head-cell">{{ field|capitalize }}</th>
                 {% endfor %}
                 <th class="data-table-head-cell" width="50%"></th>
                 <th class="data-table-head-cell" align="right">actions</th>
@@ -70,7 +70,7 @@
         <tfoot class="data-table-foot">
             <tr class="data-table-foot-row">
                 <td class="data-table-foot-cell" colspan="{{ fields|length + 2 }}">
-                    <a href="{{ path('list_root_nodes', {key, key}) }}" title="">Show {{key}}s</a>
+                    
                 </td>
                 <td class="data-table-foot-cell" align="right">
                     <a href="{{ path('new_root_node', {key, key}) }}" title="">New {{key|capitalize}}</a>
