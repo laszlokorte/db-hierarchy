@@ -180,20 +180,28 @@ class Repository {
 			foreach (array_reverse($sorted) as $key) {
 				$parent = $this->definition->structure[$key];
 
+
+				if($parent['order']) {
+					$dropNormalizedOrderView = $this->buildQuery(
+						sprintf("DROP VIEW IF EXISTS %s_normalized_order;", $key)
+					);
+					$dropNormalizedOrderView->execute();
+				}
+
 				if($parent['reflexive']) {
 
-					$createHierarchyView = $this->buildQuery(
+					$dropHierarchyView = $this->buildQuery(
 						sprintf("DROP VIEW IF EXISTS %s_hierarchy;", $key)
 					);
-					$createHierarchyView->execute();
-					$createCheckMissingView = $this->buildQuery(
+					$dropHierarchyView->execute();
+					$dropCheckMissingView = $this->buildQuery(
 						sprintf("DROP VIEW IF EXISTS %s_closure_missing;",$key)
 					);
-					$createCheckMissingView->execute();
-					$createCheckInvalidView = $this->buildQuery(
+					$dropCheckMissingView->execute();
+					$dropCheckInvalidView = $this->buildQuery(
 						sprintf("DROP VIEW IF EXISTS %s_closure_invalid;", $key)
 					);
-					$createCheckInvalidView->execute();
+					$dropCheckInvalidView->execute();
 
 					$dropClosure = $this->buildQuery(
 						sprintf('DROP TABLE IF EXISTS "%s_closure";', $key)
@@ -251,7 +259,15 @@ class Repository {
 						$key,
 						$this->checkInvalidSQL($key, $parent['parent']))
 					);
-					$createCheckInvalidView->execute();	
+					$createCheckInvalidView->execute();		
+				}
+				if($parent['order']) {
+					$createNormalizedOrderView = $this->buildQuery(
+						sprintf("CREATE VIEW IF NOT EXISTS %s_normalized_order AS %s;",
+						$key,
+						$this->normalizedOrderSQL($key, $parent['order'], $parent['parent'], $parent['reflexive']))
+					);
+					$createNormalizedOrderView->execute();
 				}
 			}
 
@@ -268,6 +284,11 @@ class Repository {
 		$sql = '';
 		foreach (array_reverse($sorted) as $key) {
 			$parent = $this->definition->structure[$key];
+
+			if($parent['order']) {
+				$sql .= sprintf("DROP VIEW IF EXISTS %s_normalized_order;", $key) .PHP_EOL;
+			}
+
 
 			if($parent['reflexive']) {
 				$sql .= sprintf("DROP VIEW IF EXISTS %s_hierarchy;", $key). PHP_EOL;
@@ -302,6 +323,10 @@ class Repository {
 
 				$sql .= sprintf("CREATE VIEW IF NOT EXISTS %s_closure_invalid AS %s;", $key,
 				$this->checkInvalidSQL($key, $parent['parent']));
+			}
+			if($parent['order']) {
+				$sql .= sprintf("CREATE VIEW IF NOT EXISTS %s_normalized_order AS %s;", $key,
+				$this->normalizedOrderSQL($key, $parent['order'], $parent['parent'], $parent['reflexive']));
 			}
 		}
 
@@ -1366,6 +1391,46 @@ class Repository {
 					FOREIGN KEY("child_id") REFERENCES "%NAME%" ("id") ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
 				);
 			SQL);
+		}
+	}
+
+	private function normalizedOrderSQL($table, $order, $parent = NULL, $reflexive = false) {
+		if($parent) {
+			if($reflexive) {
+				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
+					SELECT 
+					s.id AS id,
+					s.%ORDER% AS stored_order,
+					h.parent AS parent,
+					h.%SCOPE%_id AS scope,
+					ROW_NUMBER() OVER(PARTITION BY h.parent, h.%SCOPE%_id ORDER BY h.%ORDER% ASC, h.id DESC) AS normalized_order FROM %NAME%_hierarchy h INNER JOIN %NAME% s ON s.id=h.id
+					SQL);
+			} else {
+				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
+					SELECT 
+						s.id AS id,
+						s.%ORDER% AS stored_order,
+						s.%SCOPE%_id AS scope,
+						ROW_NUMBER() OVER(PARTITION BY %SCOPE%_id ORDER BY %ORDER% ASC, id DESC) AS normalized_order FROM %NAME% s
+					SQL);
+			}
+		} else {
+			if($reflexive) {
+				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
+					SELECT 
+						s.id AS id,
+						s.%ORDER% AS stored_order,
+						h.parent AS parent,
+						ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%ORDER% ASC, s.id DESC) AS normalized_order FROM %NAME%_hierarchy h INNER JOIN %NAME% s ON h.id=s.id
+					SQL);
+			} else {
+				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
+					SELECT 
+						s.id AS id,
+						s.%ORDER% AS stored_order,
+						ROW_NUMBER() OVER(ORDER BY %ORDER% ASC, id DESC) AS normalized_order FROM %ORDER% s
+					SQL);
+			}
 		}
 	}
 
