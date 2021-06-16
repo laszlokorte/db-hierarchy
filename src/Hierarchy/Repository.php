@@ -62,6 +62,8 @@ class Repository {
 		if($this->isScoped($key)) {
 			$targets[$this->getParentKey($key)] = $this->loadPartialHierarchy($this->getParentKey($key));
 			$baseKey = $this->getParentKey($key);
+		} else {
+			$result[] = ['depth' => 0, 'value' => '', 'label' => '/'];
 		}
 
 		$walk = function($hierarchyKey, $scope, $parent, $depth, $self) use ($targets, $key, $id, &$result) {
