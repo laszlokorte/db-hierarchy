@@ -1,0 +1,28 @@
+<form action="{{ path('update_node',{key, id}) }}" method="post" accept-charset="utf-8">
+	{% if then is defined %}
+	<input type="hidden" name="_then" value="{{then}}">
+	{% endif %}
+
+	{% if parent is defined %}
+	{% if parent.key == key %}
+        <input type="hidden" name="scope" value="{{ parent.scope }}">
+        <input type="hidden" name="parent" value="{{ parent.id }}">
+    {% else %}
+        <input type="hidden" name="scope" value="{{ parent.id }}">
+    {% endif %}
+	{% endif %}
+	
+	<dl class="form-container">
+		{% for field in fields %}
+        <dt class="form-container-label">
+        <label class="form-label" for="field_{{field}}">{{field|capitalize}}</label>
+        </dt>
+        <dd class="form-container-field">
+        <input class="form-field" type="text" id="field_{{field}}" name="field[{{field}}]" value="{{values[field]}}">
+    	</dd>
+    	{% endfor %}
+
+	<dt class="form-container-spacer"></dt>
+	<dd class="form-container-buttons"><button class="form-button">Update</button></dd>
+    </dl>
+</form>

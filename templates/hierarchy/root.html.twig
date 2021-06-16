@@ -8,70 +8,8 @@
 {% for rootKey in rootKeys %}
     <h2>{{ rootKey|capitalize }}s</h2>
 
-    <form action="{{ path('create_node',{key: rootKey}) }}" method="post" accept-charset="utf-8">
-    	<input type="hidden" name="_then" value="root">
-    	<dl class="form-container">{% for field in allFields[rootKey] %}
-	        <dt class="form-container-label"><label class="form-label" for="field_{{field}}">{{field|capitalize}}</label></dt>
-	        <dd class="form-container-field">
-	        <input class="form-field" type="text" id="field_{{field}}" name="field[{{field}}]">
-	    {% endfor %}</dd>
+    {% include 'hierarchy/partials/form_new.html.twig' with {fields: allFields[rootKey], key: rootKey, then: 'root'} only %}
 
-    	<dt class="form-container-spacer"></dt>
-    	<dd class="form-container-buttons"><button class="form-button">Create</button></dd>
-	    </dl>
-    </form>
-
-    <table class="data-table">
-        <thead class="data-table-head">
-            <tr class="data-table-head-row">
-                <th class="data-table-head-cell">ID</th>
-                {% for field in allFields[rootKey] %}
-                    <th class="data-table-head-cell">{{ field|capitalize }}</th>
-                {% endfor %}
-                <th class="data-table-head-cell" width="50%"></th>
-                <th class="data-table-head-cell" align="right">actions</th>
-            </tr>
-        </thead>
-        {% if rootNodes[rootKey]|length %}
-        	<tbody class="data-table-body">
-                {% for rootNode in rootNodes[rootKey] %}
-                    <tr class="data-table-row">
-                        <td class="data-table-cell"><a href="{{ path('show_node', {key: rootKey, id: rootNode.id}) }}">{{ rootNode.id }}</a></td>
-                        {% for field in allFields[rootKey] %}
-                            <td class="{{ html_classes('data-table-cell', {'empty': rootNode[field] is empty}) }}">{{ rootNode[field]|join }}</td>
-                        {% endfor %}
-                		<td></td>
-                        <td class="data-table-cell" align="right">
-                             <form class="inline-form" action="{{ path('delete_node', {key: rootKey, id: rootNode.id}) }}" method="post" accept-charset="utf-8">
-    							<input type="hidden" name="_then" value="root">
-                                <button class="inline-button">X</button>
-                            </form>
-
-                            <a href="{{ path('ask_delete_node', {key: rootKey, id: rootNode.id}) }}" title="">Delete</a>
-                            <a href="{{ path('edit_node', {key: rootKey, id: rootNode.id}) }}" title="">Edit</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-
-        	</tbody>
-        {% else %}
-			<tbody>
-                <tr class="data-table-empty-row">
-                    <td class="data-table-empty-cell" colspan="{{ allFields[rootKey]|length + 3 }}">empty<br><a href="{{ path('new_root_node', {key: rootKey}) }}" title="">Add {{rootKey|capitalize}}</a>
-					</td>
-                </tr>
-			</tbody>
-        {% endif %}
-        <tfoot class="data-table-foot">
-        	<tr class="data-table-foot-row">
-            	<td class="data-table-foot-cell" colspan="{{ allFields[rootKey]|length + 2 }}">
-					<a href="{{ path('list_root_nodes', {key: rootKey}) }}" title="">Show {{rootKey}}s</a>
-            	</td>
-            	<td class="data-table-foot-cell" align="right">
-        		    <a href="{{ path('new_root_node', {key: rootKey}) }}" title="">New {{rootKey|capitalize}}</a>
-            	</td>
-            </tr>
-        </tfoot>
-    </table>
+    {% include 'hierarchy/partials/table.html.twig' with {fields: allFields[rootKey], nodes: rootNodes[rootKey], key: rootKey, then: 'root', listLink: true} only %}
 {% endfor %}
 {% endblock %}

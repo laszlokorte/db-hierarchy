@@ -18,24 +18,7 @@
 
 <h1>New {{childKey|capitalize}}</h1>
 
-    <form action="{{ path('create_node',{key: childKey}) }}" method="post" accept-charset="utf-8">
-    	{% if childKey == key %}
-            <input type="hidden" name="scope" value="{{ node.self._scope }}">
-            <input type="hidden" name="parent" value="{{ id }}">
-        {% else %}
-            <input type="hidden" name="scope" value="{{ id }}">
-        {% endif %}
-    	<dl class="form-container">{% for field in childFields %}
-	        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
-	        <dd class="form-container-field">
-	        <input type="text" id="field_{{field}}" name="field[{{field}}]">
-	    {% endfor %}</dd>
-	    <dt class="form-container-spacer"></dt>
-	    <dd class="form-container-buttons">
-    	<button>Create</button>
-    	<a href="{{ path('show_node', {key, id}) }}" title="">Cancel</a>
-	    </dd>
-	    </dl>
-    </form>
+
+{% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key, id, scope: node.self._scope}} only %}
 
 {% endblock %}

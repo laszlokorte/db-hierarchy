@@ -20,18 +20,6 @@
 <h1>Edit {{ key|capitalize }} {{id}}</h1>
 
 
-<form action="{{ path('update_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
-    <dl class="form-container">{% for field in fields %}
-        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label><a class="icon-link" href="{{ path('show_node_field',{key, id, field}) }}" title="" target="_blank">➥</a></dt>
-        <dd class="form-container-field">
-        <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field]|join }}">
-    {% endfor %}</dd>
-        <dt class="form-container-spacer"></dt>
-        <dd class="form-container-buttons">
-            <button>Save</button>
-            <a href="{{ path('show_node', {key, id}) }}" title="">Cancel</a>
-        </dd>
-    </dl>
-</form>
+{% include 'hierarchy/partials/form_edit.html.twig' with {fields, key, id, values: node.self, then: 'edit'} only %}
 
 {% endblock %}

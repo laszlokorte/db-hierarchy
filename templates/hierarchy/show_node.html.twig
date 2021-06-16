@@ -60,82 +60,9 @@
 {% for childKey in childKeys %}
     <h3>{{ childKey|capitalize }}s</h3>
 
+    {% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields[childKey], key: childKey, parent:{key,id,scope:node.self._scope}} only %}
 
-    <form action="{{ path('create_node',{key: childKey}) }}" method="post" accept-charset="utf-8">
-        {% if childKey == key %}
-            <input type="hidden" name="scope" value="{{ node.self._scope }}">
-            <input type="hidden" name="parent" value="{{ id }}">
-        {% else %}
-            <input type="hidden" name="scope" value="{{ id }}">
-        {% endif %}
-
-        <dl class="form-container">{% for field in childFields[childKey] %}
-            <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
-            <dd class="form-container-field">
-            <input type="text" id="field_{{field}}" name="field[{{field}}]" value="">
-        {% endfor %}</dd>
-        <dt class="form-container-spacer"></dt>
-        <dd class="form-container-buttons">
-            <button>Create</button>
-        </dd>
-        </dl>
-    </form>
-
-    <table class="data-table">
-        <thead class="data-table-head">
-            <tr class="data-table-head-row">
-                <th class="data-table-head-cell">ID</th>
-                {% for field in childFields[childKey] %}
-                    <th class="data-table-head-cell">{{ field|capitalize }}</th>
-                {% endfor %}
-                <th class="data-table-head-cell" width="50%"></th>
-                <th class="data-table-head-cell" align="right">actions</th>
-            </tr>
-        </thead>
-        {% if node['children'][childKey]|length %}
-            <tbody class="data-table-body">
-                {% for childNode in node['children'][childKey] %}
-                    <tr class="data-table-row">
-                        <td class="data-table-cell"><a href="{{ path('show_node', {key: childKey, id: childNode.id}) }}">{{ childNode.id }}</a></td>
-                        {% for field in childFields[childKey] %}
-                            <td class="{{ html_classes('data-table-cell', {'empty': childNode[field] is empty}) }}">{{ childNode[field]|join }}</td>
-                        {% endfor %}
-                        <td></td>
-                        <td class="data-table-cell" align="right">
-                             <form class="inline-form" action="{{ path('delete_node', {key: childKey, id: childNode.id}) }}" method="post" accept-charset="utf-8">
-                                <button class="inline-button">X</button>
-                            </form>
-
-
-
-                            <a href="{{ path('ask_delete_node', {key: childKey, id: childNode.id}) }}" title="">Delete</a>
-
-                            <a href="{{ path('edit_node', {key: childKey, id: childNode.id}) }}" title="">Edit</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        {% else %}
-            <body>
-                <tr class="data-table-empty-row">
-                    <td class="data-table-empty-cell" colspan="{{ childFields[childKey]|length + 3 }}">
-                        empty<br>
-                        <a href="{{ path('new_child_node', {key, id, childKey}) }}" title="">New {{childKey}}</a>
-                    </td>
-                </tr>
-            </tbody>
-        {% endif %}
-        <tfoot class="data-table-foot">
-            <tr class="data-table-foot-row">
-                <td class="data-table-foot-cell" colspan="{{ childFields[childKey]|length + 2 }}">
-                    <a href="{{ path('list_child_nodes', {key, id, childKey}) }}" title="">Show {{childKey}}s</a>
-                </td>
-                <td class="data-table-foot-cell" align="right">
-                    <a href="{{ path('new_child_node', {key, id, childKey}) }}" title="">New {{childKey|capitalize}}</a>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
+    {% include 'hierarchy/partials/table.html.twig' with {fields: childFields[childKey], nodes: node['children'][childKey], key: childKey, parent: {key, id}, listLink: true} only %}
 
 {% endfor %}
 {% endblock %}
