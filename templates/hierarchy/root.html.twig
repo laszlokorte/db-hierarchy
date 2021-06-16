@@ -9,7 +9,7 @@
     <h2>{{ rootKey|capitalize }}s</h2>
 
     <form action="{{ path('create_node',{key: rootKey}) }}" method="post" accept-charset="utf-8">
-    	<input type="hidden" name="_then" value="new">
+    	<input type="hidden" name="_then" value="root">
     	<dl class="form-container">{% for field in allFields[rootKey] %}
 	        <dt class="form-container-label"><label class="form-label" for="field_{{field}}">{{field|capitalize}}</label></dt>
 	        <dd class="form-container-field">
@@ -43,6 +43,7 @@
                 		<td></td>
                         <td class="data-table-cell" align="right">
                              <form class="inline-form" action="{{ path('delete_node', {key: rootKey, id: rootNode.id}) }}" method="post" accept-charset="utf-8">
+    							<input type="hidden" name="_then" value="root">
                                 <button class="inline-button">X</button>
                             </form>
 

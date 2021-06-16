@@ -181,8 +181,13 @@ class HierarchyController {
 
 		$this->repo->deleteNode($key, $id);
 
+		$then = $request->request->get('_then', null);
+
+		if($then === 'root') {
+			return new RedirectResponse($urlGen->generate('hierarchy_root'));
+		}
+
 		if($lastParent) {
-			$then = $request->request->get('_then', null);
 			if($then === 'list') {
 				$args = $lastParent;
 				$args['childKey'] = $key;
@@ -220,6 +225,8 @@ class HierarchyController {
 
 		if($then === 'new') {
 			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $newId]));
+		} elseif($then === 'root') {
+			return new RedirectResponse($urlGen->generate('hierarchy_root'));
 		}
 
     	if($parent) {
