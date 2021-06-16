@@ -846,15 +846,10 @@ class Repository {
 			if($reflexive) {
 				$stmt = $this->buildQuery('
 					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							h.id AS inner_id,
-							ROW_NUMBER() OVER(PARTITION BY h.parent, h.%s_id ORDER BY h.%s ASC, h.id DESC) AS normalized FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE parent IS :parent AND h.%s_id=:scope
-						
-					) 
+					SET %s = normalized_order FROM 
+					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order AND scope=:scope AND parent IS :parent) 
 					WHERE outer.id = inner_id', 
-					$key, $order, $parent, $order, $key, $key, $parent
+					$key, $order, $key
 				);
 				$stmt->bindValue('parent', $parentId);
 				$stmt->bindValue('scope', $scopeId);
@@ -862,15 +857,10 @@ class Repository {
 			} else {
 				$stmt = $this->buildQuery('
 					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							h.id AS inner_id,
-							ROW_NUMBER() OVER(PARTITION BY %s_id ORDER BY %s ASC, id DESC) AS normalized FROM %s h WHERE %s_id=:scope
-						
-					) 
+					SET %s = normalized_order FROM 
+					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order AND scope=:scope) 
 					WHERE outer.id = inner_id', 
-					$key, $order, $parent, $order, $key, $parent
+					$key, $order, $key
 				);
 				$stmt->bindValue('scope', $scopeId);
 				$stmt->execute();
@@ -879,30 +869,20 @@ class Repository {
 			if($reflexive) {
 				$stmt = $this->buildQuery('
 					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							h.id AS inner_id,
-							ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%s ASC, s.id DESC) AS normalized FROM %s_hierarchy h INNER JOIN %s s ON h.id=s.id WHERE h.parent IS :parent
-						
-					) 
+					SET %s = normalized_order FROM 
+					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order AND parent IS :parent) 
 					WHERE outer.id = inner_id', 
-					$key, $order, $order, $key, $key
+					$key, $order, $key
 				);
 				$stmt->bindValue('parent', $parentId);
 				$stmt->execute();
 			} else {
 				$stmt = $this->buildQuery('
 					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							id AS inner_id,
-							ROW_NUMBER() OVER(ORDER BY %s ASC, id DESC) AS normalized FROM %s
-						
-					) 
+					SET %s = normalized_order FROM 
+					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order) 
 					WHERE outer.id = inner_id', 
-					$key, $order, $order, $key
+					$key, $order, $key
 				);
 				$stmt->execute();
 			}
@@ -927,67 +907,14 @@ class Repository {
 			throw new ConsistencyException("no order");
 		}
 
-		if($parent) {
-			if($reflexive) {
-				$stmt = $this->buildQuery('
-					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							h.id AS inner_id,
-							ROW_NUMBER() OVER(PARTITION BY h.parent, h.%s_id ORDER BY h.%s ASC, h.id DESC) AS normalized FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
-						
-					) 
-					WHERE outer.id = inner_id', 
-					$key, $order, $parent, $order, $key, $key
-				);
-				$stmt->execute();
-			} else {
-				$stmt = $this->buildQuery('
-					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							h.id AS inner_id,
-							ROW_NUMBER() OVER(PARTITION BY %s_id ORDER BY %s ASC, id DESC) AS normalized FROM %s h
-						
-					) 
-					WHERE outer.id = inner_id', 
-					$key, $order, $parent, $order, $key
-				);
-				$stmt->execute();
-			}
-		} else {
-			if($reflexive) {
-				$stmt = $this->buildQuery('
-					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							h.id AS inner_id,
-							ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%s ASC, s.id DESC) AS normalized FROM %s_hierarchy h INNER JOIN %s s ON h.id=s.id
-						
-					) 
-					WHERE outer.id = inner_id', 
-					$key, $order, $order, $key, $key
-				);
-				$stmt->execute();
-			} else {
-				$stmt = $this->buildQuery('
-					UPDATE %s AS outer
-					SET %s = normalized FROM 
-					(
-						SELECT 
-							id AS inner_id,
-							ROW_NUMBER() OVER(ORDER BY %s ASC, id DESC) AS normalized FROM %s
-						
-					) 
-					WHERE outer.id = inner_id', 
-					$key, $order, $order, $key
-				);
-				$stmt->execute();
-			}
-		}
+		$stmt = $this->buildQuery('
+			UPDATE %s AS outer
+			SET %s = normalized_order FROM 
+			(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order) 
+			WHERE outer.id = inner_id', 
+			$key, $order, $key
+		);
+		$stmt->execute();
 	}
 
 	public function loadAllRowOrder() {
@@ -1012,63 +939,9 @@ class Repository {
 			throw new ConsistencyException("no order");
 		}
 
-		if($parent) {
-			if($reflexive) {
-				$stmt = $this->buildQuery('
-				SELECT * FROM
-				(	SELECT 
-					s.id AS id,
-					s.%s AS stored_order,
-					ROW_NUMBER() OVER(PARTITION BY h.parent, h.%s_id ORDER BY h.%s ASC, h.id DESC) AS normalized_order FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
-				)	
-				WHERE stored_order <> normalized_order', 
-					$order, $parent, $order, $key, $key
-				);
-				$stmt->execute();
-				return $stmt->fetchAll();
-			} else {
-				$stmt = $this->buildQuery('
-				SELECT * FROM
-				(	SELECT 
-						s.id AS id,
-						s.%s AS stored_order,
-						ROW_NUMBER() OVER(PARTITION BY %s_id ORDER BY %s ASC, id DESC) AS normalized_order FROM %s s
-					)	
-					WHERE stored_order <> normalized_order', 
-					$order, $parent, $order, $key
-				);
-				$stmt->execute();
-				return $stmt->fetchAll();
-			}
-		} else {
-			if($reflexive) {
-				$stmt = $this->buildQuery('
-				SELECT * FROM
-				(	SELECT 
-						s.id AS id,
-						s.%s AS stored_order,
-						ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%s ASC, s.id DESC) AS normalized_order FROM %s_hierarchy h INNER JOIN %s s ON h.id=s.id
-					)	
-					WHERE stored_order <> normalized_order', 
-					$order, $order, $key, $key
-				);
-				$stmt->execute();
-				return $stmt->fetchAll();
-			} else {
-				$stmt = $this->buildQuery('
-				SELECT * FROM
-				(	SELECT 
-						s.id AS id,
-						s.%s AS stored_order,
-						ROW_NUMBER() OVER(ORDER BY %s ASC, id DESC) AS normalized_order FROM %s s
-)
-					WHERE stored_order <> normalized_order', 
-					$order, $order, $key
-				);
-				$stmt->execute();
-				return $stmt->fetchAll();
-			}
-		}
+		$stmt = $this->buildQuery('SELECT * FROM %s_normalized_order WHERE stored_order <> normalized_order', $key);
+		$stmt->execute();
+		return $stmt->fetchAll();
 	}
 
 	public function orderNodeUp($key, $id) {
@@ -1428,7 +1301,7 @@ class Repository {
 					SELECT 
 						s.id AS id,
 						s.%ORDER% AS stored_order,
-						ROW_NUMBER() OVER(ORDER BY %ORDER% ASC, id DESC) AS normalized_order FROM %ORDER% s
+						ROW_NUMBER() OVER(ORDER BY %ORDER% ASC, id DESC) AS normalized_order FROM %NAME% s
 					SQL);
 			}
 		}
