@@ -23,14 +23,17 @@
 
 
 <form action="{{ path('delete_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
+
     <p>
         Are you sure you want to delete this {{ key }}?
     </p>
 
-    <button>Delete</button>
-
-    <p>
-        <a href="{{ path('show_node', {key, id}) }}" title="cancel">Cancel</a>
-    </p>
+    <dl class="form-container">
+        <dt class="form-container-spacer"></dt>
+        <dd class="form-container-buttons">
+            <button>Delete</button>
+            <a href="{{ path('show_node', {key, id}) }}" title="cancel">Cancel</a>
+        </dd>
+    </dl>
 </form>
 {% endblock %}

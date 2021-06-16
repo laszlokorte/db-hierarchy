@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="html-root">
     <head>
         {% block html_head %}
         <meta charset="UTF-8">
@@ -9,6 +9,15 @@
         {% block html_stylesheets %}
             {#{{ encore_entry_link_tags('app') }}#}
             <style>
+                .html-root {
+                    height: 100%;
+                }
+
+                .html-body {
+                    height: 100%;
+                    margin: 0;
+                }
+
                 .data-table {
                     min-width: 100%;
                 }
@@ -62,6 +71,53 @@
                     border: none;
                     border-radius: 3px;
                 }
+
+                .icon-link {
+                    text-decoration: none;
+                }
+
+                .plain-list {
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .flash-message {
+                    padding: 1em;
+                    margin: 0.5em 0;
+                }
+
+                .flash-message.success {
+                    background: #ccffcc;
+                }
+
+                .prompt-box {
+                    border: 3px solid #eee;
+                    padding: 2em;
+                    background: #fff;
+                }
+
+                .prompt-titel {
+                    margin: 0 0 1em;
+                    text-align: center;
+                }
+
+                .prompt-container {
+                    height: 100%;
+                    display: grid;
+                    align-items: center;
+                    justify-content: center;
+                    background: #333339;
+                }
+
+                .prompt-error {
+                    text-align: center;
+                    color: #a00;
+                }
+
+                a:not([class]) {
+                    color: #034;
+                }
             </style>
         {% endblock %}
 
@@ -70,7 +126,7 @@
         {% endblock %}
         {% endblock %}
     </head>
-    <body>
+    <body class="html-body">
         {% block html_body %}
 
             {% block area_main %}

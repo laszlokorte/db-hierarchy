@@ -5,6 +5,7 @@ namespace App\Controller;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
@@ -175,13 +176,15 @@ class HierarchyController {
     }
 
     #[Route('/{key}/{id}/-', name: 'delete_node', methods: 'POST')]
-    public function deleteNode(UrlGeneratorInterface $urlGen, Request $request, $key, $id)
+    public function deleteNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
     	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
 
 		$this->repo->deleteNode($key, $id);
 
 		$then = $request->request->get('_then', null);
+
+		$session->getFlashBag()->add('success', 'Node Deleted');
 
 		if($then === 'root') {
 			return new RedirectResponse($urlGen->generate('hierarchy_root'));
@@ -215,13 +218,15 @@ class HierarchyController {
     }
 
     #[Route('/{key}', name: 'create_node', methods: 'POST')]
-    public function createNode(UrlGeneratorInterface $urlGen, Request $request, $key)
+    public function createNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key)
     {
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
     	$newId = $this->repo->createNode($key, $request->request->get('field', []), $scope, $parent);
 
 		$then = $request->request->get('_then', null);
+		
+		$session->getFlashBag()->add('success', 'Node Created');
 
 		if($then === 'new') {
 			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $newId]));
@@ -248,7 +253,7 @@ class HierarchyController {
     }
 
     #[Route('/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
-    public function moveNode(UrlGeneratorInterface $urlGen, Request $request, $key, $id)
+    public function moveNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
     	$target = explode('/', $request->request->get('target_scope-parent','/'), 2);
     	$scope = $target[0]??null;
@@ -256,15 +261,19 @@ class HierarchyController {
 
 		$this->repo->moveNode($key, $id, $scope?:null, $parent?:null);
 
+		$session->getFlashBag()->add('success', 'Node Moved');
+
     	return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
     }
 
     #[Route('/{key}/{id}', name: 'update_node', methods: 'POST')]
-    public function updateNode(UrlGeneratorInterface $urlGen, Request $request, $key, $id)
+    public function updateNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
 		$this->repo->updateNode($key, $id, $request->request->get('field', []));
 
 		$then = $request->request->get('_then', null);
+
+		$session->getFlashBag()->add('success', 'Node Updated');
 
 		if($then === 'edit') {
     		return new RedirectResponse($urlGen->generate('edit_node', ['key' => $key, 'id' => $id]));

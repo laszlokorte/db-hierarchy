@@ -2,8 +2,13 @@ security:
     # https://symfony.com/doc/current/security/experimental_authenticators.html
     enable_authenticator_manager: true
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    password_hashers:
+        Symfony\Component\Security\Core\User\InMemoryUser: 'auto'
     providers:
-        users_in_memory: { memory: null }
+        users_in_memory:
+            memory:
+                users:
+                    laszlo: { password: '$2y$13$yRXlCJKV9g3VerDxflD98uaEoXymW3KsXyHxP8MuB7/fHeZwKYoFW', roles: ['ROLE_ADMIN'] }
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -11,6 +16,13 @@ security:
         main:
             lazy: true
             provider: users_in_memory
+            entry_point: form_login
+            form_login: 
+                login_path: security_login
+                check_path: security_login
+                enable_csrf: true
+            logout:
+                path: security_logout
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -18,8 +30,6 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
 
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/_login, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: ROLE_ADMIN  }

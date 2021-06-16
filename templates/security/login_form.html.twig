@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block html_body %}
+    <div class="prompt-container">
+    	<div class="prompt-box">
+    		<h2 class="prompt-titel">Login</h2>
+
+    		<form action="{{ path('security_login') }}" method="post" accept-charset="utf-8">
+    			
+    		{% if error %}
+    			<p class="prompt-error">
+    				{{ error.messageKey|trans(error.messageData, 'security') }}
+    			</p>
+    		{% endif %}
+
+    			<div class="prompt-body">
+    				<dl class="form-container">
+				        <dt class="form-container-label"><label for="">Username</label></dt>
+				        <dd class="form-container-field">
+				        	<input type="text" name="_username" value="{{lastUsername}}">
+				        </dd>
+				        <dt class="form-container-label"><label for="">Password</label></dt>
+				        <dd class="form-container-field">
+				        	<input type="password" name="_password">
+				        </dd>
+				        <dt class="form-container-spacer"></dt>
+				        <dd class="form-container-buttons">
+				        	<input type="hidden" name="_csrf_token"
+	        value="{{ csrf_token('authenticate') }}"
+	    >
+				            <button class="form-button">Login</button>
+				        </dd>
+				    </dl>
+    			</div>
+    		</form>
+    	</div>
+    </div>
+{% endblock %}
