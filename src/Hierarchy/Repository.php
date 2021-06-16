@@ -142,6 +142,23 @@ class Repository {
 			return;
 		}
 
+		$parent = $this->definition->structure[$key]['parent'];
+
+
+		$checkInvalid = $this->buildQuery(<<<SQL
+			DELETE FROM %s_closure WHERE id IN (SELECT id FROM %s_closure_invalid)
+		SQL, $key, $key);
+
+		if($parent) {
+			$checkMissing = $this->buildQuery(<<<SQL
+				INSERT INTO %s_closure (%s_id, parent_id,child_id,depth) SELECT %s_id, parent_id, child_id, depth FROM %s_closure_missing;
+				SQL, $key, $parent, $parent, $key);
+		} else {
+			$checkMissing = $this->buildQuery(<<<SQL
+				INSERT INTO %s_closure (parent_id,child_id,depth) SELECT parent_id, child_id, depth FROM %s_closure_missing;
+				SQL, $key, $key);
+		}
+
 		do {
 			if($limit-- < 0) {
 				throw new ConsistencyException("limit reached");
@@ -149,18 +166,12 @@ class Repository {
 
 			$dirty = false;
 
-			$checkInvalid = $this->buildQuery(<<<SQL
-				DELETE FROM %s_closure WHERE id IN (SELECT id FROM %s_closure_invalid)
-			SQL, $key, $key);
 			$checkInvalid->execute();
 			$affectedInvalid = $checkInvalid->rowCount();
 			if($affectedInvalid) {
 				$dirty = true;
 			}
 
-			$checkMissing = $this->buildQuery(<<<SQL
-			INSERT INTO %s_closure SELECT * FROM %s_closure_missing;
-			SQL, $key, $key);
 			$checkMissing->execute();
 			$affectedMissing = $checkMissing->rowCount();
 
