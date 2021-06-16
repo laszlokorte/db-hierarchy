@@ -5,18 +5,24 @@ namespace App\Hierarchy;
 
 class Definition {
 	public $structure = [
-		'site' => ['parent' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
-		'route' => ['parent' => 'site', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
-		'content' => ['parent' => 'route', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
-		'menu' => ['parent' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
-		'menu_item' => ['parent' => 'menu', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
-		'resource_directory' => ['parent' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
-		'resource' => ['parent' => 'resource_directory', 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text'],'image' => ['type' => 'image']], 'generator' => false],
-		'example_parent' => ['parent' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
-		'example_child' => ['parent' => 'example_parent', 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
-		'sorted_parent' => ['parent' => null, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
-		'sorted_child' => ['parent' => 'sorted_parent', 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
-		'sorted_tree' => ['parent' => null, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'site' => ['parent' => null, 'parent_single' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'route' => ['parent' => 'site', 'parent_single' => false, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'content' => ['parent' => 'route', 'parent_single' => false, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'menu' => ['parent' => null, 'parent_single' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'menu_item' => ['parent' => 'menu', 'parent_single' => false, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'resource_directory' => ['parent' => null, 'parent_single' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'resource' => ['parent' => 'resource_directory', 'parent_single' => false, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text'],'image' => ['type' => 'image']], 'templateString' => '{slug}', 'tags' => []],
+		'example_parent' => ['parent' => null, 'parent_single' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'example_child' => ['parent' => 'example_parent', 'parent_single' => false, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'sorted_parent' => ['parent' => null, 'parent_single' => null, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'sorted_child' => ['parent' => 'sorted_parent', 'parent_single' => false, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'sorted_tree' => ['parent' => null, 'parent_single' => null, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+
+		'site_generator' => ['parent' => 'site', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'route_generator' => ['parent' => 'route', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'content_generator' => ['parent' => 'content', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'menu_item_generator' => ['parent' => 'menu_item', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		
 	];
 
 	public $fieldTypes;
@@ -102,6 +108,15 @@ class Definition {
 			],
 			'enum' => [
 				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'reference' => [
+				'columns' => ['%s__fk_id'],
 				'writer' => function($fieldData) {
 					return [$fieldData];
 				},

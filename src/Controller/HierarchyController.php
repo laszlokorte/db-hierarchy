@@ -239,6 +239,15 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
     }
 
+    #[Route('_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]
+	#[Template()]
+    public function listAllNodes($key)
+    {
+    	return new JsonResponse([
+    		$key => $this->repo->loadAllKeyNodes($key)
+    	]);
+    }
+
     #[Route('/{key}', name: 'list_root_nodes', methods: 'GET')]
 	#[Template()]
     public function listRootNodes($key)
@@ -246,7 +255,7 @@ class HierarchyController {
     	return [
     		'key' => $key,
     		'fields' => $this->repo->getFields($key),
-    		'nodes' => $this->repo->loadKeyNodes($key),
+    		'nodes' => $this->repo->loadRootKeyNodes($key),
     		'rootKeys' => $this->repo->getRootKeys(),
     	];
     }

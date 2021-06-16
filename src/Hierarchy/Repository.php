@@ -209,13 +209,6 @@ class Repository {
 					$dropClosure->execute();
 				}
 
-				if($parent['generator']) {
-					$dropGenerator = $this->buildQuery(
-						sprintf('DROP TABLE IF EXISTS "%s_generator";', $key)
-					);
-					$dropGenerator->execute();
-				}
-
 				$dropTable = $this->buildQuery(
 					sprintf('DROP TABLE IF EXISTS "%s";', $key)
 				);
@@ -228,13 +221,6 @@ class Repository {
 					$this->tableSQL($key, $parent)
 				);
 				$createTable->execute();
-
-				if($parent['generator']) {
-					$createGenerator = $this->buildQuery(
-						$this->generatorSQL($key)
-					);
-					$createGenerator->execute();
-				}
 
 				if($parent['reflexive']) {
 					$createClosure = $this->buildQuery(
@@ -297,20 +283,12 @@ class Repository {
 				$sql .= sprintf('DROP TABLE IF EXISTS "%s_closure";', $key). PHP_EOL;
 			}
 
-			if($parent['generator']) {
-				$sql .= sprintf('DROP TABLE IF EXISTS "%s_generator";', $key). PHP_EOL;
-			}
-
 			$sql .= sprintf('DROP TABLE IF EXISTS "%s";', $key). PHP_EOL;
 		}
 
 		foreach ($sorted as $key) {
 			$parent = $this->definition->structure[$key];
 			$sql .= $this->tableSQL($key, $parent);
-
-			if($parent['generator']) {
-				$sql .= $this->generatorSQL($key);
-			}
 
 			if($parent['reflexive']) {
 				$this->closureSQL($key, $parent['parent']);
@@ -415,7 +393,19 @@ class Repository {
 		return $results;
 	}
 
-	public function loadKeyNodes($key) {
+	public function loadAllKeyNodes($key) {
+		$self = $this->definition->structure[$key];
+		$parent = $self['parent'];
+		$reflexive = $self['reflexive'];
+
+		$siteStmt = $this->buildQuery('SELECT * FROM %s', $key);
+		$siteStmt->execute();
+		$result = $siteStmt->fetchAll();
+
+		return $result;
+	}
+
+	public function loadRootKeyNodes($key) {
 		$self = $this->definition->structure[$key];
 		$parent = $self['parent'];
 		$reflexive = $self['reflexive'];
@@ -1231,6 +1221,7 @@ class Repository {
 
 	private function tableSQL($table, $definition) {
 		$parent = $definition['parent'];
+		$parentSingle = $definition['parent_single'];
 		$reflexive = $definition['reflexive'];
 		$order = $definition['order'];
 		$columns = $this->definition->getColumns($table);
@@ -1244,14 +1235,20 @@ class Repository {
 		}
 
 		if($parent) {
-			return str_replace(['%NAME%', '%PARENT%', '%COLUMNS%'],[$table, $parent, $columnSql], <<<SQL
+			if($parentSingle) {
+				$uniqSql = str_replace('%PARENT%',$parent,'UNIQUE("%PARENT%_id")');
+			} else {
+				$uniqSql = str_replace('%PARENT%',$parent,'UNIQUE("id","%PARENT%_id")');
+			}
+
+			return str_replace(['%NAME%', '%PARENT%', '%COLUMNS%', '%UNIQ%'],[$table, $parent, $columnSql, $uniqSql], <<<SQL
 				CREATE TABLE IF NOT EXISTS "%NAME%" (
 					"id"	INTEGER NOT NULL,
 					%COLUMNS%
 					"%PARENT%_id"	INTEGER NOT NULL,
 					FOREIGN KEY("%PARENT%_id") REFERENCES "%PARENT%"("id") ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 					PRIMARY KEY("id" AUTOINCREMENT),
-					UNIQUE("id","%PARENT%_id")
+					%UNIQ%
 				);
 			SQL);
 		} else {
@@ -1263,19 +1260,6 @@ class Repository {
 				);
 			SQL);
 		}
-	}
-
-	private function generatorSQL($table) {
-		return str_replace(['%NAME%'],[$table], <<<SQL
-			CREATE TABLE IF NOT EXISTS "%NAME%_generator" (
-				"id"	INTEGER NOT NULL,
-				"query" TEXT NOT NULL,
-				"%NAME%_id"	INTEGER NOT NULL,
-				FOREIGN KEY("%NAME%_id") REFERENCES "%NAME%"("id") ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-				PRIMARY KEY("id" AUTOINCREMENT),
-				UNIQUE("%NAME%_id")
-			);
-		SQL);
 	}
 
 	private function closureSQL($table, $scope = NULL) {
