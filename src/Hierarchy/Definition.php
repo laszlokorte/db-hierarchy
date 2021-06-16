@@ -23,6 +23,10 @@ class Definition {
 		'route_generator' => ['parent' => 'route', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
 		'content_generator' => ['parent' => 'content', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
 		'menu_item_generator' => ['parent' => 'menu_item', 'parent_single' => true, 'reflexive' => false, 'order' => false, 'fields' => ['query' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+
+		'grid' => ['parent' => null, 'parent_single' => null, 'reflexive' => false, 'order' => null, 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'grid_column' => ['parent' => 'grid', 'parent_single' => false, 'reflexive' => false, 'order' => 'order', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
+		'grid_row' => ['parent' => 'grid', 'parent_single' => false, 'reflexive' => false, 'order' => 'order', 'fields' => ['slug' => ['type' => 'text']], 'templateString' => '{slug}', 'tags' => []],
 		
 	];
 

@@ -105,11 +105,15 @@ class Repository {
 	public function loadKeyClosureDefects($key) {
 		$reflexive = $this->definition->structure[$key]['reflexive'];
 
-		$checkInvalid = $this->buildQuery('SELECT * FROM %s_closure_invalid', $key, $key);
+		$checkInvalid = $this->buildQuery(<<<SQL
+			SELECT * FROM %s_closure_invalid
+		SQL, $key, $key);
 		$checkInvalid->execute();
 		$affectedInvalid = $checkInvalid->fetchAll();
 
-		$checkMissing = $this->buildQuery('SELECT * FROM %s_closure_missing', $key, $key);
+		$checkMissing = $this->buildQuery(<<<SQL
+			SELECT * FROM %s_closure_missing
+		SQL, $key, $key);
 		$checkMissing->execute();
 		$affectedMissing = $checkMissing->fetchAll();
 		
@@ -145,14 +149,18 @@ class Repository {
 
 			$dirty = false;
 
-			$checkInvalid = $this->buildQuery('DELETE FROM %s_closure WHERE id IN (SELECT id FROM %s_closure_invalid)', $key, $key);
+			$checkInvalid = $this->buildQuery(<<<SQL
+				DELETE FROM %s_closure WHERE id IN (SELECT id FROM %s_closure_invalid)
+			SQL, $key, $key);
 			$checkInvalid->execute();
 			$affectedInvalid = $checkInvalid->rowCount();
 			if($affectedInvalid) {
 				$dirty = true;
 			}
 
-			$checkMissing = $this->buildQuery('INSERT INTO %s_closure SELECT * FROM %s_closure_missing;', $key, $key);
+			$checkMissing = $this->buildQuery(<<<SQL
+			INSERT INTO %s_closure SELECT * FROM %s_closure_missing;
+			SQL, $key, $key);
 			$checkMissing->execute();
 			$affectedMissing = $checkMissing->rowCount();
 
@@ -319,21 +327,29 @@ class Repository {
 		foreach ($this->definition->structure as $key => $parent) {
 			if($parent['parent']) {
 				if($parent['reflexive']) {
-					$routeStmt = $this->buildQuery('SELECT (h.%s_id ||"/"||IFNULL(h.parent,"")), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id', $parent['parent'], $key, $key);
+					$routeStmt = $this->buildQuery(<<<SQL
+						SELECT (h.%s_id ||"/"||IFNULL(h.parent,"")), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
+					SQL, $parent['parent'], $key, $key);
 					$routeStmt->execute();
 					$result[$key] = $routeStmt->fetchAll(\PDO::FETCH_GROUP);
 				} else {
-					$routeStmt = $this->buildQuery('SELECT %s_id||"/", * FROM %s', $parent['parent'], $key);
+					$routeStmt = $this->buildQuery(<<<SQL
+						SELECT %s_id||"/", * FROM %s
+					SQL, $parent['parent'], $key);
 					$routeStmt->execute();
 					$result[$key] = $routeStmt->fetchAll(\PDO::FETCH_GROUP);
 				}
 			} else {
 				if($parent['reflexive']) {
-					$siteStmt = $this->buildQuery('SELECT "/"||IFNULL(h.parent,""), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id', $key, $key);
+					$siteStmt = $this->buildQuery(<<<SQL
+						SELECT "/"||IFNULL(h.parent,""), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
+					SQL, $key, $key);
 					$siteStmt->execute();
 					$result[$key] = $siteStmt->fetchAll(\PDO::FETCH_GROUP);
 				} else {
-					$siteStmt = $this->buildQuery('SELECT "/", * FROM %s', $key);
+					$siteStmt = $this->buildQuery(<<<SQL
+						SELECT "/", * FROM %s
+					SQL, $key);
 					$siteStmt->execute();
 					$result[$key] = $siteStmt->fetchAll(\PDO::FETCH_GROUP);
 				}
@@ -350,21 +366,29 @@ class Repository {
 
 		if($parent) {
 			if($reflexive) {
-				$routeStmt = $this->buildQuery('SELECT (h.%s_id ||"/"||IFNULL(h.parent,"")), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id', $parent, $key, $key);
+				$routeStmt = $this->buildQuery(<<<SQL
+					SELECT (h.%s_id ||"/"||IFNULL(h.parent,"")), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
+				SQL, $parent, $key, $key);
 				$routeStmt->execute();
 				$result = $routeStmt->fetchAll(\PDO::FETCH_GROUP);
 			} else {
-				$routeStmt = $this->buildQuery('SELECT %s_id||"/", * FROM %s', $parent, $key);
+				$routeStmt = $this->buildQuery(<<<SQL
+					SELECT %s_id||"/", * FROM %s
+				SQL, $parent, $key);
 				$routeStmt->execute();
 				$result = $routeStmt->fetchAll(\PDO::FETCH_GROUP);
 			}
 		} else {
 			if($reflexive) {
-				$siteStmt = $this->buildQuery('SELECT "/"||IFNULL(h.parent,""), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id', $key, $key);
+				$siteStmt = $this->buildQuery(<<<SQL
+					SELECT "/"||IFNULL(h.parent,""), s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id
+				SQL, $key, $key);
 				$siteStmt->execute();
 				$result = $siteStmt->fetchAll(\PDO::FETCH_GROUP);
 			} else {
-				$siteStmt = $this->buildQuery('SELECT "/", * FROM %s', $key);
+				$siteStmt = $this->buildQuery(<<<SQL
+					SELECT "/", * FROM %s
+				SQL, $key);
 				$siteStmt->execute();
 				$result = $siteStmt->fetchAll(\PDO::FETCH_GROUP);
 			}
@@ -382,11 +406,15 @@ class Repository {
 			}
 			
 			if($parent['reflexive']) {
-				$siteStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL', $key, $key);
+				$siteStmt = $this->buildQuery(<<<SQL
+					SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL
+				SQL, $key, $key);
 				$siteStmt->execute();
 				$results[$key] = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			} else {
-				$siteStmt = $this->buildQuery('SELECT s.* FROM %s s', $key);
+				$siteStmt = $this->buildQuery(<<<SQL
+					SELECT s.* FROM %s s
+				SQL, $key);
 				$siteStmt->execute();
 				$results[$key] = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			}
@@ -400,7 +428,9 @@ class Repository {
 		$parent = $self['parent'];
 		$reflexive = $self['reflexive'];
 
-		$siteStmt = $this->buildQuery('SELECT * FROM %s', $key);
+		$siteStmt = $this->buildQuery(<<<SQL
+			SELECT * FROM %s
+		SQL, $key);
 		$siteStmt->execute();
 		$result = $siteStmt->fetchAll();
 
@@ -416,11 +446,15 @@ class Repository {
 			throw new \Exception("not at root");
 		} else {
 			if($reflexive) {
-				$siteStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL', $key, $key);
+				$siteStmt = $this->buildQuery(<<<SQL
+					SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL
+				SQL, $key, $key);
 				$siteStmt->execute();
 				$result = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			} else {
-				$siteStmt = $this->buildQuery('SELECT "/", * FROM %s', $key);
+				$siteStmt = $this->buildQuery(<<<SQL
+					SELECT "/", * FROM %s
+				SQL, $key);
 				$siteStmt->execute();
 				$result = array_map(fn($row) => $this->definition->columnDataToFieldData($key, $row),  $siteStmt->fetchAll());
 			}
@@ -436,19 +470,25 @@ class Repository {
 
 		if($parent) {
 			if($reflexive) {
-				$routeStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL AND h.%s_id = :id', $childKey, $childKey, $parent);
+				$routeStmt = $this->buildQuery(<<<SQL
+					SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent IS NULL AND h.%s_id = :id
+				SQL, $childKey, $childKey, $parent);
 				$routeStmt->bindValue('id', $parentId);
 				$routeStmt->execute();
 				$result = $routeStmt->fetchAll();
 			} else {
-				$routeStmt = $this->buildQuery('SELECT * FROM %s WHERE %s_id = :id', $childKey, $parent);
+				$routeStmt = $this->buildQuery(<<<SQL
+					SELECT * FROM %s WHERE %s_id = :id
+				SQL, $childKey, $parent);
 				$routeStmt->bindValue('id', $parentId);
 				$routeStmt->execute();
 				$result = $routeStmt->fetchAll();
 			}
 		} else {
 			if($key === $childKey && $reflexive) {
-				$routeStmt = $this->buildQuery('SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent = :id', $childKey, $childKey, $childKey);
+				$routeStmt = $this->buildQuery(<<<SQL
+					SELECT s.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent = :id
+				SQL, $childKey, $childKey, $childKey);
 				$routeStmt->bindValue('id', $parentId);
 				$routeStmt->execute();
 				$result = $routeStmt->fetchAll();
@@ -468,12 +508,16 @@ class Repository {
 		}
 
 		if($self['parent']) {
-			$selfStmt = $this->buildQuery('SELECT *, %s_id AS _scope FROM %s WHERE id = :selfId', $self['parent'], $key);
+			$selfStmt = $this->buildQuery(<<<SQL
+				SELECT *, %s_id AS _scope FROM %s WHERE id = :selfId
+			SQL, $self['parent'], $key);
 			$selfStmt->bindValue('selfId', $id);
 			$selfStmt->execute();
 			$selfData = $selfStmt->fetch();
 		} else {
-			$selfStmt = $this->buildQuery('SELECT *, NULL AS _scope FROM %s WHERE id = :selfId', $key);
+			$selfStmt = $this->buildQuery(<<<SQL
+				SELECT *, NULL AS _scope FROM %s WHERE id = :selfId
+			SQL, $key);
 			$selfStmt->bindValue('selfId', $id);
 			$selfStmt->execute();
 			$selfData = $selfStmt->fetch();
@@ -493,7 +537,9 @@ class Repository {
 		$children = [];
 
 		if($self['reflexive']) {
-			$childStmt = $this->buildQuery('SELECT s.*, h.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent = :parentId', $key, $key);
+			$childStmt = $this->buildQuery(<<<SQL
+				SELECT s.*, h.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE h.parent = :parentId
+		SQL, $key, $key);
 			$childStmt->bindValue('parentId', $id);
 			$childStmt->execute();
 			$children[$key] = $childStmt->fetchAll();
@@ -502,12 +548,16 @@ class Repository {
 		foreach ($this->definition->structure as $ck => $child) {
 			if($child['parent'] == $key) {
 				if($child['reflexive']) {
-					$childStmt = $this->buildQuery('SELECT s.*, h.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE parent IS NULL AND h.%s_id = :parentId', $ck, $ck, $key);
+					$childStmt = $this->buildQuery(<<<SQL
+					SELECT s.*, h.* FROM %s_hierarchy h INNER JOIN %s s ON s.id=h.id WHERE parent IS NULL AND h.%s_id = :parentId
+		SQL, $ck, $ck, $key);
 					$childStmt->bindValue('parentId', $id);
 					$childStmt->execute();
 					$children[$ck] = $childStmt->fetchAll();
 				} else {
-					$childStmt = $this->buildQuery('SELECT s.* FROM %s s WHERE s.%s_id = :parentId', $ck, $key);
+					$childStmt = $this->buildQuery(<<<SQL
+						SELECT s.* FROM %s s WHERE s.%s_id = :parentId
+		SQL, $ck, $key);
 					$childStmt->bindValue('parentId', $id);
 					$childStmt->execute();
 					$children[$ck] = $childStmt->fetchAll();
@@ -523,7 +573,9 @@ class Repository {
 
 		$totalCount = 0;
 
-		$selfStmt = $this->buildQuery('SELECT * FROM %s WHERE id = :selfId', $key);
+		$selfStmt = $this->buildQuery(<<<SQL
+		SELECT * FROM %s WHERE id = :selfId
+		SQL, $key);
 		$selfStmt->bindValue('selfId', $id);
 		$selfStmt->execute();
 		$selfData = $selfStmt->fetch();
@@ -531,7 +583,9 @@ class Repository {
 		$parents = [];
 
 		if($self['reflexive']) {
-			$selfReflexiveStmt = $this->buildQuery('SELECT d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId AND closure.parent_id <> closure.child_id ORDER BY closure.depth DESC', $key, $key);
+			$selfReflexiveStmt = $this->buildQuery(<<<SQL
+				SELECT d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId AND closure.parent_id <> closure.child_id ORDER BY closure.depth DESC
+		SQL, $key, $key);
 			$selfReflexiveStmt->bindValue('parentId', $id);
 			$selfReflexiveStmt->execute();
 			$relexiveParents = $selfReflexiveStmt->fetchAll();
@@ -553,7 +607,9 @@ class Repository {
 
 			if($parent['reflexive']) {
 				if($parent['parent']) {
-					$reflexiveStmt = $this->buildQuery('SELECT closure.%s_id AS parent, d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId ORDER BY closure.depth DESC', $parent['parent'], $pathKey, $pathKey);
+					$reflexiveStmt = $this->buildQuery(<<<SQL
+					SELECT closure.%s_id AS parent, d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId ORDER BY closure.depth DESC
+		SQL, $parent['parent'], $pathKey, $pathKey);
 						$reflexiveStmt->bindValue('parentId', $topId);
 						$reflexiveStmt->execute();
 						$relexiveParents = $reflexiveStmt->fetchAll();
@@ -562,7 +618,9 @@ class Repository {
 						$totalCount += count($relexiveParents);
 
 				} else {
-					$reflexiveStmt = $this->buildQuery('SELECT d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId ORDER BY closure.depth DESC', $pathKey, $pathKey);
+					$reflexiveStmt = $this->buildQuery(<<<SQL
+						SELECT d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId ORDER BY closure.depth DESC
+		SQL, $pathKey, $pathKey);
 					$reflexiveStmt->bindValue('parentId', $topId);
 					$reflexiveStmt->execute();
 					$relexiveParents = $reflexiveStmt->fetchAll();
@@ -572,7 +630,9 @@ class Repository {
 				}
 				
 			} else {
-				$realParentStmt = $this->buildQuery('SELECT * FROM %s WHERE id=:parentId', $pathKey);
+				$realParentStmt = $this->buildQuery(<<<SQL
+				SELECT * FROM %s WHERE id=:parentId
+		SQL, $pathKey);
 				$realParentStmt->bindValue('parentId', $topId);
 				$realParentStmt->execute();
 				$realParent = $realParentStmt->fetch();
@@ -591,7 +651,9 @@ class Repository {
 		$self = $this->definition->structure[$key];
 
 		if($self['reflexive']) {
-			$selfReflexiveStmt = $this->buildQuery('SELECT d.parent_id FROM %s_closure d WHERE d.child_id = :id AND d.parent_id <> d.child_id ORDER BY d.depth ASC LIMIT 1', $key);
+			$selfReflexiveStmt = $this->buildQuery(<<<SQL
+				SELECT d.parent_id FROM %s_closure d WHERE d.child_id = :id AND d.parent_id <> d.child_id ORDER BY d.depth ASC LIMIT 1
+		SQL, $key);
 			$selfReflexiveStmt->bindValue('id', $id);
 			$selfReflexiveStmt->execute();
 			$reflexId = $selfReflexiveStmt->fetchColumn();
@@ -602,7 +664,9 @@ class Repository {
 		}
 
 		if($self['parent']) {
-			$realParentStmt = $this->buildQuery('SELECT p.id FROM %s p INNER JOIN %s s ON s.%s_id = p.id WHERE s.id=:parentId', $self['parent'], $key, $self['parent']);
+			$realParentStmt = $this->buildQuery(<<<SQL
+			SELECT p.id FROM %s p INNER JOIN %s s ON s.%s_id = p.id WHERE s.id=:parentId
+		SQL, $self['parent'], $key, $self['parent']);
 			$realParentStmt->bindValue('parentId', $id);
 			$realParentStmt->execute();
 			$parentId = $realParentStmt->fetchColumn();
@@ -643,7 +707,9 @@ class Repository {
 		if(!$this->definition->hasField($key, $field)) {
 			throw new \Exception("invalid field");
 		}
-		$selfStmt = $this->buildQuery('SELECT %s FROM %s WHERE id = :selfId', implode(', ', $this->definition->getFieldColumns($key, $field)), $key);
+		$selfStmt = $this->buildQuery(<<<SQL
+			SELECT %s FROM %s WHERE id = :selfId
+		SQL, implode(', ', $this->definition->getFieldColumns($key, $field)), $key);
 		$selfStmt->bindValue('selfId', $id);
 		$selfStmt->execute();
 		
@@ -655,13 +721,18 @@ class Repository {
 
 		try {
 			if($this->definition->structure[$key]['reflexive']) {
-				$stmt = $this->buildQuery('SELECT id FROM %s_hierarchy WHERE parent=:id', $key);
+				$stmt = $this->buildQuery(<<<SQL
+				SELECT id FROM %s_hierarchy WHERE parent=:id
+		SQL, $key);
 				$stmt->bindValue('id', $id);
 				$stmt->execute();
 				$cids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-				$delStmt = $this->buildQuery('DELETE FROM %s WHERE id=:id', $key);
-				$delStmt2 = $this->buildQuery('DELETE FROM %s_closure WHERE child_id=:id', $key);
+				$delStmt = $this->buildQuery(<<<SQL
+					DELETE FROM %s WHERE id=:id', $key);
+				$delStmt2 = $this->buildQuery(<<<SQL
+				DELETE FROM %s_closure WHERE child_id=:id
+		SQL, $key);
 				foreach($cids AS $cid) {
 					$this->deleteNodeChildren($key, $cid);
 				}
@@ -677,13 +748,17 @@ class Repository {
 
 			$this->deleteNodeChildren($key, $id);
 
-			$delStmt = $this->buildQuery('DELETE FROM %s WHERE id=:id', $key);
+			$delStmt = $this->buildQuery(<<<SQL
+				DELETE FROM %s WHERE id=:id
+			SQL, $key);
 			
 			$delStmt->bindValue('id', $id);
 			$delStmt->execute();
 
 			if($this->definition->structure[$key]['reflexive']) {
-				$delStmt2 = $this->buildQuery('DELETE FROM %s_closure WHERE child_id=:id', $key);
+				$delStmt2 = $this->buildQuery(<<<SQL
+					DELETE FROM %s_closure WHERE child_id=:id
+				SQL, $key);
 				$delStmt2->bindValue('id', $id);
 				$delStmt2->execute();
 			}
@@ -696,7 +771,9 @@ class Repository {
 
 	private function deleteNodeChildren($key, $id) {
 		if($this->definition->structure[$key]['reflexive']) {
-			$stmt = $this->buildQuery('SELECT id FROM %s_hierarchy WHERE parent=:id', $key);
+			$stmt = $this->buildQuery(<<<SQL
+				SELECT id FROM %s_hierarchy WHERE parent=:id
+			SQL, $key);
 			$stmt->bindValue('id', $id);
 			$stmt->execute();
 			$cids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
@@ -705,8 +782,12 @@ class Repository {
 				$this->deleteNodeChildren($key, $cid);
 			}
 
-			$delStmt = $this->buildQuery('DELETE FROM %s WHERE id=:id', $key);
-			$delStmt2 = $this->buildQuery('DELETE FROM %s_closure WHERE child_id=:id', $key);
+			$delStmt = $this->buildQuery(<<<SQL
+				DELETE FROM %s WHERE id=:id
+			SQL, $key);
+			$delStmt2 = $this->buildQuery(<<<SQL
+				DELETE FROM %s_closure WHERE child_id=:id
+			SQL, $key);
 
 			foreach($cids AS $cid) {
 				$delStmt->bindValue('id', $cid);
@@ -718,7 +799,9 @@ class Repository {
 
 		foreach ($this->definition->structure as $ck => $parent) {
 			if($parent['parent'] === $key) {
-				$stmt = $this->buildQuery('SELECT id FROM %s WHERE %s_id=:id', $ck, $key);
+				$stmt = $this->buildQuery(<<<SQL
+					SELECT id FROM %s WHERE %s_id=:id
+				SQL, $ck, $key);
 				$stmt->bindValue('id', $id);
 				$stmt->execute();
 				$cids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
@@ -728,12 +811,16 @@ class Repository {
 				}
 
 				if($parent['reflexive']) {
-					$stmt = $this->buildQuery('DELETE FROM %s_closure WHERE %s_id=:id', $ck, $key);
+					$stmt = $this->buildQuery(<<<SQL
+						DELETE FROM %s_closure WHERE %s_id=:id
+					SQL, $ck, $key);
 					$stmt->bindValue('id', $id);
 					$stmt->execute();
 				}
 
-				$stmt = $this->buildQuery('DELETE FROM %s WHERE %s_id=:id', $ck, $key);
+				$stmt = $this->buildQuery(<<<SQL
+					DELETE FROM %s WHERE %s_id=:id
+				SQL, $ck, $key);
 				$stmt->bindValue('id', $id);
 				$stmt->execute();
 			}
@@ -743,7 +830,9 @@ class Repository {
 	public function updateNode($key, $id, $fieldData) {
 		$columnValues = $this->definition->fieldDataToColumnData($key, $fieldData);
 
-		$stmt = $this->buildQuery('UPDATE %s SET %s WHERE id=:id', $key, implode(',', array_map(function($col) {
+		$stmt = $this->buildQuery(<<<SQL
+			UPDATE %s SET %s WHERE id=:id
+		SQL, $key, implode(',', array_map(function($col) {
 			return sprintf('%s = :%s', $col, $col);
 		}, array_keys($columnValues))));
 
@@ -770,7 +859,9 @@ class Repository {
 		}
 
 		if(!empty($scopeId) && !empty($parentId)) {
-			$validPositionStmt = $this->buildQuery('SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id', $key, $parent);
+			$validPositionStmt = $this->buildQuery(<<<SQL
+				SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id
+			SQL, $key, $parent);
 			$validPositionStmt->bindValue('scope', $scopeId);
 			$validPositionStmt->bindValue('id', $parentId);
 			$validPositionStmt->execute();
@@ -798,7 +889,9 @@ class Repository {
 		try {
 			$this->db->beginTransaction();
 			if($parent) {
-				$stmt = $this->buildQuery('UPDATE %s SET %s_id = :parentId WHERE id = :id', $key, $parent);
+				$stmt = $this->buildQuery(<<<SQL
+					UPDATE %s SET %s_id = :parentId WHERE id = :id
+				SQL, $key, $parent);
 				$stmt->bindValue('id', $id);
 				$stmt->bindValue('parentId', $scopeId);
 				$stmt->execute();
@@ -806,14 +899,18 @@ class Repository {
 				if($reflexive) {
 					// update scope of all trans children
 					// UPDATE %s SET %s_id = :parentId WHERE id IN (SELECT child_id FROM %s_closure WHERE parent_id = :id)
-					$othersStmt = $this->buildQuery('UPDATE %s SET %s_id = :parentId WHERE id IN (SELECT child_id FROM %s_closure WHERE parent_id = :id)', $key, $parent, $key);
+					$othersStmt = $this->buildQuery(<<<SQL
+						UPDATE %s SET %s_id = :parentId WHERE id IN (SELECT child_id FROM %s_closure WHERE parent_id = :id)
+					SQL, $key, $parent, $key);
 					$othersStmt->bindValue('id', $id);
 					$othersStmt->bindValue('parentId', $scopeId);
 					$othersStmt->execute();
 
 					// update scope trans closure
 					// UPDATE %s_closure SET %s_id = :parentId WHERE parent_id = :id
-					$closureStmt = $this->buildQuery('UPDATE %s_closure SET %s_id = :parentId WHERE child_id IN (SELECT child_id FROM %s_closure WHERE parent_id = :id)', $key, $parent, $key);
+					$closureStmt = $this->buildQuery(<<<SQL
+						UPDATE %s_closure SET %s_id = :parentId WHERE child_id IN (SELECT child_id FROM %s_closure WHERE parent_id = :id)
+					SQL, $key, $parent, $key);
 					$closureStmt->bindValue('id', $id);
 					$closureStmt->bindValue('parentId', $scopeId);
 					$closureStmt->execute();
@@ -823,19 +920,25 @@ class Repository {
 			if($reflexive) {
 				// delete old parents: DELETE FROM %s_closure WHERE child_id = :id AND depth > 0;
 				// update closure edges
-				$delStmt = $this->buildQuery('DELETE FROM %s_closure WHERE child_id = :id AND depth > 0', $key);
+				$delStmt = $this->buildQuery(<<<SQL
+					DELETE FROM %s_closure WHERE child_id = :id AND depth > 0
+				SQL, $key);
 				$delStmt->bindValue('id', $id);
 				$delStmt->execute();
 
 				if($parent) {
-					$insStmt = $this->buildQuery('INSERT INTO %s_closure (%s_id, parent_id, child_id, depth) VALUES(:scope, :parent, :child, :depth)', $key, $parent);
+					$insStmt = $this->buildQuery(<<<SQL
+						INSERT INTO %s_closure (%s_id, parent_id, child_id, depth) VALUES(:scope, :parent, :child, :depth)
+					SQL, $key, $parent);
 					$insStmt->bindValue('scope', $scopeId);
 					$insStmt->bindValue('parent', $parentId);
 					$insStmt->bindValue('child', $id);
 					$insStmt->bindValue('depth', 1);
 					$insStmt->execute();
 				} else {
-					$insStmt = $this->buildQuery('INSERT INTO %s_closure (parent_id, child_id, depth) VALUES(:parent, :child, :depth)', $key);
+					$insStmt = $this->buildQuery(<<<SQL
+						INSERT INTO %s_closure (parent_id, child_id, depth) VALUES(:parent, :child, :depth)
+					SQL, $key);
 					$insStmt->bindValue('parent', $parentId);
 					$insStmt->bindValue('child', $id);
 					$insStmt->bindValue('depth', 1);
@@ -871,22 +974,24 @@ class Repository {
 
 		if($parent) {
 			if($reflexive) {
-				$stmt = $this->buildQuery('
+				$stmt = $this->buildQuery(<<<SQL
 					UPDATE %s AS outer
-					SET %s = normalized_order FROM 
+					SET "%s" = normalized_order FROM 
 					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order AND scope=:scope AND parent IS :parent) 
-					WHERE outer.id = inner_id', 
+					WHERE outer.id = inner_id
+				SQL, 
 					$key, $order, $key
 				);
 				$stmt->bindValue('parent', $parentId);
 				$stmt->bindValue('scope', $scopeId);
 				$stmt->execute();
 			} else {
-				$stmt = $this->buildQuery('
+				$stmt = $this->buildQuery(<<<SQL
 					UPDATE %s AS outer
-					SET %s = normalized_order FROM 
+					SET "%s" = normalized_order FROM 
 					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order AND scope=:scope) 
-					WHERE outer.id = inner_id', 
+					WHERE outer.id = inner_id
+				SQL, 
 					$key, $order, $key
 				);
 				$stmt->bindValue('scope', $scopeId);
@@ -894,21 +999,23 @@ class Repository {
 			}
 		} else {
 			if($reflexive) {
-				$stmt = $this->buildQuery('
+				$stmt = $this->buildQuery(<<<SQL
 					UPDATE %s AS outer
-					SET %s = normalized_order FROM 
+					SET "%s" = normalized_order FROM 
 					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order AND parent IS :parent) 
-					WHERE outer.id = inner_id', 
+					WHERE outer.id = inner_id
+				SQL, 
 					$key, $order, $key
 				);
 				$stmt->bindValue('parent', $parentId);
 				$stmt->execute();
 			} else {
-				$stmt = $this->buildQuery('
+				$stmt = $this->buildQuery(<<<SQL
 					UPDATE %s AS outer
-					SET %s = normalized_order FROM 
+					SET "%s" = normalized_order FROM 
 					(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order) 
-					WHERE outer.id = inner_id', 
+					WHERE outer.id = inner_id
+				SQL, 
 					$key, $order, $key
 				);
 				$stmt->execute();
@@ -934,11 +1041,12 @@ class Repository {
 			throw new ConsistencyException("no order");
 		}
 
-		$stmt = $this->buildQuery('
+		$stmt = $this->buildQuery(<<<SQL
 			UPDATE %s AS outer
-			SET %s = normalized_order FROM 
+			SET "%s" = normalized_order FROM 
 			(SELECT id AS inner_id, normalized_order FROM %s_normalized_order WHERE stored_order <> normalized_order) 
-			WHERE outer.id = inner_id', 
+			WHERE outer.id = inner_id
+		SQL, 
 			$key, $order, $key
 		);
 		$stmt->execute();
@@ -966,7 +1074,9 @@ class Repository {
 			throw new ConsistencyException("no order");
 		}
 
-		$stmt = $this->buildQuery('SELECT * FROM %s_normalized_order WHERE stored_order <> normalized_order', $key);
+		$stmt = $this->buildQuery(<<<SQL
+		SELECT * FROM %s_normalized_order WHERE stored_order <> normalized_order
+		SQL, $key);
 		$stmt->execute();
 		return $stmt->fetchAll();
 	}
@@ -979,7 +1089,8 @@ class Repository {
 
 		$this->db->beginTransaction();
 
-		$stmt = $this->buildQuery('SELECT CASE WHEN COUNT(DISTINCT equal.id) THEN MIN(equal.priority) + 1 ELSE MIN(greater.priority) END AS next
+		$stmt = $this->buildQuery(<<<SQL
+			SELECT CASE WHEN COUNT(DISTINCT equal.id) THEN MIN(equal.priority) + 1 ELSE MIN(greater.priority) END AS next
 			FROM %s_hierarchy self 
 			LEFT JOIN %s_hierarchy greater 
 			ON (self.%s_id,self.parent) IS (greater.%s_id,greater.parent) 
@@ -990,7 +1101,8 @@ class Repository {
 			AND equal.priority = self.priority 
 			AND self.id <> equal.id
 			WHERE self.id = :id
-			GROUP BY self.id', 
+			GROUP BY self.id
+		SQL, 
 			$key, $key, $parent, $parent, $key, $parent, $parent
 		);
 		$stmt->bindValue('id', $id);
@@ -999,7 +1111,9 @@ class Repository {
 		$newPos = $stmt->fetchColumn();
 
 		if($newPos !== null) {
-			$updateStmt = $this->buildQuery('UPDATE %s SET %s=:new WHERE id=:id', $key, $order);
+			$updateStmt = $this->buildQuery(<<<SQL
+				UPDATE %s SET %s=:new WHERE id=:id
+			SQL, $key, $order);
 			$updateStmt->bindValue('id', $id);
 			$updateStmt->bindValue('new', $newPos);
 			$updateStmt->execute();
@@ -1017,14 +1131,16 @@ class Repository {
 
 		$this->db->beginTransaction();
 
-		$stmt = $this->buildQuery('SELECT max(greater.priority)+1 next
+		$stmt = $this->buildQuery(<<<SQL
+			SELECT max(greater.priority)+1 next
 			FROM %s_hierarchy self 
 			LEFT JOIN %s_hierarchy greater 
 			ON (self.%s_id, self.parent) IS (greater.%s_id, greater.parent) 
 			AND greater.priority > self.priority 
 			AND self.id <> greater.id
 			WHERE self.id = :id
-			GROUP BY self.id', 
+			GROUP BY self.id
+		SQL, 
 			$key, $key, $parent, $parent
 		);
 		$stmt->bindValue('id', $id);
@@ -1033,7 +1149,9 @@ class Repository {
 		$newPos = $stmt->fetchColumn();
 
 		if($newPos !== null) {
-			$updateStmt = $this->buildQuery('UPDATE %s SET %s=:new WHERE id=:id', $key, $order);
+			$updateStmt = $this->buildQuery(<<<SQL
+				UPDATE %s SET %s=:new WHERE id=:id
+			SQL, $key, $order);
 			$updateStmt->bindValue('id', $id);
 			$updateStmt->bindValue('new', $newPos);
 			$updateStmt->execute();
@@ -1051,7 +1169,8 @@ class Repository {
 
 		$this->db->beginTransaction();
 
-		$stmt = $this->buildQuery('SELECT CASE WHEN COUNT(DISTINCT equal.id) THEN MAX(equal.priority) - 1 ELSE MAX(lesser.priority) END AS next
+		$stmt = $this->buildQuery(<<<SQL
+			SELECT CASE WHEN COUNT(DISTINCT equal.id) THEN MAX(equal.priority) - 1 ELSE MAX(lesser.priority) END AS next
 			FROM %s_hierarchy self 
 			LEFT JOIN %s_hierarchy lesser 
 			ON (self.%s_id,self.parent) IS (lesser.%s_id,lesser.parent) 
@@ -1062,7 +1181,8 @@ class Repository {
 			AND equal.priority = self.priority 
 			AND self.id <> equal.id
 			WHERE self.id = :id
-			GROUP BY self.id', 
+			GROUP BY self.id
+		SQL, 
 			$key, $key, $parent, $parent, $key, $parent, $parent
 		);
 		$stmt->bindValue('id', $id);
@@ -1071,7 +1191,9 @@ class Repository {
 		$newPos = $stmt->fetchColumn();
 
 		if($newPos !== null) {
-			$updateStmt = $this->buildQuery('UPDATE %s SET %s=:new WHERE id=:id', $key, $order);
+			$updateStmt = $this->buildQuery(<<<SQL
+				UPDATE %s SET %s=:new WHERE id=:id
+			SQL, $key, $order);
 			$updateStmt->bindValue('id', $id);
 			$updateStmt->bindValue('new', $newPos);
 			$updateStmt->execute();
@@ -1088,14 +1210,16 @@ class Repository {
 
 		$this->db->beginTransaction();
 
-		$stmt = $this->buildQuery('SELECT MIN(lesser.priority)-1 AS next
+		$stmt = $this->buildQuery(<<<SQL
+			SELECT MIN(lesser.priority)-1 AS next
 			FROM %s_hierarchy self 
 			LEFT JOIN %s_hierarchy lesser 
 			ON (self.%s_id,self.parent) IS (lesser.%s_id,lesser.parent) 
 			AND lesser.priority < self.priority 
 			AND self.id <> lesser.id
 			WHERE self.id = :id
-			GROUP BY self.id', 
+			GROUP BY self.id
+		SQL, 
 			$key, $key, $parent, $parent
 		);
 		$stmt->bindValue('id', $id);
@@ -1104,7 +1228,9 @@ class Repository {
 		$newPos = $stmt->fetchColumn();
 
 		if($newPos !== null) {
-			$updateStmt = $this->buildQuery('UPDATE %s SET %s=:new WHERE id=:id', $key, $order);
+			$updateStmt = $this->buildQuery(<<<SQL
+				UPDATE %s SET %s=:new WHERE id=:id
+			SQL, $key, $order);
 			$updateStmt->bindValue('id', $id);
 			$updateStmt->bindValue('new', $newPos);
 			$updateStmt->execute();
@@ -1133,7 +1259,9 @@ class Repository {
 		$columnParamString = ':' . implode(', :', $columnNames);
 
 		if(!empty($scopeId) && !empty($parentId)) {
-			$validPositionStmt = $this->buildQuery('SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id', $key, $parent);
+			$validPositionStmt = $this->buildQuery(<<<SQL
+				SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id
+			SQL, $key, $parent);
 			$validPositionStmt->bindValue('scope', $scopeId);
 			$validPositionStmt->bindValue('id', $parentId);
 			$validPositionStmt->execute();
@@ -1147,7 +1275,9 @@ class Repository {
 		try {
 			$this->db->beginTransaction();
 			if($parent) {
-				$stmt = $this->buildQuery('INSERT INTO %s (%s_id, %s) VALUES (:parentId, %s)', $key, $parent, $columnNameString, $columnParamString);
+				$stmt = $this->buildQuery(<<<SQL
+					INSERT INTO %s (%s_id, %s) VALUES (:parentId, %s)
+				SQL, $key, $parent, $columnNameString, $columnParamString);
 				$stmt->bindValue('parentId', $scopeId);
 				foreach ($columnValues as $k => $v) {
 					$stmt->bindValue($k, $v);
@@ -1156,7 +1286,9 @@ class Repository {
 
 				$lastId = $this->db->lastInsertId();
 				if($reflexive) {
-					$stmt = $this->buildQuery('INSERT INTO %s_closure (%s_id, parent_id, child_id, depth) VALUES (:scope, :parent,:child,:depth)', $key, $parent);
+					$stmt = $this->buildQuery(<<<SQL
+						INSERT INTO %s_closure (%s_id, parent_id, child_id, depth) VALUES (:scope, :parent,:child,:depth)
+					SQL, $key, $parent);
 					$stmt->bindValue('scope', $scopeId);
 					$stmt->bindValue('parent', $lastId);
 					$stmt->bindValue('child', $lastId);
@@ -1171,14 +1303,18 @@ class Repository {
 					}
 				}
 			} else {
-				$stmt = $this->buildQuery('INSERT INTO %s (%s) VALUES (%s)', $key, $columnNameString, $columnParamString);
+				$stmt = $this->buildQuery(<<<SQL
+					INSERT INTO %s (%s) VALUES (%s)
+				SQL, $key, $columnNameString, $columnParamString);
 				foreach ($columnValues as $k => $v) {
 					$stmt->bindValue($k, $v);
 				}
 				$stmt->execute();
 				$lastId = $this->db->lastInsertId();
 				if($reflexive) {
-					$stmt = $this->buildQuery('INSERT INTO %s_closure (parent_id, child_id, depth) VALUES (:parent,:child,:depth)', $key);
+					$stmt = $this->buildQuery(<<<SQL
+						INSERT INTO %s_closure (parent_id, child_id, depth) VALUES (:parent,:child,:depth)
+					SQL, $key);
 					$stmt->bindValue('parent', $lastId);
 					$stmt->bindValue('child', $lastId);
 					$stmt->bindValue('depth', 0);
@@ -1301,7 +1437,7 @@ class Repository {
 				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
 					SELECT 
 					s.id AS id,
-					s.%ORDER% AS stored_order,
+					s.'%ORDER%' AS stored_order,
 					h.parent AS parent,
 					h.%SCOPE%_id AS scope,
 					ROW_NUMBER() OVER(PARTITION BY h.parent, h.%SCOPE%_id ORDER BY h.%ORDER% ASC, h.id DESC) AS normalized_order FROM %NAME%_hierarchy h INNER JOIN %NAME% s ON s.id=h.id
@@ -1310,9 +1446,9 @@ class Repository {
 				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
 					SELECT 
 						s.id AS id,
-						s.%ORDER% AS stored_order,
-						s.%SCOPE%_id AS scope,
-						ROW_NUMBER() OVER(PARTITION BY %SCOPE%_id ORDER BY %ORDER% ASC, id DESC) AS normalized_order FROM %NAME% s
+						s.'%ORDER%' AS stored_order,
+						s.'%SCOPE%_id' AS scope,
+						ROW_NUMBER() OVER(PARTITION BY %SCOPE%_id ORDER BY '%ORDER%' ASC, id DESC) AS normalized_order FROM %NAME% s
 					SQL);
 			}
 		} else {
@@ -1320,16 +1456,16 @@ class Repository {
 				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
 					SELECT 
 						s.id AS id,
-						s.%ORDER% AS stored_order,
+						s.'%ORDER%' AS stored_order,
 						h.parent AS parent,
-						ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.%ORDER% ASC, s.id DESC) AS normalized_order FROM %NAME%_hierarchy h INNER JOIN %NAME% s ON h.id=s.id
+						ROW_NUMBER() OVER(PARTITION BY parent ORDER BY s.'%ORDER%' ASC, s.id DESC) AS normalized_order FROM %NAME%_hierarchy h INNER JOIN %NAME% s ON h.id=s.id
 					SQL);
 			} else {
 				return str_replace(['%NAME%', '%ORDER%', '%SCOPE%'], [$table, $order, $parent], <<<SQL
 					SELECT 
 						s.id AS id,
-						s.%ORDER% AS stored_order,
-						ROW_NUMBER() OVER(ORDER BY %ORDER% ASC, id DESC) AS normalized_order FROM %NAME% s
+						s.'%ORDER%' AS stored_order,
+						ROW_NUMBER() OVER(ORDER BY '%ORDER%' ASC, id DESC) AS normalized_order FROM %NAME% s
 					SQL);
 			}
 		}
