@@ -19,6 +19,7 @@
 <h1>{{childKey|capitalize}}s</h1>
 
     <form action="{{ path('create_node',{key: childKey}) }}" method="post" accept-charset="utf-8">
+     	<input type="hidden" name="_then" value="list">
     	{% if childKey == key %}
             <input type="hidden" name="scope" value="{{ node.self._scope }}">
             <input type="hidden" name="parent" value="{{ node.self.id }}">
@@ -59,6 +60,7 @@
             		<td></td>
                     <td class="data-table-cell" align="right">
                          <form class="inline-form" action="{{ path('delete_node', {key: childKey, id: node.id}) }}" method="post" accept-charset="utf-8">
+                         	<input type="hidden" name="_then" value="list">
                             <button class="inline-button">X</button>
                         </form>
                         <a href="{{ path('ask_delete_node', {key: childKey, id: node.id}) }}" title="">Delete</a>

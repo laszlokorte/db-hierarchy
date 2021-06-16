@@ -175,14 +175,21 @@ class HierarchyController {
     }
 
     #[Route('/{key}/{id}/-', name: 'delete_node', methods: 'POST')]
-    public function deleteNode(UrlGeneratorInterface $urlGen, $key, $id)
+    public function deleteNode(UrlGeneratorInterface $urlGen, Request $request, $key, $id)
     {
     	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
 
 		$this->repo->deleteNode($key, $id);
 
 		if($lastParent) {
-    		return new RedirectResponse($urlGen->generate('show_node', $lastParent));
+			$then = $request->request->get('_then', null);
+			if($then === 'list') {
+				$args = $lastParent;
+				$args['childKey'] = $key;
+    			return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
+			} else {
+    			return new RedirectResponse($urlGen->generate('show_node', $lastParent));
+			}
     	} else {
     		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
     	}
@@ -207,13 +214,27 @@ class HierarchyController {
     {
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
-    	$this->repo->createNode($key, $request->request->get('field', []), $scope, $parent);
+    	$newId = $this->repo->createNode($key, $request->request->get('field', []), $scope, $parent);
+
+		$then = $request->request->get('_then', null);
+
+		if($then === 'new') {
+			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $newId]));
+		}
 
     	if($parent) {
-    		return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $parent]));
+			if($then === 'list') {
+    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key, 'childKey' => $key, 'id' => $parent]));
+			} else {
+    			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $parent]));
+			}
     	} elseif($scope) {
     		$parentKey = $this->repo->getParentKey($key);
-    		return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
+    		if($then === 'list') {
+    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $parentKey, 'childKey' => $key, 'id' => $scope]));
+			} else {
+    			return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
+			}
     	} else {
     		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
     	}
@@ -236,7 +257,13 @@ class HierarchyController {
     {
 		$this->repo->updateNode($key, $id, $request->request->get('field', []));
 
-    	return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
+		$then = $request->request->get('_then', null);
+
+		if($then === 'edit') {
+    		return new RedirectResponse($urlGen->generate('edit_node', ['key' => $key, 'id' => $id]));
+		} else {
+    		return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
+		}
     }
 
     #[Route('_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]

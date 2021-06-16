@@ -722,17 +722,18 @@ class Repository {
 		try {
 			if($this->definition->structure[$key]['reflexive']) {
 				$stmt = $this->buildQuery(<<<SQL
-				SELECT id FROM %s_hierarchy WHERE parent=:id
-		SQL, $key);
+					SELECT id FROM %s_hierarchy WHERE parent=:id
+				SQL, $key);
 				$stmt->bindValue('id', $id);
 				$stmt->execute();
 				$cids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
 				$delStmt = $this->buildQuery(<<<SQL
-					DELETE FROM %s WHERE id=:id', $key);
+					DELETE FROM %s WHERE id=:id
+				SQL, $key);
 				$delStmt2 = $this->buildQuery(<<<SQL
-				DELETE FROM %s_closure WHERE child_id=:id
-		SQL, $key);
+					DELETE FROM %s_closure WHERE child_id=:id
+				SQL, $key);
 				foreach($cids AS $cid) {
 					$this->deleteNodeChildren($key, $cid);
 				}
@@ -1338,6 +1339,8 @@ class Repository {
 			$this->db->rollback();
 			throw $e;
 		}
+
+		return $lastId;
 	}
 
 	public function pathToTop($key, $self = true) {
