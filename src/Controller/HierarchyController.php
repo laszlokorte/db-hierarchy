@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -99,6 +100,20 @@ class HierarchyController {
     	$this->repo->normalizedAllRowOrder();
 
     	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    }
+
+    #[Route('/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]
+	#[Template()]
+    public function showNodeField($key, $id, $field)
+    {
+    	$value = $this->repo->loadNodeField($key, $id, $field);
+
+    	return new JsonResponse([
+    		'key' => $key,
+    		'id' => $id,
+    		'field' => $field,
+    		'value' => $value,
+    	]);
     }
 
     #[Route('/{key}/+', name: 'new_root_node', methods: 'GET')]

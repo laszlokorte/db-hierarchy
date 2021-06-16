@@ -17,12 +17,12 @@
 {% endfor %} / {{ node.type }}-{{ node.self.id }}
 
 
-<h1>{{ key|capitalize }} {{id}}</h1>
+<h1>Edit {{ key|capitalize }} {{id}}</h1>
 
 
 <form action="{{ path('update_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
     <dl class="form-container">{% for field in fields %}
-        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label></dt>
+        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label> <a href="{{ path('show_node_field',{key, id, field}) }}" title="" target="_blank">View</a></dt>
         <dd class="form-container-field">
         <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field] }}">
     {% endfor %}</dd>

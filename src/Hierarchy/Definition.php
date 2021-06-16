@@ -5,19 +5,112 @@ namespace App\Hierarchy;
 
 class Definition {
 	public $structure = [
-		'site' => ['parent' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug'], 'generator' => true],
-		'route' => ['parent' => 'site', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug'], 'generator' => true],
-		'content' => ['parent' => 'route', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug'], 'generator' => true],
-		'menu' => ['parent' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug'], 'generator' => false],
-		'menu_item' => ['parent' => 'menu', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug'], 'generator' => true],
-		'resource_directory' => ['parent' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug'], 'generator' => false],
-		'resource' => ['parent' => 'resource_directory', 'reflexive' => false, 'order' => false, 'fields' => ['slug','content_type'], 'generator' => false],
-		'example_parent' => ['parent' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug'], 'generator' => false],
-		'example_child' => ['parent' => 'example_parent', 'reflexive' => false, 'order' => false, 'fields' => ['slug'], 'generator' => false],
-		'sorted_parent' => ['parent' => null, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug'], 'generator' => false],
-		'sorted_child' => ['parent' => 'sorted_parent', 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug'], 'generator' => false],
-		'sorted_tree' => ['parent' => null, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug'], 'generator' => false],
+		'site' => ['parent' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
+		'route' => ['parent' => 'site', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
+		'content' => ['parent' => 'route', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
+		'menu' => ['parent' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'menu_item' => ['parent' => 'menu', 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => true],
+		'resource_directory' => ['parent' => null, 'reflexive' => true, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'resource' => ['parent' => 'resource_directory', 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text'],'image' => ['type' => 'image']], 'generator' => false],
+		'example_parent' => ['parent' => null, 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'example_child' => ['parent' => 'example_parent', 'reflexive' => false, 'order' => false, 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'sorted_parent' => ['parent' => null, 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'sorted_child' => ['parent' => 'sorted_parent', 'reflexive' => false, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
+		'sorted_tree' => ['parent' => null, 'reflexive' => true, 'order' => 'priority', 'fields' => ['slug' => ['type' => 'text']], 'generator' => false],
 	];
+
+	public $fieldTypes;
+
+	public function __construct() {
+		$this->fieldTypes = [
+			'boolean' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'number' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'date' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'time' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'datetime' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'file' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'image' => [
+				'columns' => ['%s_path','%s_content_type','%s_width','%s_height'],
+				'writer' => function($fieldData) {
+					return ['x','y','z','w'];
+				},
+				'reader' => function($path, $contentType, $width, $height) {
+					return [
+						'path' => $path,
+						'contentType' => $contentType,
+						'width' => $width,
+						'height' => $height,
+					];
+				},			
+			],
+			'text' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+			'enum' => [
+				'columns' => ['%s'],
+				'writer' => function($fieldData) {
+					return [$fieldData];
+				},
+				'reader' => function($column1) {
+					return $column1;
+				},			
+			],
+		];
+	}
 
 	public function getRootKeys() {
 		return array_keys(array_filter($this->structure, function($def) {
@@ -33,7 +126,7 @@ class Definition {
 
 	public function getAllFields() {
 		return array_map(function($def) {
-			return $def['fields'];
+			return array_keys($def['fields']);
 		}, $this->structure);
 	}
 
@@ -41,13 +134,78 @@ class Definition {
 		$keys = $this->getChildKeys($parentKey);
 		return array_combine($keys, 
 			array_map(function($key) {
-				return $this->structure[$key]['fields'];
+				return array_keys($this->structure[$key]['fields']);
 			}, $keys)
 		);
 	}
 
 	public function getFields($key) {
-		return $this->structure[$key]['fields'];
+		return array_keys($this->structure[$key]['fields']);
+	}
+
+	public function hasField($key, $field) {
+		return isset($this->structure[$key]['fields'][$field]);
+	}
+
+	public function fieldDataToColumnData($key, $fieldData) {
+		$result = [];
+
+		foreach ($this->structure[$key]['fields'] as $fieldName => $options) {
+			$type = $options['type'];
+			$writer = $this->fieldTypes[$type]['writer'];
+
+			$columnData = $writer($fieldData[$fieldName]);
+
+			foreach ($this->fieldTypes[$type]['columns'] as $i => $columnTemplate) {
+				$columnName = sprintf($columnTemplate, $fieldName);
+				$result[$columnName] = $columnData[$i];
+			}
+		}
+
+		return $result;
+	}
+
+	public function columnDataToFieldData($key, $columnData) {
+		$result = [
+			'id' => $columnData['id']??null,
+			'_scope' => $columnData['_scope']??null,
+		];
+
+		foreach ($this->structure[$key]['fields'] as $fieldName => $options) {
+			$type = $options['type'];
+			$reader = $this->fieldTypes[$type]['reader'];
+
+			$collectedColumns = $this->getFieldColumns($key, $fieldName);
+
+			$result[$fieldName] = $reader(...array_map(fn($c) => $columnData[$c], $collectedColumns));
+		}
+
+		return $result;
+	}
+
+	public function getColumns($key) {
+		$result = [];
+
+		foreach ($this->structure[$key]['fields'] as $fieldName => $options) {
+			$type = $options['type'];
+			foreach ($this->fieldTypes[$type]['columns'] as $columnTemplate) {
+				$result[] = sprintf($columnTemplate, $fieldName);
+			}
+		}
+
+		return $result;
+	}
+
+	public function getFieldColumns($key, $fieldName) {
+		$result = [];
+		$options = $this->structure[$key]['fields'][$fieldName];
+		$type = $options['type'];
+
+		foreach ($this->fieldTypes[$type]['columns'] as $columnTemplate) {
+			$result[] = sprintf($columnTemplate, $fieldName);
+		}
+
+		return $result;
 	}
 
 	public function getParentKey($key) {

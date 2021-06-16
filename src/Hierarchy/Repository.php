@@ -487,6 +487,7 @@ class Repository {
 			$selfData = $selfStmt->fetch();
 		}
 
+
 		if(!$selfData) {
 			throw new ConsistencyException("not found");
 		}
@@ -542,6 +543,7 @@ class Repository {
 			$selfReflexiveStmt->bindValue('parentId', $id);
 			$selfReflexiveStmt->execute();
 			$relexiveParents = $selfReflexiveStmt->fetchAll();
+
 			$parents[] = ['type' => $key, 'items' => $relexiveParents];
 
 			$totalCount += count($relexiveParents);
@@ -566,6 +568,7 @@ class Repository {
 						$parents[] = ['type' => $pathKey, 'items' => $relexiveParents];
 						$topId = $relexiveParents[0]['parent']??NULL;
 						$totalCount += count($relexiveParents);
+
 				} else {
 					$reflexiveStmt = $this->buildQuery('SELECT d.* FROM %s_closure closure INNER JOIN %s d ON d.id = closure.parent_id WHERE closure.child_id = :parentId ORDER BY closure.depth DESC', $pathKey, $pathKey);
 					$reflexiveStmt->bindValue('parentId', $topId);
@@ -584,6 +587,7 @@ class Repository {
 				$parents[] = ['type' => $pathKey, 'items' => [$realParent]];
 				$topId = $realParent[sprintf('%s_id', $parent['parent'])]??NULL;
 				$totalCount += 1;
+
 			}
 
 		}
@@ -599,6 +603,7 @@ class Repository {
 			$selfReflexiveStmt->bindValue('id', $id);
 			$selfReflexiveStmt->execute();
 			$reflexId = $selfReflexiveStmt->fetchColumn();
+
 			if($reflexId) {
 				return ['key' => $key, 'id' => $reflexId];
 			}
@@ -618,12 +623,39 @@ class Repository {
 	}
 
 	public function loadNode($key, $id) {
+		$self = $this->loadNodeSelf($key, $id);
+		$parents = $this->loadNodeParents($key, $id);
+		$children = $this->loadNodeChildren($key, $id);
+
+		$selfFields = $this->definition->columnDataToFieldData($key, $self);
+
+		$parentsFields = [];
+		foreach ($parents as $p) {
+			$parentsFields[] = ['type' => $p['type'], 'items' => array_map(fn($i) => $this->definition->columnDataToFieldData($p['type'], $i), $p['items'])];
+		}
+
+		$childrenFields = [];
+		foreach ($children as $type => $rows) {
+			$childrenFields[$type] = array_map(fn($c) => $this->definition->columnDataToFieldData($type, $c), $rows);
+		}
+
 		return [
 			'type' => $key,
-			'self' => $this->loadNodeSelf($key, $id),
-			'parents' => $this->loadNodeParents($key, $id),
-			'children' => $this->loadNodeChildren($key, $id),
+			'self' => $selfFields,
+			'parents' => $parentsFields,
+			'children' => $childrenFields,
 		];
+	}
+
+	public function loadNodeField($key, $id, $field) {
+		if(!in_array($field, $this->definition->hasField($key, $field))) {
+			throw new \Exception("invalid field");
+		}
+		$selfStmt = $this->buildQuery('SELECT %s AS value FROM %s WHERE id = :selfId', $field, $key);
+		$selfStmt->bindValue('selfId', $id);
+		$selfStmt->execute();
+		
+		return $selfStmt->fetchColumn();
 	}
 
 	public function deleteNode($key, $id) {
@@ -717,13 +749,16 @@ class Repository {
 	}
 
 	public function updateNode($key, $id, $fieldData) {
-		$fields = $this->definition->structure[$key]['fields'];
-		$stmt = $this->buildQuery('UPDATE %s SET %s WHERE id=:id', $key, implode(',', array_map(function($f) {
-			return sprintf('%s = :%s', $f, $f);
-		}, $fields)));
-		foreach ($fields as $field) {
-			$stmt->bindValue($field, $fieldData[$field]);
+		$columnValues = $this->definition->fieldDataToColumnData($key, $fieldData);
+
+		$stmt = $this->buildQuery('UPDATE %s SET %s WHERE id=:id', $key, implode(',', array_map(function($col) {
+			return sprintf('%s = :%s', $col, $col);
+		}, array_keys($columnValues))));
+
+		foreach ($columnValues as $k => $v) {
+			$stmt->bindValue($k, $v);
 		}
+
 		$stmt->bindValue('id', $id);
 		$stmt->execute();
 	}
@@ -1089,7 +1124,6 @@ class Repository {
 	public function createNode($key, $fieldData, $scopeId = NULL, $parentId = NULL) {
 		$reflexive = $this->definition->structure[$key]['reflexive'];
 		$parent = $this->definition->structure[$key]['parent'];
-		$fields = $this->definition->structure[$key]['fields'];
 		$order = $this->definition->structure[$key]['order'];
 
 
@@ -1101,6 +1135,11 @@ class Repository {
 			throw new ConsistencyException($parentId);
 		}
 
+		$columnValues = $this->definition->fieldDataToColumnData($key, $fieldData);
+		$columnNames = array_keys($columnValues);
+		$columnNameString = implode(',', $columnNames);
+		$columnParamString = ':' . implode(', :', $columnNames);
+
 		if(!empty($scopeId) && !empty($parentId)) {
 			$validPositionStmt = $this->buildQuery('SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id', $key, $parent);
 			$validPositionStmt->bindValue('scope', $scopeId);
@@ -1111,13 +1150,15 @@ class Repository {
 				throw new ConsistencyException("invalid position");
 			}
 		}
+
+
 		try {
 			$this->db->beginTransaction();
 			if($parent) {
-				$stmt = $this->buildQuery('INSERT INTO %s (%s_id, %s) VALUES (:parentId, %s)', $key, $parent, implode(',', $fields), ':' . implode(', :', $fields));
+				$stmt = $this->buildQuery('INSERT INTO %s (%s_id, %s) VALUES (:parentId, %s)', $key, $parent, $columnNameString, $columnParamString);
 				$stmt->bindValue('parentId', $scopeId);
-				foreach ($fields as $field) {
-					$stmt->bindValue($field, $fieldData[$field]);
+				foreach ($columnValues as $k => $v) {
+					$stmt->bindValue($k, $v);
 				}
 				$stmt->execute();
 
@@ -1138,9 +1179,9 @@ class Repository {
 					}
 				}
 			} else {
-				$stmt = $this->buildQuery('INSERT INTO %s (%s) VALUES (%s)', $key, implode(',', $fields), ':' . implode(', :', $fields));
-				foreach ($fields as $field) {
-					$stmt->bindValue($field, $fieldData[$field]);
+				$stmt = $this->buildQuery('INSERT INTO %s (%s) VALUES (%s)', $key, $columnNameString, $columnParamString);
+				foreach ($columnValues as $k => $v) {
+					$stmt->bindValue($k, $v);
 				}
 				$stmt->execute();
 				$lastId = $this->db->lastInsertId();
@@ -1192,10 +1233,11 @@ class Repository {
 		$parent = $definition['parent'];
 		$reflexive = $definition['reflexive'];
 		$order = $definition['order'];
+		$columns = $this->definition->getColumns($table);
 
-		$columnSql = implode("\n", array_map(function($field) {
-			return sprintf('"%s"	TEXT NOT NULL,', $field);
-		}, $definition['fields']));
+		$columnSql = implode("\n", array_map(function($column) {
+			return sprintf('"%s"	TEXT NOT NULL,', $column);
+		}, $columns));
 
 		if($order) {
 			$columnSql .= sprintf('"%s"	INTEGER NOT NULL DEFAULT 0,', $order);

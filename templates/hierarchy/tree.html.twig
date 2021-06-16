@@ -30,11 +30,17 @@
 
 {% for node in tree.nodes %}
     <h3>{{ node.hierarchyKey|capitalize }}</h3>
+    <a href="{{ path('new_root_node', {key: node.hierarchyKey}) }}" title="">New</a> | 
+    <a href="{{ path('list_root_nodes', {key: node.hierarchyKey}) }}" title="">List</a>
+
     {% if node.isNotEmpty %}
         {{ _self.walkTree(node.getChildren()) }}
     {% else %}
-        none
+        <p>
+            none
+        </p>
     {% endif %}
+    <hr>
 {% endfor %}
 
 

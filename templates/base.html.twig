@@ -20,8 +20,20 @@
                     
                 }
 
+                .data-table-cell.empty::before {
+                    content: '-';
+                }
+
                 .data-table-head-cell {
                     border-bottom: 1px solid gray;
+                }
+
+                .data-table-head-cell:not([align]) {
+                    text-align: left;
+                }
+
+                .data-table-foot-cell {
+                    border-top: 1px solid gray;
                 }
 
                 .data-table-empty-cell {
@@ -29,16 +41,26 @@
                     text-align: center;
                     border: 2px dashed #eee;
                     font-style: italic;
+                    color: #aaa;
                 }
 
                 .form-container {
                     display: grid;
                     gap: 0.5em;
-                    grid-template-columns: min-content auto;
+                    grid-template-columns: max-content auto;
                 }
 
                 .inline-form {
                     display: inline-block;
+                }
+
+                .inline-button {
+                    color: #fff;
+                    background: #333;
+                    display: inline-block;
+                    padding: 1px 0.5em;
+                    border: none;
+                    border-radius: 3px;
                 }
             </style>
         {% endblock %}

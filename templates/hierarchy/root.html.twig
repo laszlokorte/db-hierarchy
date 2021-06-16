@@ -20,8 +20,6 @@
 	    </dl>
     </form>
 
-    <a href="{{ path('new_root_node', {key: rootKey}) }}" title="">New {{rootKey|capitalize}}</a>
-
     <table class="data-table">
         <thead class="data-table-head">
             <tr class="data-table-head-row">
@@ -29,17 +27,19 @@
                 {% for field in allFields[rootKey] %}
                     <th class="data-table-head-cell">{{ field|capitalize }}</th>
                 {% endfor %}
+                <th class="data-table-head-cell" width="50%"></th>
                 <th class="data-table-head-cell" align="right">actions</th>
             </tr>
         </thead>
-        <tbody class="data-table-body">
-            {% if rootNodes[rootKey]|length %}
+        {% if rootNodes[rootKey]|length %}
+        	<tbody class="data-table-body">
                 {% for rootNode in rootNodes[rootKey] %}
                     <tr class="data-table-row">
                         <td class="data-table-cell"><a href="{{ path('show_node', {key: rootKey, id: rootNode.id}) }}">{{ rootNode.id }}</a></td>
                         {% for field in allFields[rootKey] %}
-                            <td>{{ rootNode[field] }}</td>
+                            <td class="{{ html_classes('data-table-cell', {'empty': rootNode[field] is empty}) }}">{{ rootNode[field] }}</td>
                         {% endfor %}
+                		<td></td>
                         <td class="data-table-cell" align="right">
                              <form class="inline-form" action="{{ path('delete_node', {key: rootKey, id: rootNode.id}) }}" method="post" accept-charset="utf-8">
                                 <button class="inline-button">X</button>
@@ -50,18 +50,26 @@
                         </td>
                     </tr>
                 {% endfor %}
-                <tr>
-                	<td>
-						<a href="{{ path('list_root_nodes', {key: rootKey}) }}" title="">Show {{rootKey}}s</a>
-                	</td>
-                </tr>
-            {% else %}
+
+        	</tbody>
+        {% else %}
+			<tbody>
                 <tr class="data-table-empty-row">
-                    <td class="data-table-empty-cell" colspan="{{ allFields[rootKey]|length + 2 }}">empty,     <a href="{{ path('new_root_node', {key: rootKey}) }}" title="">New {{rootKey|capitalize}}</a>
-</td>
+                    <td class="data-table-empty-cell" colspan="{{ allFields[rootKey]|length + 3 }}">empty<br><a href="{{ path('new_root_node', {key: rootKey}) }}" title="">Add {{rootKey|capitalize}}</a>
+					</td>
                 </tr>
-            {% endif %}
-        </tbody>
+			</tbody>
+        {% endif %}
+        <tfoot class="data-table-foot">
+        	<tr class="data-table-foot-row">
+            	<td class="data-table-foot-cell" colspan="{{ allFields[rootKey]|length + 2 }}">
+					<a href="{{ path('list_root_nodes', {key: rootKey}) }}" title="">Show {{rootKey}}s</a>
+            	</td>
+            	<td class="data-table-foot-cell" align="right">
+        		    <a href="{{ path('new_root_node', {key: rootKey}) }}" title="">New {{rootKey|capitalize}}</a>
+            	</td>
+            </tr>
+        </tfoot>
     </table>
 {% endfor %}
 {% endblock %}

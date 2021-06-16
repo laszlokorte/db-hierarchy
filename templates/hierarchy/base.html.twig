@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 {% block html_body %}
 
-    <div style="display: grid; grid-template-columns: 2fr 7fr;">
+    <div style="display: grid; grid-template-columns: 2fr 7fr; max-width: 80em; margin: 3em auto">
         <nav>
             <h1><a href="{{ path('hierarchy_root') }}" title="">Hierarchy</a></h1>
             <ul>
@@ -12,7 +12,7 @@
 
 
             <p>
-                <a href="{{ path('hierarchy_setup') }}">Schow Schema</a>
+                <a href="{{ path('hierarchy_setup') }}">Show Schema</a>
             </p>
             <p>
                 <a href="{{ path('show_hierarchy_defects') }}">Defects</a>

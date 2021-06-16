@@ -32,8 +32,6 @@
 	    </dl>
     </form>
 
-    <a href="{{ path('new_child_node', {key,id:node.self.id,childKey}) }}" title="">New {{childKey}}</a>
-
     <table class="data-table">
         <thead class="data-table-head">
             <tr class="data-table-head-row">
@@ -41,32 +39,50 @@
                 {% for field in childFields %}
                     <th class="data-table-head-cell">{{ field }}</th>
                 {% endfor %}
+                <th class="data-table-head-cell" width="50%"></th>
                 <th class="data-table-head-cell" align="right">actions</th>
             </tr>
         </thead>
-        <tbody class="data-table-body">
-            {% if childNodes|length %}
-                {% for node in childNodes %}
-                    <tr class="data-table-row">
-                        <td class="data-table-cell"><a href="{{ path('show_node', {key: childKey, id: node.id}) }}">{{ node.id }}</a></td>
-                        {% for field in childFields %}
-                            <td class="data-table-cell">{{ node[field] }}</td>
-                        {% endfor %}
-                        <td class="data-table-cell" align="right">
-                             <form class="inline-form" action="{{ path('delete_node', {key: childKey, id: node.id}) }}" method="post" accept-charset="utf-8">
-                                <button class="inline-button">X</button>
-                            </form>
-                            <a href="{{ path('ask_delete_node', {key: childKey, id: node.id}) }}" title="">Delete</a>
+        {% if childNodes|length %}
+        	<tbody class="data-table-body">
+            {% for node in childNodes %}
+                <tr class="data-table-row">
+                    <td class="data-table-cell"><a href="{{ path('show_node', {key: childKey, id: node.id}) }}">{{ node.id }}</a></td>
+                    {% for field in childFields %}
+                        <td class="{{ html_classes('data-table-cell', {'empty': node[field] is empty}) }}">{{ node[field] }}</td>
+                    {% endfor %}
+            		<td></td>
+                    <td class="data-table-cell" align="right">
+                         <form class="inline-form" action="{{ path('delete_node', {key: childKey, id: node.id}) }}" method="post" accept-charset="utf-8">
+                            <button class="inline-button">X</button>
+                        </form>
+                        <a href="{{ path('ask_delete_node', {key: childKey, id: node.id}) }}" title="">Delete</a>
 
-                            <a href="{{ path('edit_node', {key: childKey, id: node.id}) }}" title="">Edit</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr class="data-table-empty-row">
-                    <td class="data-table-empty-cell" colspan="{{ childFields|length + 2 }}">empty</td>
+                        <a href="{{ path('edit_node', {key: childKey, id: node.id}) }}" title="">Edit</a>
+                    </td>
                 </tr>
-            {% endif %}
-        </tbody>
+            {% endfor %}
+        	</tbody>
+        {% else %}
+	        <tbody>
+	            <tr class="data-table-empty-row">
+	                <td class="data-table-empty-cell" colspan="{{ childFields|length + 3 }}">
+	                empty
+	                <br>
+	                <a href="{{ path('new_child_node', {key,id:node.self.id,childKey}) }}" title="">New {{childKey}}</a>
+	                </td>
+	            </tr>
+	        </tbody>
+        {% endif %}
+        <tfoot class="data-table-foot">
+            <tr class="data-table-foot-row">
+                <td class="data-table-foot-cell" colspan="{{ childFields|length + 2 }}">
+                    <a href="{{ path('list_child_nodes', {key, id: node.self.id, childKey}) }}" title="">Show {{childKey}}s</a>
+                </td>
+                <td class="data-table-foot-cell" align="right">
+                    <a href="{{ path('new_child_node', {key, id: node.self.id, childKey}) }}" title="">New {{childKey|capitalize}}</a>
+                </td>
+            </tr>
+        </tfoot>
     </table>
 {% endblock %}
