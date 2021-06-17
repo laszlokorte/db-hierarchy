@@ -53,7 +53,8 @@
 </pre>
 <pre style="color: #55a">
 {% for normalizer in backingTable.normalizers %}
-    <strong>CREATE VIEW</strong> IF NOT EXISTS "{{normalizer.viewName}}" AS {{ normalizer.selectStatement }};
+    <strong>CREATE VIEW</strong> IF NOT EXISTS "{{normalizer.viewName}}" AS 
+    {{ normalizer.selectStatement }};
 {% endfor %}
 </pre>
 {% endif %}

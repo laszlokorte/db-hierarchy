@@ -1518,11 +1518,10 @@ class Repository {
 					self.id ASC
 			SQL);
 		} else {
-			return str_replace(['%NAME%'], [$table], <<<SQL
+			return str_replace(['%NAME%', '%ORDER_SELECT%', '%ORDER_BY%'], [$table, $sqlOrderSelect, $sqlOrderBy], <<<SQL
 				SELECT
-					parent.id AS parent,
-					self.id AS id,
-					self.slug 
+					parent.id AS parent, %ORDER_SELECT%
+					self.id AS id
 				FROM
 					%NAME% self
 					INNER JOIN %NAME%_closure reflexive
@@ -1534,7 +1533,7 @@ class Repository {
 					LEFT JOIN %NAME% parent
 					ON parent.id = closure.parent_id
 				ORDER BY
-				    parent.id ASC,
+				    parent.id ASC, %ORDER_BY%
 					self.id ASC
 			SQL);
 		}
