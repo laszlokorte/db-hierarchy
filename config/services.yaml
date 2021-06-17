@@ -26,3 +26,7 @@ services:
     App\Controller\:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
+
+
+    App\Hierarchy\Schema\Definition\SchemaDefinition:
+        factory: ['@App\Hierarchy\Schema\Definition\Loader', 'loadDefinition']

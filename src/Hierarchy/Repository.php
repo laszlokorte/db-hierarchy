@@ -4,8 +4,10 @@ namespace App\Hierarchy;
 
 use Doctrine\DBAL\Connection;
 
+use App\Hierarchy\Schema\SchemaRoot;
+
 class Repository {
-	public function __construct(public Connection $db, Definition $definition) {
+	public function __construct(public Connection $db, Definition $definition, SchemaRoot $schema) {
 		$this->db = $db;
 		$this->definition = $definition;
 	}

@@ -12,6 +12,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use App\Hierarchy\Repository;
+use App\Hierarchy\Schema\SchemaRoot;
 
 class HierarchyController {
 
@@ -314,6 +315,16 @@ class HierarchyController {
     		'node' => $this->repo->loadNode($key, $id),
     		'childFields' => $this->repo->getFields($childKey),
     		'childNodes' => $this->repo->loadChildKeyNodes($key, $id, $childKey),
+    		'rootKeys' => $this->repo->getRootKeys(),
+    	];
+    }
+
+    #[Route('/_setup_refactored', name: 'show_hierarchy_refactored', methods: 'GET', priority: 1000)]
+	#[Template()]
+    public function refactored(SchemaRoot $schema)
+    {
+    	return [
+    		'schema' => $schema,
     		'rootKeys' => $this->repo->getRootKeys(),
     	];
     }
