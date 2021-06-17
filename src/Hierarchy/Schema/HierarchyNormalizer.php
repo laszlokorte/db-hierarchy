@@ -45,7 +45,7 @@ class HierarchyNormalizer {
 				    parent.id ASC, 
 				    %ORDER_BY%
 					self.id ASC
-				SQL;
+			SQL;
 		} else {
 			return <<<SQL
 				SELECT
@@ -65,7 +65,7 @@ class HierarchyNormalizer {
 				ORDER BY
 				    parent.id ASC, %ORDER_SELECT%
 					self.id ASC
-				SQL;
+			SQL;
 		}
 	}
 }

@@ -59,7 +59,7 @@ class ClosureMissingNormalizer {
 						WHERE (r.parent_id, r.child_id, r.depth)
 						IS (m.id, m.id, 0)
 					)
-				SQL;
+			SQL;
 		} else {
 			return <<<SQL
 				SELECT
@@ -97,7 +97,7 @@ class ClosureMissingNormalizer {
 						WHERE (r.parent_id, r.child_id, r.depth)
 						IS (m.id, m.id, 0)
 					)
-				SQL;
+			SQL;
 		}
 	}
 }
