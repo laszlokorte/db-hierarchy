@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Hierarchy\Schema;
+namespace App\Hierarchy\Schema\Table;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
-class BackingTable {
+class NodeTable {
 	public function __construct(
 		private SchemaDefinition $def, 
 		private string $keyId
@@ -12,7 +12,7 @@ class BackingTable {
 	}
 
 	public function getTableName() {
-		return $this->def->getKeyTable($this->keyId);
+		return $this->def->getKeyTableName($this->keyId);
 	}
 
 	public function getKeyId() {
@@ -64,7 +64,7 @@ class BackingTable {
 			$ownColumn = $this->def->getKeyScopeColumn($this->keyId);
 			$targetColumn = $this->def->getKeyIdentityColumn($scopeKeyId);
 
-			$targetTable = $this->def->getKeyTable($scopeKeyId);
+			$targetTable = $this->def->getKeyTableName($scopeKeyId);
 
 			return [
 				['table' => $targetTable, 'ownColumns' => [$ownColumn], 'targetColumns' => [$targetColumn]],
@@ -108,27 +108,5 @@ class BackingTable {
 		$options = $this->def->getKeyFieldOptions($this->keyId, $fieldId);
 
 		return $fieldType->getColumns($fieldId, $options);
-	}
-
-	public function hasTreeClosure() {
-		return $this->def->isKeyReflexive($this->keyId);
-	}
-
-	public function getClosureTable() {
-		return new ClosureTable($this->def, $this->keyId);
-	}
-
-	public function getNormalizers() {
-		$result = [];
-
-		if($this->hasTreeClosure()) {
-			$result = array_merge($result, $this->getClosureTable()->getNormalizers());
-		}
-
-		if($this->isOrdered()) {
-			$result[] = new OrderNormalizer($this->def, $this->keyId);
-		}
-
-		return $result;
 	}
 }

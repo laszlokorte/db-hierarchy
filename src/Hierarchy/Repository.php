@@ -1679,6 +1679,12 @@ class Repository {
 							IS (a.parent_id, b.child_id)
 					)
 				)
+				OR (t.child_id <> t.parent_id AND EXISTS (
+						SELECT r.id
+						FROM %NAME%_closure r
+						WHERE (r.child_id, r.parent_id) = (t.parent_id, t.child_id)
+					)
+				)
 			SQL);
 		}
 	}

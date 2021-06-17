@@ -26,11 +26,11 @@ class SchemaRoot {
 		return array_map([$this, 'getKey'], $this->def->getRootScopeKeyIds());
 	}
 
-	public function getAllBackingTables() {
-		return array_map([$this, 'getBackingTable'], $this->def->getAllKeyIdsTopological());
+	public function getAllHierarchies() {
+		return array_map([$this, 'getHierarchy'], $this->def->getAllKeyIdsTopological());
 	}
 
-	public function getBackingTable($keyId) {
-		return new BackingTable($this->def, $keyId);
+	public function getHierarchy($keyId) {
+		return new Hierarchy($this->def, $keyId);
 	}
 }

@@ -2,7 +2,7 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-use App\Hierarchy\Schema\TableColumn;
+use App\Hierarchy\Schema\Table\TableColumn;
 
 class SchemaDefinition {
 
@@ -163,7 +163,7 @@ class SchemaDefinition {
 		return new TableColumn($this->getKeyScopeColumnName($keyId), $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))->getSqlType());
 	}
 
-	public function getKeyTable($keyId) {
+	public function getKeyTableName($keyId) {
 		return $this->keys[$keyId]->getTableName();
 	}
 }

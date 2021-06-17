@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hierarchy\Schema;
+namespace App\Hierarchy\Schema\Table;
 
 class TableColumn {
 	public function __construct(
@@ -24,7 +24,7 @@ class TableColumn {
 	}
 
 	public function hasDefault() {
-		$this->default !== null;
+		return $this->default !== null;
 	}
 
 	public function getDefault() {

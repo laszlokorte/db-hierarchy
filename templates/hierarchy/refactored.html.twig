@@ -8,56 +8,44 @@
 
 <h1>Hierarchy Refactored</h1>
 
+<div contenteditable="" readonly style="overflow: scroll;max-height: 50vh; max-width: 90vw;">
+    
 <pre style="color: #a00">
-{% for backingTable in schema.allBackingTables|reverse %}
-{% for normalizer in backingTable.normalizers|reverse %}
-    <strong>DROP VIEW</strong> IF NOT EXISTS "{{normalizer.viewName}}";
+{% for hierarchy in schema.allHierarchies|reverse %}
+{% for view in hierarchy.views|reverse %}
+    <strong>DROP VIEW</strong> IF EXISTS "{{view.viewName}}";
 {% endfor %}
-{% if backingTable.hasTreeClosure %}
-    <strong>DROP TABLE</strong> IF NOT EXISTS "{{backingTable.closureTable.tableName}}";
-{% endif %}
-    <strong>DROP TABLE</strong> IF EXISTS "{{backingTable.tableName}}"
+{% for table in hierarchy.tables %}
+    <strong>DROP TABLE</strong> IF EXISTS "{{table.tableName}}";
+{% endfor %}
 {% endfor %}
 </pre>
 
-{% for backingTable in schema.allBackingTables %}
-<pre style="color: #0a0">
-    <strong>CREATE TABLE</strong> "{{backingTable.tableName}}" (
-{% for column in backingTable.columns %}
-        {{ column.name }} {{ column.sqlType }} {%- if not column.nullable %} NOT NULL{% endif -%} {%- if column.default %} DEFAULT "{{column.default}}"{% endif -%},
+{% for hierarchy in schema.allHierarchies %}
+{% for table in hierarchy.tables %}
+    <pre style="color: #0a0">
+    <strong>CREATE TABLE</strong> "{{table.tableName}}" (
+{% for column in table.columns %}
+        {{ column.name }} {{ column.sqlType }} {%- if not column.nullable %} NOT NULL{% endif -%}  {%- if column.hasDefault %} DEFAULT "{{column.default}}"{% endif -%},
 {% endfor %}
-        PRIMARY KEY("{{backingTable.primaryKeyColumn.name}}" AUTOINCREMENT),
-{% for unique in backingTable.uniqueContraints %}
-        UNIQUE({{unique|map(c => "'#{c.name}'")|join(', ')}}),
+        PRIMARY KEY("{{table.primaryKeyColumn.name}}" AUTOINCREMENT)
+{% for unique in table.uniqueContraints %}
+,       UNIQUE({{unique|map(c => "'#{c.name}'")|join(', ')}})
 {% endfor %}
-{% for fk in backingTable.foreignKeys %}
-        FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+{% for fk in table.foreignKeys %}
+,       FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
 {% endfor %}
     );
 </pre>
+{% endfor %}
 
-{% if backingTable.hasTreeClosure %}
-<pre style="color: #570">
-    <strong>CREATE TABLE</strong> "{{backingTable.closureTable.tableName}}" (
-{% for column in backingTable.closureTable.columns %}
-        {{ column.name }} {{ column.sqlType }} {%- if not column.nullable %} NOT NULL{% endif -%} {%- if column.default %} DEFAULT "{{column.default}}"{% endif -%},
-{% endfor %}
-        PRIMARY KEY("{{backingTable.closureTable.primaryKeyColumn.name}}" AUTOINCREMENT),
-{% for unique in backingTable.closureTable.uniqueContraints %}
-        UNIQUE({{unique|map(c => "'#{c.name}'")|join(', ')}}),
-{% endfor %}
-{% for fk in backingTable.closureTable.foreignKeys %}
-        FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-{% endfor %}
-    );
-</pre>
 <pre style="color: #55a">
-{% for normalizer in backingTable.normalizers %}
-    <strong>CREATE VIEW</strong> IF NOT EXISTS "{{normalizer.viewName}}" AS 
-    {{ normalizer.selectStatement }};
+{% for view in hierarchy.views %}
+    <strong>CREATE VIEW</strong> IF NOT EXISTS "{{view.viewName}}" AS 
+    {{ view.selectStatement }};
 {% endfor %}
 </pre>
-{% endif %}
 {% endfor %}
+</div>
 
 {% endblock %}

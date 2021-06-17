@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hierarchy\Schema;
+namespace App\Hierarchy\Schema\Table;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
@@ -28,7 +28,7 @@ class ClosureTable {
 	}
 
 	public function getForeignKeys() {
-		$targetTable = $this->def->getKeyTable($this->keyId);
+		$targetTable = $this->def->getKeyTableName($this->keyId);
 		$targetColumn = $this->def->getKeyIdentityColumn($this->keyId);
 
 		$result = [];
@@ -61,7 +61,7 @@ class ClosureTable {
 	}
 
 	public function getPrimaryKeyColumn() {
-		return new TableColumn('id', 'UNSIGNED INTEGER', false, null);
+		return new TableColumn('id', 'INTEGER', false, null);
 	}
 
 	public function getScopeColumns() {
@@ -73,7 +73,7 @@ class ClosureTable {
 	}
 
 	public function getDepthColumn() {
-		return new TableColumn('depth', 'UNSIGNED INTEGER', false, null);
+		return new TableColumn('depth', 'INTEGER', false, null);
 	}
 
 	public function getParentColumn() {
@@ -82,13 +82,5 @@ class ClosureTable {
 
 	public function getChildColumn() {
 		return $this->def->getKeyReflexivityChildColumn($this->keyId);
-	}
-
-	public function getNormalizers() {
-		return [
-			new ClosureInvalidNormalizer($this->def, $this->keyId),
-			new ClosureMissingNormalizer($this->def, $this->keyId),
-			new HierarchyNormalizer($this->def, $this->keyId),
-		];
 	}
 }
