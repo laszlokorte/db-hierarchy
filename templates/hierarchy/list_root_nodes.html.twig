@@ -1,17 +1,16 @@
 {% extends 'hierarchy/base.html.twig' %}
 
-
 {% block html_title -%}
     {{key|capitalize}}s - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a> / {{key|capitalize}}s
+{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: key~'s'} only %}
 
 <h1>{{key|capitalize}}s</h1>
 
     {% include 'hierarchy/partials/form_new.html.twig' with {fields, key} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {fields, nodes, key} only %}
+    {% include 'hierarchy/partials/table.html.twig' with {fields, nodes, key, order} only %}
 {% endblock %}

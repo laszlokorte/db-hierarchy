@@ -6,7 +6,8 @@
 
 {% block area_main %}
 
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a> / <a href="{{ path('list_root_nodes',{key}) }}" title="">{{key|capitalize}}s</a> / New
+{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'New', key} only %}
+
 
 <h1>New {{key|capitalize}}</h1>
 

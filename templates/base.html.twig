@@ -118,6 +118,22 @@
                 a:not([class]) {
                     color: #034;
                 }
+
+                .breadcrump {
+                    display: block;
+                    list-style: none;
+                    padding: 0;
+                    display: flex;
+                }
+
+                .breadcrump-item {
+                    display: inline-block;
+                    padding: 0;
+                }
+
+                .breadcrump-item::before {
+                    content: '/';
+                }
             </style>
         {% endblock %}
 

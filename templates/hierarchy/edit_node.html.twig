@@ -5,20 +5,10 @@
 {%- endblock %}
 
 {% block area_main %}
-{% set directParent = null %}
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
-{% for parents in node.parents %}
-    {% for parentNode in parents.items %}
-        / <a href="{{ path('show_node',{key: parents.type, id:parentNode.id}) }}" title="">
-            {{ parents.type }}-{{ parentNode.id }}
-        </a>
-        {% set directParent = {key: parents.type, id: parentNode.id} %}
-    {% endfor %}
-{% endfor %} / {{ node.type }}-{{ node.self.id }}
 
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, key, id, trailing: 'edit'} only %}
 
 <h1>Edit {{ key|capitalize }} {{id}}</h1>
-
 
 {% include 'hierarchy/partials/form_edit.html.twig' with {fields, key, id, values: node.self, then: 'edit'} only %}
 

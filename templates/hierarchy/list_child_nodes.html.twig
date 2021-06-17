@@ -6,21 +6,13 @@
 
 {% block area_main %}
 
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
-{% for parents in node.parents %}
-    {% for parentNode in parents.items %}
-        / <a href="{{ path('show_node',{key: parents.type, id:parentNode.id}) }}" title="">
-            {{ parents.type }}-{{ parentNode.id }}
-        </a>
-        {% set directParent = {key: parents.type, id: parentNode.id} %}
-    {% endfor %}
-{% endfor %} / <a href="{{ path('show_node',{key, id:node.self.id}) }}" title="">{{ node.type }}-{{ node.self.id }}</a> / {{ childKey }}s
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, key, id:node.self.id, trailing: childKey~'s'} only %}
 
 <h1>{{childKey|capitalize}}s</h1>
 
-    
-    {% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key,id: node.self.id, scope: node.self._scope}, then: 'list'} only %}
+   
+{% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key,id: node.self.id, scope: node.self._scope}, then: 'list'} only %}
 
+{% include 'hierarchy/partials/table.html.twig' with {fields: childFields, nodes: childNodes, key: childKey, parent: {key,id: node.self.id}, then: 'list'} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {fields: childFields, nodes: childNodes, key: childKey, parent: {key,id: node.self.id}, then: 'list'} only %}
 {% endblock %}

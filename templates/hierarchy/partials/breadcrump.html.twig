@@ -1,0 +1,35 @@
+
+<ul class="breadcrump">
+    <li class="breadcrump-item"><a href="{{ path('hierarchy_root') }}">Root</a></li>
+    {% if parentGroups is defined %}
+    {% for parentGroup in parentGroups %}
+        {% for parentNode in parentGroup.items %}
+            <li class="breadcrump-item">
+                <a href="{{ path('show_node',{key: parentGroup.type, id: parentNode.id}) }}">
+                {{- parentGroup.type|capitalize }}-{{ parentNode.id -}}
+                </a>
+            </li>
+        {% endfor %}
+    {% endfor %}
+    {% endif %}
+
+    {% if key is defined %}
+        {% if id is defined %}
+            <li class="breadcrump-item"><a href="{{ path('show_node', {key, id}) }}" title="">{{ key|capitalize }}-{{ id }}</a></li>
+            {% if childKey is defined %}
+                <li class="breadcrump-item"><a href="{{ path('list_child_nodes', {key, id, childKey}) }}" title="">{{ key|capitalize }}s</a></li>
+            {% endif %}
+        {% else %}
+            <li class="breadcrump-item"><a href="{{ path('list_root_nodes', {key}) }}" title="">{{ key|capitalize }}s</a></li>
+        {% endif %}
+    {% endif %}
+
+    {% if trailing %}
+    <li class="breadcrump-item">{{ trailing|capitalize }}</li>
+    {% endif %}
+</ul>
+
+
+
+
+

@@ -1,0 +1,8 @@
+<form action="{{ path('move_node', {key, id}) }}" method="post" accept-charset="utf-8">
+    <select name="target_scope-parent">
+        {% for target in moveTargets %}
+            <option value="{{target.value}}">{% for x in range(0, target.depth) %}&nbsp;&nbsp;{% endfor %}{{ target.label }}</option>
+        {% endfor %}
+    </select>
+    <button name="move">Move</button>
+</form>

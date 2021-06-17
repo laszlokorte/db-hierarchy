@@ -300,6 +300,7 @@ class HierarchyController {
     		'fields' => $this->repo->getFields($key),
     		'nodes' => $this->repo->loadRootKeyNodes($key),
     		'rootKeys' => $this->repo->getRootKeys(),
+    		'order' => $this->repo->getKeyOrder($key),
     	];
     }
 

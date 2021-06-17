@@ -6,17 +6,13 @@
 
 {% block area_main %}
 
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
-/ Defects
+{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'Defects'} only %}
 
 <h1>Hierarchy Defects</h1>
-
-
 
 <form action="{{ path('repair_hierarchy_defects') }}" method="post" accept-charset="utf-8">
     <button>Repair all</button>
 </form>
-
 
 <div style="display: grid; grid-template-columns: 1fr 1fr;">
 {% for key, kinds in closureDefects %}

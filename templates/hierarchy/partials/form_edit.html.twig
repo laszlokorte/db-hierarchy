@@ -16,6 +16,7 @@
 		{% for field in fields %}
         <dt class="form-container-label">
         <label class="form-label" for="field_{{field}}">{{field|capitalize}}</label>
+        <a class="icon-link" href="{{ path('show_node_field',{key, id, field}) }}" title="" target="_blank">➥</a>
         </dt>
         <dd class="form-container-field">
         <input class="form-field" type="text" id="field_{{field}}" name="field[{{field}}]" value="{{values[field]}}">

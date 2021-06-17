@@ -6,52 +6,23 @@
 
 {% block area_main %}
 
-{% set directParent = null %}
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
-{% for parents in node.parents %}
-    {% for parentNode in parents.items %}
-        / <a href="{{ path('show_node',{key: parents.type, id:parentNode.id}) }}" title="">
-            {{- parents.type }}-{{ parentNode.id -}}
-        </a>
-        {% set directParent = {key: parents.type, id: parentNode.id} %}
-    {% endfor %}
-{% endfor %} / {{ node.type }}-{{ node.self.id }}
-
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, trailing: node.type~'-'~node.self.id} only %}
 
 <h1>{{ key|capitalize }} {{id}}</h1>
-
-
 
 <a href="{{ path('edit_node', {key, id}) }}" title="">Edit</a>
 <a href="{{ path('ask_delete_node', {key, id}) }}" title="">Delete</a>
 
 {% if moveTargets is not null %}
 <h3>Move to</h3>
-<form action="{{ path('move_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
 
-    <select name="target_scope-parent">
-        {% for target in moveTargets %}
-            <option value="{{target.value}}">{% for x in range(0, target.depth) %}&nbsp;&nbsp;{% endfor %}{{ target.label }}</option>
-        {% endfor %}
-    </select>
-    <button name="move">Move</button>
-</form>
+{% include 'hierarchy/partials/movement.html.twig' with {key, id, moveTargets} only %}
+
 {% endif %}
 
 <h2>Edit</h2>
 
-<form action="{{ path('update_node',{key: key, id:id}) }}" method="post" accept-charset="utf-8">
-    <dl class="form-container">{% for field in fields %}
-        <dt class="form-container-label"><label for="field_{{field}}">{{field|capitalize}}</label><a class="icon-link" href="{{ path('show_node_field',{key, id, field}) }}" title="" target="_blank">➥</a></dt>
-        <dd class="form-container-field">
-        <input type="text" id="field_{{field}}" name="field[{{field}}]" value="{{ node.self[field]|join }}">
-    {% endfor %}</dd>
-    <dt class="form-container-spacer"></dt>
-    <dd class="form-container-buttons">
-        <button>Update</button>
-    </dd>
-    </dl>
-</form>
+{% include 'hierarchy/partials/form_edit.html.twig' with {fields, key, id, values: node.self} only %}
 
 {% if childKeys|length %}
 <h2>Children</h2>
@@ -63,6 +34,5 @@
     {% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields[childKey], key: childKey, parent:{key,id,scope:node.self._scope}} only %}
 
     {% include 'hierarchy/partials/table.html.twig' with {fields: childFields[childKey], nodes: node['children'][childKey], key: childKey, parent: {key, id}, listLink: true} only %}
-
 {% endfor %}
 {% endblock %}

@@ -23,8 +23,8 @@
 
 
 {% block area_main %}
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
-/ Tree
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'Tree'} only %}
 
 <h1>Tree</h1>
 

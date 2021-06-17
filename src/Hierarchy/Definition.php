@@ -249,6 +249,10 @@ class Definition {
 		return $this->structure[$key]['reflexive'] === TRUE;
 	}
 
+	public function getKeyOrder($key) {
+		return $this->structure[$key]['order'];
+	}
+
 	public function topoSorted() {
 		$keys = [];
 		$roots = [null];

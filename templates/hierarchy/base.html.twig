@@ -22,19 +22,14 @@
                 {% endfor %}
             </ul>
 
-
-            <p>
-                <a href="{{ path('hierarchy_setup') }}">Show Schema</a>
-            </p>
-            <p>
-                <a href="{{ path('show_hierarchy_defects') }}">Defects</a>
-            </p>
-            <p>
-                <a href="{{ path('hierarchy_tree') }}">Full Hierarchy</a>
-            </p>
-            <p>
-                <a href="{{ path('security_logout') }}" title="">Log out</a>
-            </p>
+            <ul>
+                <li><a href="{{ path('hierarchy_setup') }}">Show Schema</a></li>
+                <li><a href="{{ path('show_hierarchy_defects') }}">Defects</a></li>
+                <li><a href="{{ path('hierarchy_tree') }}">Full Hierarchy</a></li>
+            </ul>
+            <ul>
+                <li><a href="{{ path('security_logout') }}" title="">Log out</a></li>
+            </ul>
         </nav>
 
         <section>

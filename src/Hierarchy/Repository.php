@@ -46,6 +46,10 @@ class Repository {
 		return $this->definition->isReflexive($key);
 	}
 
+	public function getKeyOrder($key) {
+		return $this->definition->getKeyOrder($key);
+	}
+
 	public function loadMoveTargets($key, $id) {
 		if(!$this->isMoveable($key)) {
 			return null;

@@ -5,8 +5,8 @@
 {%- endblock %}
 
 {% block area_main %}
-/ <a href="{{ path('hierarchy_root') }}" title="">Root</a>
-/ Setup
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'Setup'} only %}
 
 <h1>Hierarchy Schema</h1>
 
