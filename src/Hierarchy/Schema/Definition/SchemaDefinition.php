@@ -86,7 +86,7 @@ class SchemaDefinition {
 	}
 
 	public function isKeyScopedUnique($keyId) {
-		$this->keys[$keyId]->isScopedUnique();
+		return $this->keys[$keyId]->isScopedUnique();
 	}
 
 	public function getKeyScopeId($keyId) {

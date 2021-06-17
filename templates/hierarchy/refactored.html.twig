@@ -8,23 +8,23 @@
 
 <h1>Hierarchy Refactored</h1>
 
-<pre>
+<pre style="color: #a00">
 {% for backingTable in schema.allBackingTables|reverse %}
 {% for normalizer in backingTable.normalizers|reverse %}
-    DROP VIEW IF NOT EXISTS "{{normalizer.viewName}}";
+    <strong>DROP VIEW</strong> IF NOT EXISTS "{{normalizer.viewName}}";
 {% endfor %}
 {% if backingTable.hasTreeClosure %}
-    DROP TABLE IF NOT EXISTS "{{backingTable.closureTable.tableName}}";
+    <strong>DROP TABLE</strong> IF NOT EXISTS "{{backingTable.closureTable.tableName}}";
 {% endif %}
-    DROP TABLE IF EXISTS "{{backingTable.tableName}}"
+    <strong>DROP TABLE</strong> IF EXISTS "{{backingTable.tableName}}"
 {% endfor %}
 </pre>
 
 {% for backingTable in schema.allBackingTables %}
-<pre>
-    CREATE TABLE "{{backingTable.tableName}}" (
+<pre style="color: #0a0">
+    <strong>CREATE TABLE</strong> "{{backingTable.tableName}}" (
 {% for column in backingTable.columns %}
-        {{ column.name }} {{ column.sqlType }},
+        {{ column.name }} {{ column.sqlType }} {%- if not column.nullable %} NOT NULL{% endif -%} {%- if column.default %} DEFAULT "{{column.default}}"{% endif -%},
 {% endfor %}
         PRIMARY KEY("{{backingTable.primaryKeyColumn.name}}" AUTOINCREMENT),
 {% for unique in backingTable.uniqueContraints %}
@@ -37,23 +37,23 @@
 </pre>
 
 {% if backingTable.hasTreeClosure %}
-<pre>
-    CREATE TABLE "{{backingTable.closureTable.tableName}}" (
+<pre style="color: #570">
+    <strong>CREATE TABLE</strong> "{{backingTable.closureTable.tableName}}" (
 {% for column in backingTable.closureTable.columns %}
-        {{ column.name }} {{ column.sqlType }},
+        {{ column.name }} {{ column.sqlType }} {%- if not column.nullable %} NOT NULL{% endif -%} {%- if column.default %} DEFAULT "{{column.default}}"{% endif -%},
 {% endfor %}
         PRIMARY KEY("{{backingTable.closureTable.primaryKeyColumn.name}}" AUTOINCREMENT),
 {% for unique in backingTable.closureTable.uniqueContraints %}
         UNIQUE({{unique|map(c => "'#{c.name}'")|join(', ')}}),
 {% endfor %}
 {% for fk in backingTable.closureTable.foreignKeys %}
-        FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+        FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 {% endfor %}
     );
 </pre>
-<pre>
+<pre style="color: #55a">
 {% for normalizer in backingTable.normalizers %}
-    CREATE VIEW IF NOT EXISTS "{{normalizer.viewName}}" AS ;
+    <strong>CREATE VIEW</strong> IF NOT EXISTS "{{normalizer.viewName}}" AS {{ normalizer.selectStatement }};
 {% endfor %}
 </pre>
 {% endif %}

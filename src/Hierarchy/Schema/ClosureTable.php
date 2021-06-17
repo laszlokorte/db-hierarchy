@@ -48,10 +48,16 @@ class ClosureTable {
 	}
 
 	public function getUniqueContraints() {
-		return [
+		$result = [
 			[$this->getChildColumn(), $this->getParentColumn()],
 			[$this->getChildColumn(), $this->getDepthColumn()],
 		];
+
+		if($this->def->isKeyScoped($this->keyId) && $this->def->isKeyScopedUnique($this->keyId)) {
+			$result[] = [$this->def->getKeyScopeColumn($this->keyId), $this->getDepthColumn()];
+		}
+
+		return $result;
 	}
 
 	public function getPrimaryKeyColumn() {
@@ -82,6 +88,7 @@ class ClosureTable {
 		return [
 			new ClosureInvalidNormalizer($this->def, $this->keyId),
 			new ClosureMissingNormalizer($this->def, $this->keyId),
+			new HierarchyNormalizer($this->def, $this->keyId),
 		];
 	}
 }

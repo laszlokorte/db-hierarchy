@@ -19,6 +19,18 @@ class TableColumn {
 		return $this->sqlType;
 	}
 
+	public function isNullable() {
+		return $this->nullable;
+	}
+
+	public function hasDefault() {
+		$this->default !== null;
+	}
+
+	public function getDefault() {
+		return $this->default;
+	}
+
 	public function deriveSameWithName($columnName) {
 		return new self($columnName, $this->sqlType, $this->nullable, $this->default);
 	}

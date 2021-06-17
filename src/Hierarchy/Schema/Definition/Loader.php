@@ -23,6 +23,20 @@ class Loader {
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),
 				]
 			),
+			'route_generator' => new KeyDefinition(
+				new StorageDefinition('route_generator'),
+				new LabelDefinition('Route Generator'),
+				new ScopeDefinition('route', null, true), null, null, [
+					'query' => new FieldDefinition(new LabelDefinition('Query'), 'text', true, false),
+				]
+			),
+			'site_generator' => new KeyDefinition(
+				new StorageDefinition('site_generator'),
+				new LabelDefinition('Site Generator'),
+				new ScopeDefinition('site', null, true), new ReflexivityDefinition(), null, [
+					'query' => new FieldDefinition(new LabelDefinition('Query'), 'text', true, false),
+				]
+			),
 			'menu' => new KeyDefinition(
 				new StorageDefinition('menu'),
 				new LabelDefinition('Menu'),

@@ -14,4 +14,8 @@ class OrderNormalizer {
 	public function getViewName() {
 		return sprintf('%s_normalized_order', $this->def->getKeyTable($this->keyId));
 	}
+
+	public function getSelectStatement() {
+		
+	}
 }

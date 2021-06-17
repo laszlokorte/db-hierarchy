@@ -14,4 +14,8 @@ class ClosureInvalidNormalizer {
 	public function getViewName() {
 		return sprintf('%s_invalid', $this->def->getKeyReflexivityTable($this->keyId));
 	}
+
+	public function getSelectStatement() {
+		
+	}
 }

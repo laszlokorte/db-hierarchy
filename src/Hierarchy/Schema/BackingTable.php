@@ -78,7 +78,9 @@ class BackingTable {
 		$result = [];
 
 		if($this->def->isKeyScoped($this->keyId) && $this->def->isKeyScopedUnique($this->keyId)) {
-			$result[] = [$this->def->getKeyScopeColumn($this->keyId)];
+			if(!$this->def->isKeyReflexive($this->keyId)) {
+				$result[] = [$this->def->getKeyScopeColumn($this->keyId)];
+			}
 		}
 
 		$uniqueFieldsIds = array_filter(

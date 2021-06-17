@@ -4,7 +4,7 @@ namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
-class ClosureMissingNormalizer {
+class HierarchyNormalizer {
 	public function __construct(
 		private SchemaDefinition $def, 
 		private string $keyId
@@ -12,7 +12,7 @@ class ClosureMissingNormalizer {
 	}
 
 	public function getViewName() {
-		return sprintf('%s_missing', $this->def->getKeyReflexivityTable($this->keyId));
+		return sprintf('%s_hierarchy', $this->def->getKeyReflexivityTable($this->keyId));
 	}
 
 	public function getSelectStatement() {
