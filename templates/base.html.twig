@@ -85,16 +85,33 @@
                 .flash-message {
                     padding: 1em;
                     margin: 0.5em 0;
+                    text-align: center;
+                    animation: 1s 2s fade-out forwards;
                 }
 
                 .flash-message.success {
                     background: #ccffcc;
                 }
 
+                @keyframes fade-out {
+                    0% {
+                        opacity: 1;
+                    }
+                    90% {
+                        opacity: 0;
+                    }
+                    100% {
+                        display: none;
+                        opacity: 0;
+                        pointer-events: none;
+                    }
+                }
+
                 .prompt-box {
-                    border: 3px solid #eee;
+                    border: 1px solid #eee;
                     padding: 2em;
                     background: #fff;
+                    box-shadow: 0em 1em 4em -0.5em #0004;
                 }
 
                 .prompt-titel {
@@ -133,6 +150,14 @@
 
                 .breadcrump-item::before {
                     content: '/';
+                }
+
+                .color-valid {
+                    color: #0a0;
+                }
+
+                .color-invalid {
+                    color: #a00;
                 }
             </style>
         {% endblock %}

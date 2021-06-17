@@ -1,10 +1,10 @@
 {% extends 'base.html.twig' %}
 {% block html_body %}
 
-    <div style="display: grid; grid-template-columns: 2fr 7fr; max-width: 80em; margin: 3em auto">
+    <div style="display: grid; grid-template-columns: 2fr 7fr; grid-template-rows: minmax(5em, min-content) auto; max-width: 80em; margin: 0 auto 5em">
         {% for label, messages in app.flashes(['error','success']) %}
             {% if messages %}
-            <div class="{{ html_classes('flash-message', label) }}" style="grid-column: 1 / -1;">
+            <div class="{{ html_classes('flash-message', label) }}" style="grid-column: 1 / -1; align-self: flex-start;">
                 <ul class="plain-list">
                     {% for msg in messages %}
                         <li>{{ msg }}</li>
@@ -14,25 +14,28 @@
             {% endif %}
         {% endfor %}
 
-        <nav>
+        <nav style="grid-row: 2;">
             <h1><a href="{{ path('hierarchy_root') }}" title="">Hierarchy</a></h1>
             <ul>
                 {% for rootKey in rootKeys %}
-                    <li><a href="{{ path('list_root_nodes', {key: rootKey}) }}" title="">{{ rootKey|capitalize }}s</a></li>
+                <li><a href="{{ path('list_root_nodes', {key: rootKey}) }}" title="">{{ rootKey|capitalize }}s</a></li>
                 {% endfor %}
             </ul>
 
+            <h3>System</h3>
             <ul>
                 <li><a href="{{ path('hierarchy_setup') }}">Show Schema</a></li>
                 <li><a href="{{ path('show_hierarchy_defects') }}">Defects</a></li>
                 <li><a href="{{ path('hierarchy_tree') }}">Full Hierarchy</a></li>
             </ul>
+
+            <h3>Account</h3>
             <ul>
                 <li><a href="{{ path('security_logout') }}" title="">Log out</a></li>
             </ul>
         </nav>
 
-        <section>
+        <section style="grid-row: 2;">
             {% block area_main %}
         
             {% endblock %}

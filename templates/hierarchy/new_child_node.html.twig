@@ -13,6 +13,6 @@
 <h1>New {{childKey|capitalize}}</h1>
 
 
-{% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key, id, scope: node.self._scope}} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key, id, scope: node.self._scope, then: 'new'}} only %}
 
 {% endblock %}

@@ -25,14 +25,16 @@
                     {% endfor %}
             		<td></td>
                     <td class="data-table-cell" align="right">
-                         <form class="inline-form" action="{{ path('delete_node', {key: key, id: node.id}) }}" method="post" accept-charset="utf-8">
-							{% if then is defined %}
+                        {% if quickDelete|default(false) %}
+                        <form class="inline-form" action="{{ path('delete_node', {key: key, id: node.id}) }}" method="post" accept-charset="utf-8">
+                            {% if then is defined %}
                             <input type="hidden" name="_then" value="{{then}}">
                             {% endif %}
                             <button class="inline-button">X</button>
                         </form>
-
+                        {% else %}
                         <a href="{{ path('ask_delete_node', {key: key, id: node.id}) }}" title="">Delete</a>
+                        {% endif %}
                         <a href="{{ path('edit_node', {key: key, id: node.id}) }}" title="">Edit</a>
                     </td>
                 </tr>

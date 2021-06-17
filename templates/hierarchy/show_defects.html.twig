@@ -16,11 +16,12 @@
 
 <div style="display: grid; grid-template-columns: 1fr 1fr;">
 {% for key, kinds in closureDefects %}
-    <h2 style="grid-column: 1 / -1">{{ key|capitalize }}</h2>
+    {% set valid = kinds['missing']|length == 0 and kinds['invalid']|length == 0 %}
+    <h2 style="grid-column: 1 / -1" class="{{ html_classes({'color-valid': valid, 'color-invalid': not valid}) }}">{{ key|capitalize }}</h2>
 
     {% for kind, defectsOfKind in kinds %}
         <div>
-            <h3>{{ kind|capitalize }}</h3>
+            <h3 class="{{ html_classes({'color-valid': defectsOfKind|length == 0, 'color-invalid': defectsOfKind|length > 0}) }}">{{ kind|capitalize }}</h3>
             <table class="data-table">
                 <thead class="data-table-head">
                     <tr class="data-table-head-row">
@@ -65,7 +66,9 @@
     
 {% for key, orderDefs in orderDefects %}
 <div>
-    <h2>{{ key }}</h2>
+    {% set valid = orderDefs|length == 0 %}
+
+    <h2 class="{{ html_classes({'color-valid': valid, 'color-invalid': not valid}) }}">{{ key }}</h2>
     <table class="data-table">
         <thead class="data-table-head">
             <tr class="data-table-head-row">
