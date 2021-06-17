@@ -53,4 +53,11 @@ class Key {
 			$this->def->getKeyIdsScopedInside($this->keyId)
 		);
 	}
+
+	public function getNestedKeys() {
+		return array_map(
+			fn($k) => new Key($this->def, $k),
+			$this->def->getKeyIdsScopedInsideAndReflexiveSelf($this->keyId)
+		);
+	}
 }

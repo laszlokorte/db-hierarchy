@@ -1,18 +1,18 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    {{childKey|capitalize}}s - {{ parent() }}
+    {{childKey.label.plural}} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, key, id:node.self.id, trailing: childKey~'s'} only %}
+{% include 'hierarchy/partials/breadcrump_.html.twig' with {parentGroups: node.parents, key, id:node.self.id, trailing: childKey.label.plural} only %}
 
-<h1>{{childKey|capitalize}}s</h1>
+<h1>{{childKey.label.plural}}</h1>
 
    
-{% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key,id: node.self.id, scope: node.self._scope}, then: 'list'} only %}
+{% include 'hierarchy/partials/form_new_.html.twig' with {key: childKey, parent: {key:key.id,id: node.self.id, scope: node.self._scope}, then: 'list'} only %}
 
-{% include 'hierarchy/partials/table.html.twig' with {fields: childFields, nodes: childNodes, key: childKey, parent: {key,id: node.self.id}, then: 'list'} only %}
+{% include 'hierarchy/partials/table_.html.twig' with {nodes: childNodes, key: childKey, parent: {key:key.id,id: node.self.id}, then: 'list'} only %}
 
 {% endblock %}

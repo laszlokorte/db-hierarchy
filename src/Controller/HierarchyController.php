@@ -16,17 +16,17 @@ use App\Hierarchy\Schema\SchemaRoot;
 
 class HierarchyController {
 
-	public function __construct(Repository $hierarchyRepository) {
+	public function __construct(Repository $hierarchyRepository, SchemaRoot $schema) {
 		$this->repo = $hierarchyRepository;
+		$this->schema = $schema;
 	}
 	
 	#[Route('/', name: 'hierarchy_root', methods: 'GET')]
 	#[Template()]
-    public function root()
+    public function root(SchemaRoot $schema)
     {
     	return [
-    		'rootKeys' => $this->repo->getRootKeys(),
-    		'allFields' => $this->repo->getAllFields(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     		'rootNodes' => $this->repo->loadRootNodes(),
     	];
     }
@@ -36,8 +36,7 @@ class HierarchyController {
     public function tree()
     {
     	return [
-    		'rootKeys' => $this->repo->getRootKeys(),
-    		'allFields' => $this->repo->getAllFields(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     		'rootNodes' => $this->repo->loadRootNodes(),
     		'tree' => $this->repo->loadHierarchy(),
     	];
@@ -48,7 +47,7 @@ class HierarchyController {
     public function showSetup()
     {
     	return [
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     		'schemaSQL' => $this->repo->showSchema()
     	];
     }
@@ -65,8 +64,10 @@ class HierarchyController {
 	#[Template()]
     public function showDefects()
     {
+    	$diagnosis = $this->schema->getDiagnosis();
+
     	return [
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     		'closureDefects' => $this->repo->loadAllClosureDefects(),
     		'orderDefects' => $this->repo->loadAllRowOrder(),
     	];
@@ -123,10 +124,8 @@ class HierarchyController {
     public function newRootNode(Request $request, $key)
     {
     	return [
-    		'key' => $key,
-    		'fields' => $this->repo->getFields($key),
-    		//'node' => $this->repo->loadNode($key, $id),
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'key' => $this->schema->getKey($key),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -135,15 +134,12 @@ class HierarchyController {
     public function newChildNode($key, $id, $childKey)
     {
     	return [
-    		'key' => $key,
+    		'key' => $this->schema->getKey($key),
     		'id' => $id,
-    		'childKey' => $childKey,
+    		'childKey' => $this->schema->getKey($childKey),
     		'moveTargets' => $this->repo->loadMoveTargets($key, $id),
-    		'fields' => $this->repo->getFields($key),
-    		'childFields' => $this->repo->getFields($childKey),
     		'node' => $this->repo->loadNode($key, $id),
-    		'childKeys' => $this->repo->getChildKeys($key),
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -152,14 +148,11 @@ class HierarchyController {
     public function showNode($key, $id)
     {
     	return [
-    		'key' => $key,
+    		'key' => $this->schema->getKey($key),
     		'id' => $id,
     		'moveTargets' => $this->repo->loadMoveTargets($key, $id),
-    		'fields' => $this->repo->getFields($key),
-    		'childFields' => $this->repo->getChildFields($key),
     		'node' => $this->repo->loadNode($key, $id),
-    		'childKeys' => $this->repo->getChildKeys($key),
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -168,11 +161,10 @@ class HierarchyController {
     public function editNode($key, $id)
     {
     	return [
-    		'key' => $key,
+    		'key' => $this->schema->getKey($key),
     		'id' => $id,
-    		'fields' => $this->repo->getFields($key),
     		'node' => $this->repo->loadNode($key, $id),
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -211,10 +203,10 @@ class HierarchyController {
     	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
 
 		return [
-    		'key' => $key,
+    		'key' => $this->schema->getKey($key),
     		'id' => $id,
     		'node' => $this->repo->loadNode($key, $id),
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -297,11 +289,9 @@ class HierarchyController {
     public function listRootNodes($key)
     {
     	return [
-    		'key' => $key,
-    		'fields' => $this->repo->getFields($key),
+    		'key' => $this->schema->getKey($key),
     		'nodes' => $this->repo->loadRootKeyNodes($key),
-    		'rootKeys' => $this->repo->getRootKeys(),
-    		'order' => $this->repo->getKeyOrder($key),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -310,12 +300,11 @@ class HierarchyController {
     public function listChildNodes($key, $id, $childKey)
     {
     	return [
-    		'key' => $key,
-    		'childKey' => $childKey,
+    		'key' => $this->schema->getKey($key),
+    		'childKey' => $this->schema->getKey($childKey),
     		'node' => $this->repo->loadNode($key, $id),
-    		'childFields' => $this->repo->getFields($childKey),
     		'childNodes' => $this->repo->loadChildKeyNodes($key, $id, $childKey),
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
@@ -325,7 +314,7 @@ class HierarchyController {
     {
     	return [
     		'schema' => $schema,
-    		'rootKeys' => $this->repo->getRootKeys(),
+    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 

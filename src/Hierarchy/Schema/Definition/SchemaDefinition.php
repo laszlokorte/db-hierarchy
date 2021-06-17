@@ -18,7 +18,19 @@ class SchemaDefinition {
 	}
 
 	public function getRootScopeKeyIds() {
+		return array_filter(array_keys($this->keys), [$this, 'isKeyRoot']);
+	}
+
+	public function getScopedKeyIds() {
 		return array_filter(array_keys($this->keys), [$this, 'isKeyScoped']);
+	}
+
+	public function getReflexiveKeyIds() {
+		return array_filter(array_keys($this->keys), [$this, 'isKeyReflexive']);
+	}
+
+	public function getOrderedKeyIds() {
+		return array_filter(array_keys($this->keys), [$this, 'isKeyOrdered']);
 	}
 
 	public function getAllKeyIds() {
@@ -50,7 +62,11 @@ class SchemaDefinition {
 	}
 
 	public function getKeyIdsScopedInside($keyId) {
-		return array_filter(array_keys($this->keys, fn($k) => $this->isKeyScopedInside($k, $keyId)));
+		return array_filter(array_keys($this->keys), fn($k) => $this->isKeyScopedInside($k, $keyId));
+	}
+
+	public function getKeyIdsScopedInsideAndReflexiveSelf($keyId) {
+		return array_filter(array_keys($this->keys), fn($k) => $this->isKeyScopedInsideOrReflexiveSelf($k, $keyId));
 	}
 
 	public function keyExists($keyId) {
@@ -81,7 +97,18 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->isScoped();
 	}
 
+	public function isKeyRoot($keyId) {
+		return !$this->isKeyScoped($keyId);
+	}
+
 	public function isKeyScopedInside($keyId, $scopeKeyId) {
+		return $this->keys[$keyId]->isScopedInside($scopeKeyId);
+	}
+
+	public function isKeyScopedInsideOrReflexiveSelf($keyId, $scopeKeyId) {
+		if($keyId === $scopeKeyId) {
+			return $this->isKeyReflexive($keyId);
+		}
 		return $this->keys[$keyId]->isScopedInside($scopeKeyId);
 	}
 

@@ -1,0 +1,80 @@
+<table class="data-table">
+    <thead class="data-table-head">
+        <tr class="data-table-head-row">
+            {% if key.ordered %}
+            <th class="data-table-head-cell" width="5%">O</th>
+            {% endif %}
+            <th class="data-table-head-cell">ID</th>
+            {% for field in key.fields %}
+            <th class="data-table-head-cell">{{ field.label.singular }}</th>
+            {% endfor %}
+            <th class="data-table-head-cell" width="50%"></th>
+            <th class="data-table-head-cell" align="right">actions</th>
+        </tr>
+    </thead>
+    {% if nodes|length %}
+    	<tbody class="data-table-body">
+            {% for node in nodes %}
+                <tr class="data-table-row">
+                    {% if key.ordered %}
+                        <td class="data-table-cell">{{nodes|length - loop.index0}}</td>
+                    {% endif %}
+                    <td class="data-table-cell"><a href="{{ path('show_node', {key: key.id, id: node.id}) }}">{{ node.id }}</a></td>
+                    {% for field in key.fields %}
+                        <td class="{{ html_classes('data-table-cell', {'empty': node[field.id] is empty}) }}">{{ node[field.id]|join }}</td>
+                    {% endfor %}
+            		<td></td>
+                    <td class="data-table-cell" align="right">
+                        {% if quickDelete|default(false) %}
+                        <form class="inline-form" action="{{ path('delete_node', {key: key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
+                            {% if then is defined %}
+                            <input type="hidden" name="_then" value="{{then}}">
+                            {% endif %}
+                            <button class="inline-button">X</button>
+                        </form>
+                        {% else %}
+                        <a href="{{ path('ask_delete_node', {key: key.id, id: node.id}) }}" title="">Delete</a>
+                        {% endif %}
+                        <a href="{{ path('edit_node', {key: key.id, id: node.id}) }}" title="">Edit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+
+    	</tbody>
+    {% else %}
+		<tbody>
+            <tr class="data-table-empty-row">
+                {% if parent is defined %}
+                <td class="data-table-empty-cell" colspan="{{ key.fields|length + 3 + (key.ordered?1:0) }}">empty<br><a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">Add {{key.label.singular}}</a>
+				</td>
+                {% else %}
+                <td class="data-table-empty-cell" colspan="{{ key.fields|length + 3 + (key.ordered?1:0) }}">empty<br><a href="{{ path('new_root_node', {key: key.id}) }}" title="">Add {{key.label.singular}}</a>
+                </td>
+                {% endif %}
+            </tr>
+		</tbody>
+    {% endif %}
+    <tfoot class="data-table-foot">
+    	<tr class="data-table-foot-row">
+        	{% if parent is defined %}
+                <td class="data-table-foot-cell" colspan="{{ key.fields|length + 2 + (key.ordered?1:0) }}">
+                {% if listLink|default(false) %}
+                    <a href="{{ path('list_child_nodes', parent|merge({childKey: key.id})) }}" title="">Show {{key.label.singular}}s</a>
+                {% endif %}
+                </td>
+                <td class="data-table-foot-cell" align="right">
+                    <a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">New {{key.label.singular}}</a>
+                </td>
+            {% else %}
+                <td class="data-table-foot-cell" colspan="{{ key.fields|length + 2 + (key.ordered?1:0) }}">
+                {% if listLink|default(false) %}
+                    <a href="{{ path('list_root_nodes', {key: key.id}) }}" title="">Show {{key.label.singular}}s</a>
+                {% endif %} 
+                </td>
+                <td class="data-table-foot-cell" align="right">
+                    <a href="{{ path('new_root_node', {key: key.id}) }}" title="">New {{key.label.singular}}</a>
+                </td>
+            {% endif %}
+        </tr>
+    </tfoot>
+</table>

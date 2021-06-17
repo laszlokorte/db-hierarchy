@@ -1,18 +1,18 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    New {{key|capitalize}} - {{ parent() }}
+    New {{key.label.singular}} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'New', key: node.type, id: node.self.id, childKey} only %}
+{% include 'hierarchy/partials/breadcrump_.html.twig' with {trailing: 'New', key, id: node.self.id, childKey} only %}
 
 
-<h1>New {{childKey|capitalize}}</h1>
+<h1>New {{childKey.label.singular}}</h1>
 
 
-{% include 'hierarchy/partials/form_new.html.twig' with {fields: childFields, key: childKey, parent: {key, id, scope: node.self._scope, then: 'new'}} only %}
+{% include 'hierarchy/partials/form_new_.html.twig' with {key: childKey, parent: {key, id, scope: node.self._scope, then: 'new'}} only %}
 
 {% endblock %}

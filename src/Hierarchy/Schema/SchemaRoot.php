@@ -26,11 +26,19 @@ class SchemaRoot {
 		return array_map([$this, 'getKey'], $this->def->getRootScopeKeyIds());
 	}
 
+	public function getAllKeys() {
+		return array_map([$this, 'getKey'], $this->def->getAllKeyIds());
+	}
+
 	public function getAllHierarchies() {
 		return array_map([$this, 'getHierarchy'], $this->def->getAllKeyIdsTopological());
 	}
 
 	public function getHierarchy($keyId) {
 		return new Hierarchy($this->def, $keyId);
+	}
+
+	public function getDiagnosis() {
+		return new Diagnosis($this->def);
 	}
 }

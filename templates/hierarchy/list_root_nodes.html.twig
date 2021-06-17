@@ -1,16 +1,16 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    {{key|capitalize}}s - {{ parent() }}
+    {{key.label.plural}} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: key~'s'} only %}
+{% include 'hierarchy/partials/breadcrump_.html.twig' with {trailing: key.label.plural} only %}
 
-<h1>{{key|capitalize}}s</h1>
+<h1>{{key.label.plural}}</h1>
 
-    {% include 'hierarchy/partials/form_new.html.twig' with {fields, key} only %}
+    {% include 'hierarchy/partials/form_new_.html.twig' with {key} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {fields, nodes, key, order} only %}
+    {% include 'hierarchy/partials/table_.html.twig' with {nodes, key} only %}
 {% endblock %}

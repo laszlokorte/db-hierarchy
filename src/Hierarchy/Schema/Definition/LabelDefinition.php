@@ -12,4 +12,20 @@ class LabelDefinition {
 	) {
 		$this->plural = $plural ?? $singular . 's';
 	}
+
+	public function getSingular() {
+		return $this->singular;
+	}
+
+	public function getPlural() {
+		return $this->plural;
+	}
+
+	public function getDescription() {
+		return $this->description;
+	}
+
+	public function getIcon() {
+		return $this->icon;
+	}
 }

@@ -84,7 +84,7 @@ class KeyDefinition {
 	}
 
 	public function getLabel() {
-		return $this->thisLabel;
+		return $this->label;
 	}
 
 	public function getFieldLabel($fieldId) {

@@ -21,14 +21,14 @@ class Field {
 	}
 
 	public function getLabel() {
-		$this->def->getKeyFieldLabel($this->keyId, $this->fieldId);
+		return $this->def->getKeyFieldLabel($this->keyId, $this->fieldId);
 	}
 
 	public function isRequired() {
-		$this->def->isKeyFieldRequired($this->keyId, $this->fieldId);
+		return $this->def->isKeyFieldRequired($this->keyId, $this->fieldId);
 	}
 
 	public function isUnique() {
-		$this->def->isKeyFieldUnique($this->keyId, $this->fieldId);
+		return $this->def->isKeyFieldUnique($this->keyId, $this->fieldId);
 	}
 }

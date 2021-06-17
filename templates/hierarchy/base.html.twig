@@ -18,7 +18,7 @@
             <h1><a href="{{ path('hierarchy_root') }}" title="">Hierarchy</a></h1>
             <ul>
                 {% for rootKey in rootKeys %}
-                <li><a href="{{ path('list_root_nodes', {key: rootKey}) }}" title="">{{ rootKey|capitalize }}s</a></li>
+                <li><a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a></li>
                 {% endfor %}
             </ul>
 
