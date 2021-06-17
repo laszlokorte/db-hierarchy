@@ -135,9 +135,7 @@ class HierarchyController {
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'id' => $id,
     		'childKey' => $this->schema->getKey($childKey),
-    		'moveTargets' => $this->repo->loadMoveTargets($key, $id),
     		'node' => $this->repo->loadNode($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
@@ -149,7 +147,6 @@ class HierarchyController {
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'id' => $id,
     		'moveTargets' => $this->repo->loadMoveTargets($key, $id),
     		'node' => $this->repo->loadNode($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
@@ -162,7 +159,6 @@ class HierarchyController {
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'id' => $id,
     		'node' => $this->repo->loadNode($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
@@ -204,7 +200,6 @@ class HierarchyController {
 
 		return [
     		'key' => $this->schema->getKey($key),
-    		'id' => $id,
     		'node' => $this->repo->loadNode($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];

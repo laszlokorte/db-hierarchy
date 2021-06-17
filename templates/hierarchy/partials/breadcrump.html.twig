@@ -15,12 +15,12 @@
 
     {%- if key is defined -%}
         {%- if id is defined -%}
-            <li class="breadcrump-item"><a href="{{ path('show_node', {key, id}) }}" title="">{{ key|capitalize }}-{{ id }}</a></li>
+            <li class="breadcrump-item"><a href="{{ path('show_node', {key:key.id, id}) }}" title="">{{ key.label.singular }}-{{ id }}</a></li>
             {%- if childKey is defined %}
-                <li class="breadcrump-item"><a href="{{ path('list_child_nodes', {key, id, childKey}) }}" title="">{{ key|capitalize }}s</a></li>
+                <li class="breadcrump-item"><a href="{{ path('list_child_nodes', {key:key.id, id, childKey: childKey.id}) }}" title="">{{ key.label.singular }}s</a></li>
             {%- endif %}
         {%- else -%}
-            <li class="breadcrump-item"><a href="{{ path('list_root_nodes', {key}) }}" title="">{{ key|capitalize }}s</a></li>
+            <li class="breadcrump-item"><a href="{{ path('list_root_nodes', {key:key.id}) }}" title="">{{ key.label.singular }}s</a></li>
         {%- endif -%}
     {% endif %}
 

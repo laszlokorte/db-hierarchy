@@ -7,8 +7,8 @@
 {% for rootKey in rootKeys %}
     <h2>{{ rootKey.label.plural }}</h2>
 
-    {% include 'hierarchy/partials/form_new_.html.twig' with {key: rootKey, then: 'root'} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {key: rootKey, then: 'root'} only %}
 
-    {% include 'hierarchy/partials/table_.html.twig' with {key: rootKey, nodes: rootNodes[rootKey.id]|default([]), then: 'root', listLink: true} only %}
+    {% include 'hierarchy/partials/table.html.twig' with {key: rootKey, nodes: rootNodes[rootKey.id]|default([]), then: 'root', listLink: true} only %}
 {% endfor %}
 {% endblock %}

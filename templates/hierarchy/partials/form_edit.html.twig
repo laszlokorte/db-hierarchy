@@ -1,25 +1,16 @@
-<form action="{{ path('update_node',{key, id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('update_node',{key:key.id, id}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
-
-	{% if parent is defined %}
-	{% if parent.key == key %}
-        <input type="hidden" name="scope" value="{{ parent.scope }}">
-        <input type="hidden" name="parent" value="{{ parent.id }}">
-    {% else %}
-        <input type="hidden" name="scope" value="{{ parent.id }}">
-    {% endif %}
-	{% endif %}
 	
 	<dl class="form-container">
-		{% for field in fields %}
+		{% for field in key.fields %}
         <dt class="form-container-label">
-        <label class="form-label" for="field_{{field}}">{{field|capitalize}}</label>
-        <a class="icon-link" href="{{ path('show_node_field',{key, id, field}) }}" title="" target="_blank">➥</a>
+        <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
+        <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id, field: field.id}) }}" title="" target="_blank">➥</a>
         </dt>
         <dd class="form-container-field">
-        <input class="form-field" type="text" id="field_{{field}}" name="field[{{field}}]" value="{{values[field]|join}}">
+        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{values[field.id]|join}}">
     	</dd>
     	{% endfor %}
 

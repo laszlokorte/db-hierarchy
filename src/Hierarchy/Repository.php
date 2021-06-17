@@ -713,7 +713,8 @@ class Repository {
 		}
 
 		return [
-			'type' => $key,
+			'key' => $key,
+			'scope' => $this->definition->structure[$key]['parent'],
 			'self' => $selfFields,
 			'parents' => $parentsFields,
 			'children' => $childrenFields,
