@@ -117,12 +117,16 @@ class BackingTable {
 	}
 
 	public function getNormalizers() {
-		if($this->isOrdered()) {
-			return [
-				new OrderNormalizer($this->def, $this->keyId),
-			];
+		$result = [];
+
+		if($this->hasTreeClosure()) {
+			$result = array_merge($result, $this->getClosureTable()->getNormalizers());
 		}
 
-		return [];
+		if($this->isOrdered()) {
+			$result[] = new OrderNormalizer($this->def, $this->keyId);
+		}
+
+		return $result;
 	}
 }

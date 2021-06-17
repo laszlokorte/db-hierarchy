@@ -2,6 +2,8 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
+use App\Hierarchy\Schema\TableColumn;
+
 class SchemaDefinition {
 
 	public function __construct(
@@ -23,6 +25,30 @@ class SchemaDefinition {
 		return array_keys($this->keys);
 	}
 
+	public function getAllKeyIdsTopological() {
+		$keys = [];
+		$roots = [null];
+
+		while(!empty($roots)) {
+			$r = array_pop($roots);
+			$keys[] = $r;
+
+			foreach($this->keys AS $key => $definition) {
+				if($definition->getScopeKeyId() === $r) {
+					$roots[] = $key;
+				}
+			}
+		}
+
+		if(count($keys) < count($this->keys)) {
+			throw new Exception("cyclic hierarchy");
+		}
+
+		array_shift($keys);
+
+		return $keys;
+	}
+
 	public function getKeyIdsScopedInside($keyId) {
 		return array_filter(array_keys($this->keys, fn($k) => $this->isKeyScopedInside($k, $keyId)));
 	}
@@ -39,8 +65,12 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->isOrdered();
 	}
 
-	public function getKeyOrderColumn($keyId) {
+	public function getKeyOrderColumnName($keyId) {
 		return $this->keys[$keyId]->getOrderColumnName();
+	}
+
+	public function getKeyOrderColumn($keyId) {
+		return new TableColumn($this->keys[$keyId]->getOrderColumnName(), 'INTEGER', false, 0);
 	}
 
 	public function getKeyOrderDirection($keyId) {
@@ -72,11 +102,11 @@ class SchemaDefinition {
 	}
 
 	public function getKeyReflexivityParentColumn($keyId) {
-		return $this->keys[$keyId]->getReflexivityParentColumn();
+		return $this->getKeyIdentityColumn($keyId)->deriveSameWithName($this->keys[$keyId]->getReflexivityParentColumnName());
 	}
 
 	public function getKeyReflexivityChildColumn($keyId) {
-		return $this->keys[$keyId]->getReflexivityChildColumn();
+		return $this->getKeyIdentityColumn($keyId)->deriveSameWithName($this->keys[$keyId]->getReflexivityChildColumnName());
 	}
 
 	public function fieldTypeExists($fieldTypeId) {
@@ -117,12 +147,20 @@ class SchemaDefinition {
 		return $this->fieldTypes[$fieldTypeId];
 	}
 
-	public function getKeyIdentityColumn($keyId) {
+	public function getKeyIdentityColumnName($keyId) {
 		return $this->keys[$keyId]->getIdColumnName();
 	}
 
-	public function getKeyScopeColumn($keyId) {
+	public function getKeyIdentityColumn($keyId) {
+		return $this->keys[$keyId]->getIdColumn();
+	}
+
+	public function getKeyScopeColumnName($keyId) {
 		return $this->keys[$keyId]->getScopeColumnName();
+	}
+
+	public function getKeyScopeColumn($keyId) {
+		return new TableColumn($this->getKeyScopeColumnName($keyId), $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))->getSqlType());
 	}
 
 	public function getKeyTable($keyId) {

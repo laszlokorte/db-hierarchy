@@ -27,7 +27,7 @@ class SchemaRoot {
 	}
 
 	public function getAllBackingTables() {
-		return array_map([$this, 'getBackingTable'], $this->def->getAllKeyIds());
+		return array_map([$this, 'getBackingTable'], $this->def->getAllKeyIdsTopological());
 	}
 
 	public function getBackingTable($keyId) {

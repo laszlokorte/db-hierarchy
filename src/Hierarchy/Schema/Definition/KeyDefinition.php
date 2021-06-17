@@ -3,11 +3,10 @@
 namespace App\Hierarchy\Schema\Definition;
 
 class KeyDefinition {
-	private $idColumn = 'id';
 	private $templateString = '';
 
 	public function __construct(
-		private string $tableName,
+		private StorageDefinition $storage,
 		private LabelDefinition $label, 
 		private ?ScopeDefinition $scope = NULL, 
 		private ?ReflexivityDefinition $reflexivity = NULL, 
@@ -45,7 +44,7 @@ class KeyDefinition {
 	}
 
 	public function getScopeKeyId() {
-		return $this->scope->getScopeKeyId();
+		return $this->isScoped() ? $this->scope->getScopeKeyId() : null;
 	}
 
 	public function getScopeColumnName() {
@@ -61,23 +60,27 @@ class KeyDefinition {
 	}
 
 	public function getReflexivityTableName() {
-		return $this->reflexivity->deriveTableName($this->tableName);
+		return $this->reflexivity->deriveTableName($this->getTableName());
 	}
 
-	public function getReflexivityParentColumn() {
+	public function getReflexivityParentColumnName() {
 		return $this->reflexivity->getParentColumnName();
 	}
 
-	public function getReflexivityChildColumn() {
+	public function getReflexivityChildColumnName() {
 		return $this->reflexivity->getChildColumnName();
 	}
 
 	public function getTableName() {
-		return $this->tableName;
+		return $this->storage->getTableName();
 	}
 
 	public function getIdColumnName() {
-		return $this->idColumn;
+		return $this->storage->getIdColumnName();
+	}
+
+	public function getIdColumn() {
+		return $this->storage->getIdColumn();
 	}
 
 	public function getLabel() {

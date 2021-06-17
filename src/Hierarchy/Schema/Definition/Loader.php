@@ -10,21 +10,21 @@ class Loader {
 			new LabelDefinition('Hierarchy'),
 			[
 			'site' => new KeyDefinition(
-				'site',
+				new StorageDefinition('site'),
 				new LabelDefinition('Site'),
 				null, new ReflexivityDefinition(), null, [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),
 				]
 			),
 			'route' => new KeyDefinition(
-				'route',
+				new StorageDefinition('route'),
 				new LabelDefinition('Route'),
 				new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),
 				]
 			),
 			'menu' => new KeyDefinition(
-				'menu',
+				new StorageDefinition('menu'),
 				new LabelDefinition('Menu'),
 				null, null, null, [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),

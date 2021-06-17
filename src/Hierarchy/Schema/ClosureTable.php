@@ -55,7 +55,7 @@ class ClosureTable {
 	}
 
 	public function getPrimaryKeyColumn() {
-		return 'id';
+		return new TableColumn('id', 'UNSIGNED INTEGER', false, null);
 	}
 
 	public function getScopeColumns() {
@@ -67,7 +67,7 @@ class ClosureTable {
 	}
 
 	public function getDepthColumn() {
-		return 'depth';
+		return new TableColumn('depth', 'UNSIGNED INTEGER', false, null);
 	}
 
 	public function getParentColumn() {

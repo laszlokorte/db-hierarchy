@@ -8,44 +8,51 @@
 
 <h1>Hierarchy Refactored</h1>
 
+<pre>
+{% for backingTable in schema.allBackingTables|reverse %}
+{% for normalizer in backingTable.normalizers|reverse %}
+    DROP VIEW IF NOT EXISTS "{{normalizer.viewName}}";
+{% endfor %}
+{% if backingTable.hasTreeClosure %}
+    DROP TABLE IF NOT EXISTS "{{backingTable.closureTable.tableName}}";
+{% endif %}
+    DROP TABLE IF EXISTS "{{backingTable.tableName}}"
+{% endfor %}
+</pre>
 
 {% for backingTable in schema.allBackingTables %}
 <pre>
     CREATE TABLE "{{backingTable.tableName}}" (
 {% for column in backingTable.columns %}
-        {{ column }},
+        {{ column.name }} {{ column.sqlType }},
 {% endfor %}
-        PRIMARY KEY("{{backingTable.primaryKeyColumn}}" AUTOINCREMENT),
+        PRIMARY KEY("{{backingTable.primaryKeyColumn.name}}" AUTOINCREMENT),
 {% for unique in backingTable.uniqueContraints %}
-        UNIQUE({{unique|join(', ')}}),
+        UNIQUE({{unique|map(c => "'#{c.name}'")|join(', ')}}),
 {% endfor %}
 {% for fk in backingTable.foreignKeys %}
-        FOREIGN KEY({{fk.ownColumns|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+        FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+{% endfor %}
+    );
+</pre>
+
+{% if backingTable.hasTreeClosure %}
+<pre>
+    CREATE TABLE "{{backingTable.closureTable.tableName}}" (
+{% for column in backingTable.closureTable.columns %}
+        {{ column.name }} {{ column.sqlType }},
+{% endfor %}
+        PRIMARY KEY("{{backingTable.closureTable.primaryKeyColumn.name}}" AUTOINCREMENT),
+{% for unique in backingTable.closureTable.uniqueContraints %}
+        UNIQUE({{unique|map(c => "'#{c.name}'")|join(', ')}}),
+{% endfor %}
+{% for fk in backingTable.closureTable.foreignKeys %}
+        FOREIGN KEY({{fk.ownColumns|map(c => "'#{c.name}'")|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|map(c => "'#{c.name}'")|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
 {% endfor %}
     );
 </pre>
 <pre>
 {% for normalizer in backingTable.normalizers %}
-    CREATE VIEW IF NOT EXISTS "{{normalizer.viewName}}" AS ;
-{% endfor %}
-</pre>
-{% if backingTable.hasTreeClosure %}
-<pre>
-    CREATE TABLE "{{backingTable.closureTable.tableName}}" (
-{% for column in backingTable.closureTable.columns %}
-        {{ column }},
-{% endfor %}
-        PRIMARY KEY("{{backingTable.closureTable.primaryKeyColumn}}" AUTOINCREMENT),
-{% for unique in backingTable.closureTable.uniqueContraints %}
-        UNIQUE({{unique|join(', ')}}),
-{% endfor %}
-{% for fk in backingTable.closureTable.foreignKeys %}
-        FOREIGN KEY({{fk.ownColumns|join(', ')}}) REFERENCES "{{fk.table}}"({{fk.targetColumns|join(', ')}}) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
-{% endfor %}
-    );
-</pre>
-<pre>
-{% for normalizer in backingTable.closureTable.normalizers %}
     CREATE VIEW IF NOT EXISTS "{{normalizer.viewName}}" AS ;
 {% endfor %}
 </pre>

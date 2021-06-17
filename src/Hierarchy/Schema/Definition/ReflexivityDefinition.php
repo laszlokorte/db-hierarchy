@@ -4,8 +4,8 @@ namespace App\Hierarchy\Schema\Definition;
 
 class ReflexivityDefinition {
 	public function __construct(
-		private $parentColumn = 'parent_id', 
-		private $childColumn = 'child_id',
+		private string $parentColumn = 'parent_id', 
+		private string $childColumn = 'child_id',
 	) {
 	}
 
