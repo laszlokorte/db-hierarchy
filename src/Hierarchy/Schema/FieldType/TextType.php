@@ -2,7 +2,7 @@
 
 namespace App\Hierarchy\Schema\FieldType;
 
-use App\Hierarchy\Schema\Table\TableColumn;
+use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
 class TextType implements FieldTypeInterface {
 
@@ -13,7 +13,7 @@ class TextType implements FieldTypeInterface {
 	}
 
 	public function getColumns(string $fieldId, array $fieldOptions) {
-		return [new TableColumn($fieldId, 'TEXT', true, null)];
+		return [new ColumnDefinition($fieldId, 'TEXT', true, null)];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {

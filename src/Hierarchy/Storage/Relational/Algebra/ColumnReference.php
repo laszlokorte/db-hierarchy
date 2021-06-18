@@ -2,10 +2,10 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra;
 
-class View {
+class ColumnReference {
 	public function __construct(
-		private string $name,
-		private string $query
+		private TableReference $table,
+		private Identifier $name,
 	) {
 
 	}

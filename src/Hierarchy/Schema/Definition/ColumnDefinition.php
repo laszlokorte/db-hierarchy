@@ -5,7 +5,7 @@ namespace App\Hierarchy\Schema\Definition;
 class ColumnDefinition {
 	public function __construct(
 		private string $name, 
-		private string $sqlType,
+		private string $storageCoding,
 		private ?bool $nullable = false,
 		private ?string $default = null
 	) {
@@ -15,8 +15,8 @@ class ColumnDefinition {
 		return $this->name;
 	}
 
-	public function getSqlType() {
-		return $this->sqlType;
+	public function getStorageCoding() {
+		return $this->storageCoding;
 	}
 
 	public function isNullable() {
@@ -32,6 +32,6 @@ class ColumnDefinition {
 	}
 
 	public function deriveSameWithName($columnName) {
-		return new self($columnName, $this->sqlType, $this->nullable, $this->default);
+		return new self($columnName, $this->storageCoding, $this->nullable, $this->default);
 	}
 }

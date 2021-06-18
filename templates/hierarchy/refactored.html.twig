@@ -9,7 +9,28 @@
 <h1>Hierarchy Refactored</h1>
 
 <div contenteditable="" readonly style="overflow: scroll;max-height: 70vh; max-width: 50vw; width: 100%;">
-    
+{% for view in schema.allViews|reverse %}
+<pre style="margin: 0; color: #a00">
+{{- adapter.dropViewToString(view) -}}
+</pre>
+{% endfor -%}
+{% for table in schema.allTables|reverse %}
+<pre style="margin: 0; color: #a00">
+{{- adapter.dropTableToString(table) -}}
+</pre>
+{% endfor -%}
+{% for table in schema.allTables %}
+<pre style="margin: 0; color: #55a">
+{{- adapter.createTableToString(table) -}}
+</pre>
+{% endfor -%}
+{% for view in schema.allViews %}
+<pre style="margin: 0; color: #0a0">
+{{- adapter.createViewToString(view) -}}
+</pre>
+{% endfor -%}
+
+{#  
 <pre style="color: #a00">
 {% for hierarchy in schema.allHierarchies|reverse %}
 {% for view in hierarchy.views|reverse %}
@@ -47,5 +68,6 @@
 </pre>
 {% endfor %}
 </div>
+#}  
 
 {% endblock %}

@@ -13,7 +13,7 @@ class ClosureFindInvalidsView {
 	}
 
 	public function getViewName() {
-		return sprintf('_%s_invalid', $this->def->getKeyReflexivityTable($this->keyId));
+		return sprintf('_%s_invalid', $this->def->getKeyReflexivityTableName($this->keyId));
 	}
 
 	public function getSelectStatement() {

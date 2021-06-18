@@ -4,11 +4,15 @@ namespace App\Hierarchy\Storage\Relational\Algebra;
 
 class TableColumn {
 	public function __construct(
-		private string $name,
+		private Identifier $name,
 		private string $type,
-		private string $nullable,
-		private string $default
+		private bool $nullable = true,
+		private ?string $default = null
 	) {
 
+	}
+
+	public function getName() {
+		return $this->name;
 	}
 }

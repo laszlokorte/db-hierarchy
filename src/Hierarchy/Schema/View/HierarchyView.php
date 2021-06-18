@@ -3,7 +3,7 @@
 namespace App\Hierarchy\Schema\View;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
-use App\Hierarchy\Schema\Table\TableColumn;
+use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Table\ClosureTable;
 
 class HierarchyView {

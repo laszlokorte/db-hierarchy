@@ -2,7 +2,7 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-use App\Hierarchy\Schema\Table\TableColumn;
+use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
 class SchemaDefinition {
 
@@ -86,7 +86,7 @@ class SchemaDefinition {
 	}
 
 	public function getKeyOrderColumn($keyId) {
-		return new TableColumn($this->keys[$keyId]->getOrderColumnName(), 'INTEGER', false, 0);
+		return new ColumnDefinition($this->keys[$keyId]->getOrderColumnName(), 'INTEGER', false, 0);
 	}
 
 	public function getKeyOrderDirection($keyId) {
@@ -124,7 +124,7 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->isReflexive();
 	}
 
-	public function getKeyReflexivityTable($keyId) {
+	public function getKeyReflexivityTableName($keyId) {
 		return $this->keys[$keyId]->getReflexivityTableName();
 	}
 
@@ -187,7 +187,8 @@ class SchemaDefinition {
 	}
 
 	public function getKeyScopeColumn($keyId) {
-		return new TableColumn($this->getKeyScopeColumnName($keyId), $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))->getSqlType());
+		return $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))
+			->deriveSameWithName($this->getKeyScopeColumnName($keyId));
 	}
 
 	public function getKeyTableName($keyId) {

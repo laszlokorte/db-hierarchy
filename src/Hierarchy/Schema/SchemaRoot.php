@@ -30,6 +30,10 @@ class SchemaRoot {
 		return array_map([$this, 'getKey'], $this->def->getAllKeyIds());
 	}
 
+	public function getAllKeyIdsTopological() {
+		return $this->def->getAllKeyIdsTopological();
+	}
+
 	public function getAllHierarchies() {
 		return array_map([$this, 'getHierarchy'], $this->def->getAllKeyIdsTopological());
 	}

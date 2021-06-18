@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema\Table;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
 class ClosureTable {
 	public function __construct(
@@ -12,7 +13,7 @@ class ClosureTable {
 	}
 
 	public function getTableName() {
-		return $this->def->getKeyReflexivityTable($this->keyId);
+		return $this->def->getKeyReflexivityTableName($this->keyId);
 	}
 
 	public function getKeyId() {
@@ -61,7 +62,7 @@ class ClosureTable {
 	}
 
 	public function getPrimaryKeyColumn() {
-		return new TableColumn('id', 'INTEGER', false, null);
+		return new ColumnDefinition('id', 'INTEGER', false, null);
 	}
 
 	public function getScopeColumns() {
@@ -73,7 +74,7 @@ class ClosureTable {
 	}
 
 	public function getDepthColumn() {
-		return new TableColumn('depth', 'INTEGER', false, null);
+		return new ColumnDefinition('depth', 'INTEGER', false, null);
 	}
 
 	public function getParentColumn() {

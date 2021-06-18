@@ -2,7 +2,7 @@
 
 namespace App\Hierarchy\Schema\FieldType;
 
-use App\Hierarchy\Schema\Table\TableColumn;
+use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
 class FileType implements FieldTypeInterface {
 
@@ -14,10 +14,10 @@ class FileType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, array $fieldOptions) {
 		return [
-			new TableColumn(sprintf('%s_size', $fieldId), 'INTEGER', true, null),
-			new TableColumn(sprintf('%s_path', $fieldId), 'TEXT', true, null),
-			new TableColumn(sprintf('%s_mime_type', $fieldId), 'TEXT', true, null),
-			new TableColumn(sprintf('%s_name', $fieldId), 'TEXT', true, null),
+			new ColumnDefinition(sprintf('%s_size', $fieldId), 'INTEGER', true, null),
+			new ColumnDefinition(sprintf('%s_path', $fieldId), 'TEXT', true, null),
+			new ColumnDefinition(sprintf('%s_mime_type', $fieldId), 'TEXT', true, null),
+			new ColumnDefinition(sprintf('%s_name', $fieldId), 'TEXT', true, null),
 		];
 	}
 

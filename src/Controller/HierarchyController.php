@@ -13,6 +13,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use App\Hierarchy\Repository;
 use App\Hierarchy\Schema\SchemaRoot;
+use App\Hierarchy\Storage\Relational\RelationalSchema;
+use App\Hierarchy\Storage\Relational\Adapter\Sqlite;
 
 class HierarchyController {
 
@@ -305,10 +307,11 @@ class HierarchyController {
 
     #[Route('/_setup_refactored', name: 'show_hierarchy_refactored', methods: 'GET', priority: 1000)]
 	#[Template()]
-    public function refactored(SchemaRoot $schema)
+    public function refactored(RelationalSchema $relSchema)
     {
     	return [
-    		'schema' => $schema,
+    		'schema' => $relSchema,
+    		'adapter' => new Sqlite(),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
