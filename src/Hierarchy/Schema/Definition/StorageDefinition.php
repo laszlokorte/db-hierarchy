@@ -2,7 +2,7 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-use App\Hierarchy\Schema\Table\TableColumn;
+use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
 class StorageDefinition {
 	public function __construct(
@@ -20,6 +20,6 @@ class StorageDefinition {
 	}
 
 	public function getIdColumn() {
-		return new TableColumn($this->pkColumn, 'INTEGER', false, null);
+		return new ColumnDefinition($this->pkColumn, 'INTEGER', false, null);
 	}
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Hierarchy\Schema\Table;
+namespace App\Hierarchy\Schema\Definition;
 
-class TableColumn {
+class ColumnDefinition {
 	public function __construct(
 		private string $name, 
 		private string $sqlType,

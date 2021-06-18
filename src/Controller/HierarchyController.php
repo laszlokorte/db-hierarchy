@@ -37,7 +37,6 @@ class HierarchyController {
     {
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
-    		'rootNodes' => $this->repo->loadRootNodes(),
     		'treeNodes' => $this->schema->treeNodes($this->repo->loadHierarchy()),
     	];
     }
