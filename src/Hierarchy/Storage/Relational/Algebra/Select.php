@@ -14,7 +14,8 @@ class Select {
 		private ?int $limit = NULL,
 		private int $offset = 0,
 		private ?array $groupings = NULL,
-		private ?ValueInterface $having = NULL
+		private ?ValueInterface $having = NULL,
+		private array $unions = []
 	) {
 	}
 
@@ -52,5 +53,9 @@ class Select {
 
 	public function getHaving() {
 		return $this->having;
+	}
+
+	public function getUnions() {
+		return $this->unions;
 	}
 }

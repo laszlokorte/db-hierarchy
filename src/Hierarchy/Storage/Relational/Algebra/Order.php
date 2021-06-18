@@ -7,8 +7,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 class Order {
 	public function __construct(
 		private ValueInterface $value,
-		private bool $ascending = true,
-		private bool $nullFirst = false
+		private bool $ascending = true
 	) {
 	}
 
@@ -18,9 +17,5 @@ class Order {
 
 	public function isAscending() {
 		return $this->ascending;
-	}
-
-	public function isNullFirst() {
-		return $this->nullFirst;
 	}
 }

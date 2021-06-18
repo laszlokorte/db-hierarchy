@@ -7,7 +7,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 class Join {
 	public function __construct(
 		private TableReference $table,
-		private ValueInterface $condition
+		private ValueInterface $condition,
+		private string $direction = 'INNER'
 	) {
 
 	}
@@ -18,5 +19,9 @@ class Join {
 
 	public function getCondition() {
 		return $this->condition;
+	}
+
+	public function getDirection() {
+		return $this->direction;
 	}
 }

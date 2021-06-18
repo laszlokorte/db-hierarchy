@@ -2,7 +2,9 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra;
 
-class TableReference {
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
+
+class TableReference implements ValueInterface {
 	public function __construct(
 		private Identifier $table,
 		private ?Identifier $alias = null
@@ -18,6 +20,6 @@ class TableReference {
 	}
 
 	public function getUsageName() {
-		return $this->alias ?: $this->name;
+		return $this->alias ?: $this->table;
 	}
 }

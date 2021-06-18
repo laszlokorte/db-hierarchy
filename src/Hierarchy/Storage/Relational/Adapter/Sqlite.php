@@ -14,12 +14,14 @@ use App\Hierarchy\Storage\Relational\Algebra\TableColumn;
 use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\Order;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Value;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator;
 use App\Hierarchy\Storage\Relational\Algebra\Windowing;
+use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 
 class Sqlite implements AdapterInterface {
 	private const INDENT = "\t";
@@ -32,11 +34,15 @@ class Sqlite implements AdapterInterface {
 		$this->depth -= $delta;
 	}
 
-	private function i() {
-		return str_repeat(self::INDENT, $this->depth);
+	private function i($extra = 0) {
+		return str_repeat(self::INDENT, $this->depth + $extra);
 	}
 
 	public function selectToString(Select $select) {
+		return $this->selectToStringInternal($select, true);
+	}
+
+	private function selectToStringInternal(Select $select, bool $allowOrder = true) {
 		$query = $this->i() . "SELECT ";
 		$this->indent();
 		foreach($select->getProjections() AS $i => $p) {
@@ -80,7 +86,17 @@ class Sqlite implements AdapterInterface {
 			$this->outdent();
 		}
 
+		if($select->getUnions()) {
+			$query .= PHP_EOL . $this->i() . 'UNION' . PHP_EOL;
+			foreach ($select->getUnions() as $u) {
+				$query .= $this->selectToStringInternal($u, false);
+			}
+		}
+
 		if(!empty($select->getOrders())) {
+			if(!$allowOrder) {
+				throw new \Exception("union queries must not ordered");
+			}
 			$query .= $this->i() .  'ORDER BY';
 			$this->indent();
 			foreach($select->getOrders() AS $i => $o) {
@@ -114,12 +130,26 @@ class Sqlite implements AdapterInterface {
 	}
 
 	private function joinToString(Join $j) {
-		return 'INNER JOIN ' . $this->tableReferenceToString($j->getTable()) . PHP_EOL .
+		return $this->joinDirectionToString($j->getDirection()) . ' JOIN ' . $this->tableReferenceToString($j->getTable()) . PHP_EOL .
 			$this->i() . 'ON ' .  $this->valueToString($j->getCondition());
+	}
+
+	private function joinDirectionToString($dir) {
+		switch($dir) {
+			case 'INNER':
+			case 'LEFT':
+			case 'RIGHT':
+			case 'OUTER':
+				return $dir;
+			default:
+				throw new \Exception("unknown join direction:" . $dir);
+		}
 	}
 
 	private function valueToString(ValueInterface $v) {
 		switch(get_class($v)) {
+			case TableReference::class:
+				return sprintf('%s.*', $this->escapeIdentifier($v->getUsageName()));
 			case Value\Aggregation::class:
 				return $this->aggregationToString($v);
 			case Value\AssociativeOperation::class:
@@ -152,7 +182,8 @@ class Sqlite implements AdapterInterface {
 	}
 
 	private function aggregationName($aggregation) {
-		switch(get_class($aggregation->getAggregation())) {
+		$a = $aggregation->getAggregation();
+		switch(get_class($a)) {
 			case Aggregation\Average::class:
 				return 'AVG';
 			case Aggregation\Count::class:
@@ -164,7 +195,7 @@ class Sqlite implements AdapterInterface {
 			case Aggregation\Sum::class:
 				return 'SUM';
 			default: 
-				throw new \Exception("unknown aggregation");
+				throw new \Exception("unknown aggregation:" . get_class($a));
 		}
 	}
 
@@ -231,7 +262,6 @@ class Sqlite implements AdapterInterface {
 	}
 
 	private function constantToString(Value\Constant $constant) {
-
 		return $this->escapeLiteral($constant->getValue());
 	}
 
@@ -279,27 +309,29 @@ class Sqlite implements AdapterInterface {
 		$orders = $windowing->getOrders();
 
 		$result = $this->windowFunctionToString($function);
-		$result .= 'OVER(';
+		$result .= ' OVER(';
 		if(!empty($partitions)) {
-			$result .= 'PARTITION ';
+			$result .= PHP_EOL . $this->i(1) . 'PARTITION BY';
 			foreach ($partitions as $i => $p) {
-				$result .= ($i?',':'') . PHP_EOL . $this->valueToString($p);
+				$result .= ($i?', ':'')  . $this->valueToString($p);
 			}
+			$result .= PHP_EOL;
 		}
 		if(!empty($orders)) {
-			$result .= 'PARTITION ';
+			$result .= $this->i(1) .'ORDER BY ';
 			foreach ($orders as $i => $o) {
-				$result .= ($i?',':'') . PHP_EOL . $this->orderToString($o);
+				$result .= ($i?', ':'') . $this->orderToString($o);
 			}
+			$result .= PHP_EOL;
 		}
-		$result .= ')';
+		$result .=  $this->i(0) .  ')';
 
 		return $result;
 	}
 
 	private function windowFunctionToString(WindowingInterface $windowing) {
 		switch(get_class($windowing)) {
-			case Windowing\Value\AggregationWindow::class:
+			case Windowing\AggregationWindow::class:
 				$v = $this->valueToString($windowing->getValue());
 				$a = $windowing->getAggregation();
 				switch(get_class($a)) {
@@ -316,7 +348,7 @@ class Sqlite implements AdapterInterface {
 					default: 
 						throw new \Exception("unknown aggregating window function " . get_class($a));
 				}
-			case Windowing\Value\RankWindow::class:
+			case Windowing\RankWindow::class:
 				$r = $windowing->getRank();
 				switch(get_class($r)) {
 					case Windowing\Rank\CumulativeDistance::class:
@@ -334,7 +366,7 @@ class Sqlite implements AdapterInterface {
 					default: 
 						throw new \Exception("unknown rank window function " . get_class($r));
 				}
-			case Windowing\Value\ValueWindow::class:
+			case Windowing\ValueWindow::class:
 				$v = $this->valueToString($windowing->getValue());
 				$f = $windowing->getFunction();
 				switch(get_class($f)) {
@@ -362,7 +394,7 @@ class Sqlite implements AdapterInterface {
 	}
 
 	private function orderToString(Order $order) {
-		return sprintf('%s %s %s', $this->valueToString($order->getValue(), $order->isAscending() ? 'ASC' : 'DESC', $order->isNullFirst() ? 'NULL FIRST' : 'NULL LAST'));
+		return sprintf('%s %s', $this->valueToString($order->getValue()), $order->isAscending() ? 'ASC' : 'DESC');
 	}
 
 
@@ -387,6 +419,8 @@ class Sqlite implements AdapterInterface {
 		$indent = "\t";
 		$query = "CREATE TABLE IF NOT EXISTS ";
 		$query .= $this->escapeIdentifier($createTable->getName()) . "(". PHP_EOL;
+			$this->indent();
+
 			foreach($createTable->getColumns() AS $column) {
 				$query .= $this->i() . $this->tableColumnToString($column) . ',' . PHP_EOL;
 			}
@@ -397,18 +431,33 @@ class Sqlite implements AdapterInterface {
 			foreach($createTable->getForeignKeys() AS $fk) {
 				$query .= ',' . PHP_EOL . $this->i() . $this->foreignKeyToString($fk);
 			}
-
+		$this->outdent();
 		$query .= PHP_EOL . ")" . ";";
 
 		return $query;
 	}
 
 	private function tableColumnToString(TableColumn $column) {
-		return $this->escapeIdentifier($column->getName());
+		$result = $this->escapeIdentifier($column->getName());
+		$result .= ' ' . $this->dataTypeToString($column->getType());
+
+		if(!$column->isNullable()) {
+			$result .= ' NOT NULL';
+		}
+
+		if($column->hasDefault()) {
+			$result .= ' DEFAULT ' . $this->constantToString($column->getDefault());
+		}
+
+		return $result;
+	}
+
+	private function dataTypeToString($type) {
+		return $type;
 	}
 
 	private function tablePrimaryColumnToString(Identifier $columnName) {
-		return $this->escapeIdentifier($columnName);
+		return sprintf('PRIMARY KEY(%s AUTOINCREMENT)', $this->escapeIdentifier($columnName));
 	}
 
 	private function uniqueIndexToString(array $columnNames) {
@@ -444,7 +493,7 @@ class Sqlite implements AdapterInterface {
 
 	private function escapeLiteral(mixed $literal) {
 		if($literal === NULL) {
-			return NULL;
+			return 'NULL';
 		} elseif (is_numeric($literal)) {
 			return $literal;
 		} elseif (is_bool($literal)) {
