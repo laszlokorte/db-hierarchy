@@ -8,9 +8,25 @@ use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\TableColumn;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Existence;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\ColumnName;
 use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
+
+use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\UnaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Tuple;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Disjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Negation;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
@@ -141,11 +157,15 @@ class RelationalSchema {
 
 	private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition) {
 		return new TableColumn(
-			new Identifier($columnDefinition->getName()),
+			$this->fieldColumnToname($columnDefinition),
 			$this->storageCodingToSqlType($columnDefinition->getStorageCoding()),
 			$columnDefinition->isNullable(),
 			$columnDefinition->getDefault()
 		);
+	}
+
+	private function fieldColumnToName(ColumnDefinition $columnDefinition) {
+		return new Identifier($columnDefinition->getName());
 	}
 
 	private function storageCodingToSqlType($storageCoding) {
@@ -230,6 +250,169 @@ class RelationalSchema {
 		$values = [];
 		$values[] = new Constant(1);
 		$select = new Select($values);
+
+		$parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
+		$childColumn = $this->schemaDef->getKeyReflexivityChildColumn($keyId);
+
+		$table = new TableReference(new Identifier($this->closureTableName($keyId)), new Identifier('t'));
+		$tableA = new TableReference(new Identifier($this->closureTableName($keyId)), new Identifier('a'));
+		$tableB = new TableReference(new Identifier($this->closureTableName($keyId)), new Identifier('b'));
+		$tableR = new TableReference(new Identifier($this->closureTableName($keyId)), new Identifier('r'));
+
+		$idRef = new ColumnReference($table, new Identifier('id'));
+		$parentRef = new ColumnReference($table, $this->fieldColumnToName($parentColumn));
+		$childRef = new ColumnReference($table, $this->fieldColumnToName($childColumn));
+		$depthRef = new ColumnReference($table, new Identifier('depth'));
+
+
+		$idRefA = new ColumnReference($tableA, new Identifier('id'));
+		$parentRefA = new ColumnReference($tableA, $this->fieldColumnToName($parentColumn));
+		$childRefA = new ColumnReference($tableA, $this->fieldColumnToName($childColumn));
+		$depthRefA = new ColumnReference($tableA, new Identifier('depth'));
+
+
+		$idRefB = new ColumnReference($tableB, new Identifier('id'));
+		$parentRefB = new ColumnReference($tableB, $this->fieldColumnToName($parentColumn));
+		$childRefB = new ColumnReference($tableB, $this->fieldColumnToName($childColumn));
+		$depthRefB = new ColumnReference($tableB, new Identifier('depth'));
+
+		$idRefR = new ColumnReference($tableR, new Identifier('id'));
+		$parentRefR = new ColumnReference($tableR, $this->fieldColumnToName($parentColumn));
+		$childRefR = new ColumnReference($tableR, $this->fieldColumnToName($childColumn));
+
+		$projections = [
+			new Projection($idRef),
+			new Projection($parentRef),
+			new Projection($childRef),
+			new Projection($depthRef),
+		];
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
+			$projections[] = new Projection(new ColumnReference($table, $this->fieldColumnToName($scopeColumn)));
+		}
+
+		$conditionA = new BinaryOperation(
+			new Conjunction(), 
+			new BinaryOperation(
+				new Equal(), 
+				$depthRef,
+				new Constant(0)
+			),
+			new BinaryOperation(
+				new NotEqual(), 
+				$parentRef,
+				$childRef
+			)
+		);
+
+		$conditionB = new BinaryOperation(
+			new Conjunction(), 
+			new BinaryOperation(
+				new NotEqual(), 
+				$depthRef,
+				new Constant(0)
+			),
+			new BinaryOperation(
+				new Equal(true), 
+				$parentRef,
+				$childRef
+			)
+		);
+
+		$conditionC = new BinaryOperation(
+			new Conjunction(), 
+			new BinaryOperation(
+				new GreaterThan(), 
+				$depthRef,
+				new Constant(1)
+			),
+			new UnaryOperation(
+				new Negation(), 
+				new Existence(
+					new Select(
+						[$idRefA], 
+						[$tableA], 
+						[new Join($tableB, 
+							new BinaryOperation(new Equal(), $childRefA,$parentRefB))
+						],
+						new AssociativeOperation(
+							new Conjunction(),
+							[
+								new BinaryOperation(
+									new Equal(), 
+									new BinaryOperation(new Addition(), $depthRefA, $depthRefB),
+									$depthRef
+								),
+								new BinaryOperation(new NotEqual(), $idRefA,$idRef),
+								new BinaryOperation(new NotEqual(), $idRefB,$idRef),
+								new BinaryOperation(
+									new Equal(true), 
+									new Tuple([$parentRef, $childRef]), 
+									new Tuple([$parentRefA, $childRefA])
+								)
+							]
+						)
+					)
+				)
+			)
+		);
+
+	
+		$conditionD = new BinaryOperation(
+			new Conjunction(), 
+			new UnaryOperation(
+				new Negation(), 
+				new BinaryOperation(
+					new Equal(), 
+					$parentRef,
+					$childRef
+				)
+			),
+			new Existence(new Select([$idRefR], [$tableR], [], 
+				new BinaryOperation(
+					new Equal(), 
+					new Tuple([$childRefR, $parentRefR]), 
+					new Tuple([$parentRef, $childRef])
+				)
+			))
+		);
+
+		$condition = new AssociativeOperation(
+			new Disjunction(),
+			[$conditionA, $conditionB, $conditionC, $conditionD]
+		);
+
+		$select = new Select($projections, [
+			$table
+		], [], $condition);
+
+		/*
+		implode(', '.PHP_EOL, array_map(fn($c) => str_replace('{c}', $c->getName(), 't.{c} AS {c}'), $closureTable->getColumns()))
+		SELECT
+				{{closureColumns}}
+			FROM
+				{{closure_table}} t
+			WHERE (t.{{closure_depth}} = 0 AND t.{{closure_child}} <> t.{{closure_parent}}) 
+			OR (t.{{closure_depth}} <> 0 AND t.{{closure_child}} IS t.{{closure_parent}}) 
+			OR (t.{{closure_depth}} > 1 AND NOT EXISTS (
+					SELECT a.{{closure_id}}
+					FROM {{closure_table}} a
+					INNER JOIN {{closure_table}} b ON a.{{closure_child}} = b.{{closure_parent}}
+					WHERE (a.{{closure_depth}} + b.{{closure_depth}}) = t.{{closure_depth}}
+						AND a.{{closure_id}} <> t.{{closure_id}}
+						AND b.{{closure_id}} <> t.{{closure_id}}
+						AND (t.{{closure_parent}}, t.{{closure_child}})
+						IS (a.{{closure_parent}}, b.{{closure_child}})
+						AND (a.{{closure_scope}}, b.{{closure_scope}}) IS (t.{{closure_scope}}, t.{{closure_scope}}) ---SCOPEONLY
+			)) 
+			OR (t.{{closure_child}} <> t.{{closure_parent}} AND EXISTS (
+					SELECT r.{{closure_id}}
+					FROM {{closure_table}} r
+					WHERE (r.{{closure_child}}, r.{{closure_parent}}) = (t.{{closure_parent}}, t.{{closure_child}})
+				)
+			)
+		*/
 
 		return new CreateView(new Identifier($this->closureInvalidViewName($keyId)), $select);
 	}
