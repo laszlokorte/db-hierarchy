@@ -2,9 +2,9 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Windowing\Rank;
 
-use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Windowing\RankWindowFunction;
 
-class PercentRank {
+class PercentRank implements RankWindowFunction {
 	public function __construct() {
 
 	}

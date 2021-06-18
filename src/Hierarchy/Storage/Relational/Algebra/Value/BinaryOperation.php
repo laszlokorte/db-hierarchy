@@ -12,4 +12,16 @@ class BinaryOperation implements ValueInterface {
 	) {
 
 	}
+
+	public function getOperator() {
+		return $this->operator;
+	}
+
+	public function getLeftOperand() {
+		return $this->leftOperand;
+	}
+
+	public function getRightOperand() {
+		return $this->rightOperand;
+	}
 }

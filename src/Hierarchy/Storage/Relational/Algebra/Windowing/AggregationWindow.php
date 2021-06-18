@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Hierarchy\Storage\Relational\Algebra\Value;
+namespace App\Hierarchy\Storage\Relational\Algebra\Windowing;
 
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation\AggregationInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 
-class Aggregation implements ValueInterface {
+class AggregationWindow implements WindowingInterface {
 	public function __construct(
 		private AggregationInterface $aggregation,
 		private ValueInterface $aggregatedValue

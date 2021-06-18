@@ -2,9 +2,9 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Windowing\Value;
 
-use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Windowing\ValueWindowFunction;
 
-class FirstValue implements WindowingInterface {
+class FirstValue implements ValueWindowFunction {
 	public function __construct() {
 
 	}

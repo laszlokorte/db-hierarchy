@@ -10,4 +10,8 @@ class Projected implements ValueInterface {
 	) {
 
 	}
+
+	public function getProjection() {
+		return $this->projection;
+	}
 }

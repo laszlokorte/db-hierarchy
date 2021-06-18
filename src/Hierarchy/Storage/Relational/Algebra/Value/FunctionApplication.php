@@ -11,4 +11,12 @@ class FunctionApplication implements ValueInterface {
 	) {
 
 	}
+
+	public function getFunction() {
+		return $this->function;
+	}
+
+	public function getArguments() {
+		return $this->arguments;
+	}
 }

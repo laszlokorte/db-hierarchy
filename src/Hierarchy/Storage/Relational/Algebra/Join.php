@@ -11,4 +11,12 @@ class Join {
 	) {
 
 	}
+
+	public function getTable() {
+		return $this->table;
+	}
+
+	public function getCondition() {
+		return $this->condition;
+	}
 }

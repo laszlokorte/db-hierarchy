@@ -8,4 +8,8 @@ class Existence implements ValueInterface {
 	public function __construct(private Select $select) {
 		
 	}
+
+	public function getSelect() {
+		return $this->select;
+	}
 }

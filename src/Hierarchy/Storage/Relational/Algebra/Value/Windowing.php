@@ -12,4 +12,16 @@ class Windowing implements ValueInterface {
 	) {
 
 	}
+
+	public function getWindowFunction() {
+		return $this->windowFunction;
+	}
+
+	public function getPartionValues() {
+		return $this->partionValues;
+	}
+
+	public function getOrders() {
+		return $this->orders;
+	}
 }

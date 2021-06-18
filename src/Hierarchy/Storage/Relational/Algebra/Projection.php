@@ -7,8 +7,15 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 class Projection {
 	public function __construct(
 		private ValueInterface $value,
-		private ?string $alias = NULL
+		private ?Identifier $alias = NULL
 	) {
+	}
 
+	public function getValue() {
+		return $this->value;
+	}
+
+	public function getAlias() {
+		return $this->alias;
 	}
 }

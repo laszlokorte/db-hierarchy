@@ -11,4 +11,12 @@ class AssociativeOperation implements ValueInterface {
 	) {
 
 	}
+
+	public function getOperator() {
+		return $this->operator;
+	}
+
+	public function getOperands() {
+		return $this->operands;
+	}
 }

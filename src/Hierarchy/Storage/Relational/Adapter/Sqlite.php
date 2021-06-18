@@ -12,13 +12,359 @@ use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\TableColumn;
 use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Value;
+use App\Hierarchy\Storage\Relational\Algebra\Aggregation;
+use App\Hierarchy\Storage\Relational\Algebra\Operator;
+use App\Hierarchy\Storage\Relational\Algebra\Windowing;
 
 class Sqlite implements AdapterInterface {
 	private const INDENT = "\t";
+	private $depth = 0;
+
+	private function indent($delta = 1) {
+		$this->depth += $delta;
+	}
+	private function outdent($delta = 1) {
+		$this->depth -= $delta;
+	}
+
+	private function i() {
+		return str_repeat(self::INDENT, $this->depth);
+	}
 
 	public function selectToString(Select $select) {
-		return "SELECT %s";
+		$query = $this->i() . "SELECT ";
+		$this->indent();
+		foreach($select->getProjections() AS $i => $p) {
+			$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->projectionToString($p);
+		}
+		$this->outdent();
+		$query .= PHP_EOL;
+		if(!empty($select->getTables())) {
+			$query .= $this->i() .  'FROM';
+			$this->indent();
+			foreach($select->getTables() AS $i => $t) {
+				$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->tableReferenceToString($t);
+			}
+			$this->outdent();
+			$query .= PHP_EOL;
+		}
+		foreach($select->getJoins() AS $j) {
+			$query .= $this->i() . $this->joinToString($j) . PHP_EOL;
+		}
+		
+		if($select->getCondition()) {
+			$query .= $this->i() . 'WHERE' . PHP_EOL;
+			$this->indent();
+			$query .= $this->i() . $this->valueToString($select->getCondition());
+			$this->outdent();
+		}
+
+		if($select->getGroupings()) {
+			$query .= $this->i() . 'GROUP BY' . PHP_EOL;
+			$this->indent();
+			foreach($select->getGroupings() AS $i => $g) {
+				$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->orderToString(g);
+			}
+			$this->outdent();
+		}
+
+		if($select->getHaving()) {
+			$query .= $this->i() . 'HAVING' . PHP_EOL;
+			$this->indent();
+			$query .= $this->i() . $this->valueToString($select->getHaving());
+			$this->outdent();
+		}
+
+		if(!empty($select->getOrders())) {
+			$query .= $this->i() .  'ORDER BY';
+			$this->indent();
+			foreach($select->getOrders() AS $i => $o) {
+				$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->orderToString($o);
+			}
+			$this->outdent();
+			$query .= PHP_EOL;
+		}
+		
+		return $query;
 	}
+
+	private function projectionToString(Projection $p) {
+		$valueString = $this->valueToString($p->getValue());
+
+		if($p->getAlias()) {
+			return sprintf('%s AS %s', $valueString, $this->escapeIdentifier($p->getAlias()));
+		} else {
+			return $valueString;
+		}
+	}
+
+	private function tableReferenceToString(TableReference $t) {
+		$tableName = $this->escapeIdentifier($t->getName());
+
+		if($t->getAlias()) {
+			return sprintf('%s %s', $tableName, $this->escapeIdentifier($t->getAlias()));
+		} else {
+			return $tableName;
+		}
+	}
+
+	private function joinToString(Join $j) {
+		return 'INNER JOIN ' . $this->tableReferenceToString($j->getTable()) . PHP_EOL .
+			$this->i() . 'ON ' .  $this->valueToString($j->getCondition());
+	}
+
+	private function valueToString(ValueInterface $v) {
+		switch(get_class($v)) {
+			case Value\Aggregation::class:
+				return $this->aggregationToString($v);
+			case Value\AssociativeOperation::class:
+				return $this->associativeOperationToString($v);
+			case Value\BinaryOperation::class:
+				return $this->binaryOperationToString($v);
+			case Value\ColumnReference::class:
+				return $this->columnReferenceToString($v);
+			case Value\Constant::class:
+				return $this->constantToString($v);
+			case Value\Existence::class:
+				return $this->existenceToString($v);
+			case Value\FunctionApplication::class:
+				return $this->functionApplicationToString($v);
+			case Value\Parameter::class:
+				return $this->parameterToString($v);
+			case Value\Projected::class:
+				return $this->projectedToString($v);
+			case Value\Tuple::class:
+				return $this->tupleToString($v);
+			case Value\UnaryOperation::class:
+				return $this->unaryOperationToString($v);
+			case Value\Windowing::class:
+				return $this->windowingToString($v);
+		}
+	}
+
+	private function aggregationToString(Value\Aggregation $aggregation) {
+		return sprintf('%s(%s)', $this->aggregationName($aggregation->getAggregation()), $this->valueToString($aggregation-getValue()));
+	}
+
+	private function aggregationName($aggregation) {
+		switch(get_class($aggregation->getAggregation())) {
+			case Aggregation\Average::class:
+				return 'AVG';
+			case Aggregation\Count::class:
+				return 'COUNT';
+			case Aggregation\Maximum::class:
+				return 'MAX';
+			case Aggregation\Minimum::class:
+				return 'MIN';
+			case Aggregation\Sum::class:
+				return 'SUM';
+			default: 
+				throw new \Exception("unknown aggregation");
+		}
+	}
+
+	private function associativeOperationToString(Value\AssociativeOperation $associativeOperation) {
+		return implode(' ' . $this->operatorSymbol($associativeOperation->getOperator()) . PHP_EOL . $this->i(), array_map(fn($v) => $this->valueToString($v), $associativeOperation->getOperands()));
+	}
+
+	private function operatorSymbol($operator) {
+		switch(get_class($operator)) {
+			case Operator\Comparison\Equal::class:
+				if($operator->allowNull()) {
+					return 'IS';
+				} else {
+					return '=';
+				}
+			case Operator\Comparison\GreaterThan::class:
+				return '<';
+			case Operator\Comparison\GreaterThanEqual::class:
+				return '>=';
+			case Operator\Comparison\LessThan::class:
+				return '<';
+			case Operator\Comparison\LessThanEqual::class:
+				return '<=';
+			case Operator\Comparison\NotEqual::class:
+				if($operator->allowNull()) {
+					return 'IS NOT';
+				} else {
+					return '<>';
+				}
+			case Operator\Logic\Conjunction::class:
+				return 'AND';
+			case Operator\Logic\Disjunction::class:
+				return 'OR';
+			case Operator\Logic\Negation::class:
+				return 'NOT';
+			case Operator\Numeric\Addition::class:
+				return '+';
+			case Operator\Numeric\Subtraction::class:
+				return '-';
+			case Operator\Numeric\Multiplication::class:
+				return '*';
+			case Operator\Numeric\Division::class:
+				return '/';
+			case Operator\String\Concat::class:
+				return '||';
+			default: 
+				throw new \Exception("unknown operator" . get_class($operator));
+		}
+	}
+
+	private function binaryOperationToString(Value\BinaryOperation $binaryOperation) {
+		return sprintf('(%s %s %s)', 
+			$this->valueToString($binaryOperation->getLeftOperand()),
+			$this->operatorSymbol($binaryOperation->getOperator()),
+			$this->valueToString($binaryOperation->getRightOperand())
+		);
+	}
+
+	private function columnReferenceToString(Value\ColumnReference $columnReference) {
+		return sprintf('%s.%s', 
+			$this->escapeIdentifier($columnReference->getTable()->getUsageName()), 
+			$this->escapeIdentifier($columnReference->getName())
+		);
+	}
+
+	private function constantToString(Value\Constant $constant) {
+
+		return $this->escapeLiteral($constant->getValue());
+	}
+
+	private function existenceToString(Value\Existence $existence) {
+		$this->indent();
+		$sub = $this->selectToString($existence->getSelect());
+		$this->outdent();
+		return 'EXISTS ('. PHP_EOL. $sub . PHP_EOL . $this->i() .')';
+	}
+
+	private function functionApplicationToString(Value\FunctionApplication $functionApplication) {
+
+	}
+
+	private function parameterToString(Value\Parameter $parameter) {
+		return ':' . md5($parameter->getName());
+	}
+
+	private function projectedToString(Value\Projected $projected) {
+		$projection = $projected->getProjection();
+
+		if($projection->getAlias()) {
+			return $projection->getAlias();
+		} else {
+			return $this->valueToString($projection->getValue());
+		}
+	}
+
+	private function tupleToString(Value\Tuple $tuple) {
+		return sprintf('(%s)', 
+			implode(', ', array_map(fn($v) => $this->valueToString($v), $tuple->getValues()))
+		);
+	}
+
+	private function unaryOperationToString(Value\UnaryOperation $unaryOperation) {
+		return sprintf('(%s %s)', 
+			$this->operatorSymbol($unaryOperation->getOperator()),
+			$this->valueToString($unaryOperation->getOperand())
+		);
+	}
+
+	private function windowingToString(Value\Windowing $windowing) {
+		$function = $windowing->getWindowFunction();
+		$partitions = $windowing->getPartionValues();
+		$orders = $windowing->getOrders();
+
+		$result = $this->windowFunctionToString($function);
+		$result .= 'OVER(';
+		if(!empty($partitions)) {
+			$result .= 'PARTITION ';
+			foreach ($partitions as $i => $p) {
+				$result .= ($i?',':'') . PHP_EOL . $this->valueToString($p);
+			}
+		}
+		if(!empty($orders)) {
+			$result .= 'PARTITION ';
+			foreach ($orders as $i => $o) {
+				$result .= ($i?',':'') . PHP_EOL . $this->orderToString($o);
+			}
+		}
+		$result .= ')';
+
+		return $result;
+	}
+
+	private function windowFunctionToString(WindowingInterface $windowing) {
+		switch(get_class($windowing)) {
+			case Windowing\Value\AggregationWindow::class:
+				$v = $this->valueToString($windowing->getValue());
+				$a = $windowing->getAggregation();
+				switch(get_class($a)) {
+					case  Windowing\Aggregation\Average::class:
+						return 'AVG('.$v.')';
+					case  Windowing\Aggregation\Count::class:
+						return 'COUNT('.$v.')';
+					case  Windowing\Aggregation\Maximum::class:
+						return 'MAX('.$v.')';
+					case  Windowing\Aggregation\Minimum::class:
+						return 'MIN('.$v.')';
+					case  Windowing\Aggregation\Sum::class:
+						return 'SUM('.$v.')';
+					default: 
+						throw new \Exception("unknown aggregating window function " . get_class($a));
+				}
+			case Windowing\Value\RankWindow::class:
+				$r = $windowing->getRank();
+				switch(get_class($r)) {
+					case Windowing\Rank\CumulativeDistance::class:
+						return 'CUME()';
+					case Windowing\Rank\DenseRank::class:
+						return 'DENSE_RANK()';
+					case Windowing\Rank\NTile::class:
+						return 'NTILE('.$r->getBuckets().')';
+					case Windowing\Rank\PercentRank::class:
+						return 'PERCENT_RANK()';
+					case Windowing\Rank\Rank::class:
+						return 'RANK()';
+					case Windowing\Rank\RowNumber::class:
+						return 'ROW_NUMBER()';
+					default: 
+						throw new \Exception("unknown rank window function " . get_class($r));
+				}
+			case Windowing\Value\ValueWindow::class:
+				$v = $this->valueToString($windowing->getValue());
+				$f = $windowing->getFunction();
+				switch(get_class($f)) {
+					case Windowing\Value\FirstValue::class:
+						return 'FIRST_VALUE('.$v.')';
+					case Windowing\Value\lastValue::class:
+						return 'LAST_VALUE('.$v.')';
+					case Windowing\Value\Lag::class:
+						return 'LAG(' . $v 
+						. (($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'') 
+						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'') 
+						. ')';
+					case Windowing\Value\Lead::class:
+						return 'LEAD(' . $v 
+						. (($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'') 
+						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'') 
+						. ')';
+					default: 
+						throw new \Exception("unknown value window function " . get_class($f));
+				}
+
+			default: 
+				throw new \Exception("unknown window function type " . get_class($windowing));
+		}
+	}
+
+	private function orderToString(Order $order) {
+		return sprintf('%s %s %s', $this->valueToString($order->getValue(), $order->isAscending() ? 'ASC' : 'DESC', $order->isNullFirst() ? 'NULL FIRST' : 'NULL LAST'));
+	}
+
 
 	public function insertToString(Insert $insert) {
 		return "INSERT INTO %s";
@@ -42,14 +388,14 @@ class Sqlite implements AdapterInterface {
 		$query = "CREATE TABLE IF NOT EXISTS ";
 		$query .= $this->escapeIdentifier($createTable->getName()) . "(". PHP_EOL;
 			foreach($createTable->getColumns() AS $column) {
-				$query .= self::INDENT . $this->tableColumnToString($column) . ',' . PHP_EOL;
+				$query .= $this->i() . $this->tableColumnToString($column) . ',' . PHP_EOL;
 			}
-			$query .= self::INDENT . $this->tablePrimaryColumnToString($createTable->getPrimaryKey());
+			$query .= $this->i() . $this->tablePrimaryColumnToString($createTable->getPrimaryKey());
 			foreach($createTable->getUniques() AS $unique) {
-				$query .= ',' . PHP_EOL . self::INDENT . $this->uniqueIndexToString($unique);
+				$query .= ',' . PHP_EOL . $this->i() . $this->uniqueIndexToString($unique);
 			}
 			foreach($createTable->getForeignKeys() AS $fk) {
-				$query .= ',' . PHP_EOL . self::INDENT . $this->foreignKeyToString($fk);
+				$query .= ',' . PHP_EOL . $this->i() . $this->foreignKeyToString($fk);
 			}
 
 		$query .= PHP_EOL . ")" . ";";
@@ -80,7 +426,7 @@ class Sqlite implements AdapterInterface {
 		'(' . implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getTargetColumns()
-		)) . ') ' . PHP_EOL . self::INDENT . 'ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED';
+		)) . ') ' . PHP_EOL . $this->i() . 'ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED';
 	}
 
 
@@ -94,5 +440,26 @@ class Sqlite implements AdapterInterface {
 
 	private function escapeIdentifier(Identifier $identifier) {
 		return sprintf('"%s"', str_replace(['/','"'], '', $identifier->getString()));
+	}
+
+	private function escapeLiteral(mixed $literal) {
+		if($literal === NULL) {
+			return NULL;
+		} elseif (is_numeric($literal)) {
+			return $literal;
+		} elseif (is_bool($literal)) {
+			return $literal ? '1' : '0';
+		} else {
+			$replacements = array(
+		     "\x00"=>'\x00',
+		     "\n"=>'\n',
+		     "\r"=>'\r',
+		     "\\"=>'\\\\',
+		     "'"=>"''",
+		     '"'=>'""',
+		     "\x1a"=>'\x1a'
+		  );
+		  return "'".strtr($literal,$replacements)."'";
+		}
 	}
 }

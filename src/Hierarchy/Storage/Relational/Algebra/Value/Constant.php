@@ -8,4 +8,8 @@ class Constant implements ValueInterface {
 	) {
 
 	}
+
+	public function getValue() {
+		return $this->value;
+	}
 }

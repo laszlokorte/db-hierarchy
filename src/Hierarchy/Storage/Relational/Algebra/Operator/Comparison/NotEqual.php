@@ -8,4 +8,8 @@ class NotEqual implements BinaryInterface {
 	public function __construct(private bool $allowNull = false) {
 		
 	}
+
+	public function allowNull() {
+		return $this->allowNull;
+	}
 }

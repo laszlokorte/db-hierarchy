@@ -237,7 +237,7 @@ class RelationalSchema {
 
 	private function buildHierarchyView($keyId) {
 		$values = [];
-		$values[] = new Constant(1);
+		$values[] = new Projection(new Constant(1));
 		$select = new Select($values);
 		return new CreateView(new Identifier($this->hierarchyViewName($keyId)), $select);
 	}
@@ -248,7 +248,7 @@ class RelationalSchema {
 
 	private function buildClosureInvalidsView($keyId) {
 		$values = [];
-		$values[] = new Constant(1);
+		$values[] = new Projection(new Constant(1));
 		$select = new Select($values);
 
 		$parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
@@ -331,7 +331,7 @@ class RelationalSchema {
 				new Negation(), 
 				new Existence(
 					new Select(
-						[$idRefA], 
+						[new Projection($idRefA)], 
 						[$tableA], 
 						[new Join($tableB, 
 							new BinaryOperation(new Equal(), $childRefA,$parentRefB))
@@ -361,15 +361,12 @@ class RelationalSchema {
 	
 		$conditionD = new BinaryOperation(
 			new Conjunction(), 
-			new UnaryOperation(
-				new Negation(), 
-				new BinaryOperation(
-					new Equal(), 
-					$parentRef,
-					$childRef
-				)
+			new BinaryOperation(
+				new NotEqual(), 
+				$parentRef,
+				$childRef
 			),
-			new Existence(new Select([$idRefR], [$tableR], [], 
+			new Existence(new Select([new Projection($idRefR)], [$tableR], [], 
 				new BinaryOperation(
 					new Equal(), 
 					new Tuple([$childRefR, $parentRefR]), 
@@ -423,7 +420,7 @@ class RelationalSchema {
 
 	private function buildClosureMissingsView($keyId) {
 		$values = [];
-		$values[] = new Constant(1);
+		$values[] = new Projection(new Constant(1));
 		$select = new Select($values);
 		
 		return new CreateView(new Identifier($this->closureMissingViewName($keyId)), $select);
@@ -435,7 +432,7 @@ class RelationalSchema {
 
 	private function buildNormalizedOrderView($keyId) {
 		$values = [];
-		$values[] = new Constant(1);
+		$values[] = new Projection(new Constant(1));
 		$select = new Select($values);
 		
 		return new CreateView(new Identifier($this->normalizedOrderViewName($keyId)), $select);

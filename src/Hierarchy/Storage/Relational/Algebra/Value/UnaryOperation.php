@@ -11,4 +11,12 @@ class UnaryOperation implements ValueInterface {
 	) {
 
 	}
+
+	public function getOperator() {
+		return $this->operator;
+	}
+
+	public function getOperand() {
+		return $this->operand;
+	}
 }
