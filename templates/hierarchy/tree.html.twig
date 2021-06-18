@@ -2,15 +2,26 @@
 
 {% macro walkTree(nodes) %}
     {% if nodes|length %}
-    <ul>
+    <ul style="border: 1px solid black;">
         {% for node in nodes %}
             {% if node.id is not null %}
-            <li>
-            <a href="{{path('show_node',{key:node.hierarchyKey, id: node.id})}}" title="">{{ node.hierarchyKey }}-{{ node.id }}</a>
-            {{ _self.walkTree(node.children) }}
-            </li>
-            {% else %}
-            {{ _self.walkTree(node.children) }}
+                <li>
+                {% if node.id is not null %}
+                <a href="{{path('show_node',{key:node.hierarchyKey, id: node.id})}}" title="">{{ node.hierarchyKey }}-{{ node.id }}</a>
+                
+                {{ _self.walkTree(node.children) }}
+                {% endif %}
+
+                    <ul>
+                        {% for c in node.children %}
+                    {% if c.id is not null %}
+                    <li>
+                    <a href="{{path('show_node',{key:c.hierarchyKey, id: c.id})}}" title="">{{ c.hierarchyKey }}-{{ c.id }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                    </ul>
+                </li>
             {% endif %}
         {% endfor %}
     </ul>
@@ -28,12 +39,12 @@
 
 <h1>Tree</h1>
 
-{% for node in tree.nodes %}
-    <h3>{{ node.hierarchyKey|capitalize }}</h3>
-    <a href="{{ path('new_root_node', {key: node.hierarchyKey}) }}" title="">New</a> | 
-    <a href="{{ path('list_root_nodes', {key: node.hierarchyKey}) }}" title="">List</a>
+{% for node in treeNodes %}
+    <h3>{{ node.key.label.plural }}</h3>
+    <a href="{{ path('new_root_node', {key: node.key.id}) }}" title="">New</a> | 
+    <a href="{{ path('list_root_nodes', {key: node.key.id}) }}" title="">List</a>
 
-    {% if node.isNotEmpty %}
+    {% if node.children|length %}
         {{ _self.walkTree(node.getChildren()) }}
     {% else %}
         <p>

@@ -41,4 +41,8 @@ class SchemaRoot {
 	public function getDiagnosis() {
 		return new Diagnosis($this->def);
 	}
+
+	public function treeNodes($data) {
+		return array_map(fn($key) => new KeyTree($key, $data), $this->getRootKeys());
+	}
 }

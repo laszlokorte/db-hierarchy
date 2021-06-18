@@ -2,6 +2,6 @@
 
 namespace App\Hierarchy;
 
-class SqlBuilder {
+class HierarchyReader {
 	
 }

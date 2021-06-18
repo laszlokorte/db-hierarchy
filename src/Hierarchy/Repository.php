@@ -373,7 +373,7 @@ class Repository {
 			}
 		}
 
-		return new Tree($this->definition, $result);
+		return $result;
 	}
 
 	public function loadPartialHierarchy($key) {

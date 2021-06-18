@@ -38,7 +38,7 @@ class HierarchyController {
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
     		'rootNodes' => $this->repo->loadRootNodes(),
-    		'tree' => $this->repo->loadHierarchy(),
+    		'treeNodes' => $this->schema->treeNodes($this->repo->loadHierarchy()),
     	];
     }
 
@@ -208,35 +208,36 @@ class HierarchyController {
     #[Route('/{key}', name: 'create_node', methods: 'POST')]
     public function createNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key)
     {
+    	$key = $this->schema->getKey($key);
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
-    	$newId = $this->repo->createNode($key, $request->request->get('field', []), $scope, $parent);
+    	$newId = $this->repo->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
 		$then = $request->request->get('_then', null);
 		
 		$session->getFlashBag()->add('success', 'Node Created');
 
 		if($then === 'new') {
-			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $newId]));
+			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $newId]));
 		} elseif($then === 'root') {
 			return new RedirectResponse($urlGen->generate('hierarchy_root'));
 		}
 
     	if($parent) {
 			if($then === 'list') {
-    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key, 'childKey' => $key, 'id' => $parent]));
+    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
 			} else {
-    			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $parent]));
+    			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $parent]));
 			}
     	} elseif($scope) {
-    		$parentKey = $this->repo->getParentKey($key);
+    		$parentKey = $key->getScopeKey()->getId();
     		if($then === 'list') {
-    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $parentKey, 'childKey' => $key, 'id' => $scope]));
+    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
 			} else {
     			return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
 			}
     	} else {
-    		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+    		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
     	}
     }
 
