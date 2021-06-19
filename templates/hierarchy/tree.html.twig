@@ -39,20 +39,7 @@
 
 <h1>Tree</h1>
 
-{% for node in treeNodes %}
-    <h3>{{ node.key.label.plural }}</h3>
-    <a href="{{ path('new_root_node', {key: node.key.id}) }}" title="">New</a> | 
-    <a href="{{ path('list_root_nodes', {key: node.key.id}) }}" title="">List</a>
-
-    {% if node.children|length %}
-        {{ _self.walkTree(node.getChildren()) }}
-    {% else %}
-        <p>
-            none
-        </p>
-    {% endif %}
-    <hr>
-{% endfor %}
+not implemented
 
 
 {% endblock %}

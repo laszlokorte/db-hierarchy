@@ -12,7 +12,7 @@ class StorageConnection {
 	public function __construct(SchemaDefinition $schemaDef, Connection $connection) {
 		$this->schemaDef = $schemaDef;
 		$this->connection = $connection;
-		$this->naming = new Naming();
+		$this->naming = new Naming($schemaDef);
 		$this->dialect = new Sqlite();
 	}
 
@@ -25,6 +25,6 @@ class StorageConnection {
 	}
 
 	public function getInstaller() {
-		return new Fetcher(new SchemaBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
+		return new Installer(new SchemaBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
 	}
 }

@@ -16,6 +16,7 @@ use App\Hierarchy\Schema\SchemaRoot;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
 use Doctrine\DBAL\Connection;
+use App\Hierarchy\Storage\Relational\StorageConnection;
 
 class HierarchyController {
 
@@ -40,87 +41,51 @@ class HierarchyController {
     {
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
-    		'treeNodes' => $this->schema->treeNodes($this->repo->loadHierarchy()),
+    		'hierarchy' => $this->repo->loadHierarchy(),
     	];
     }
 
     #[Route('/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
 	#[Template()]
-    public function showSetup(SchemaBuilder $relSchema)
+    public function showSetup(StorageConnection $storageConnection)
     {
     	return [
-    		'schema' => $relSchema,
+    		'installer' => $storageConnection->getInstaller(),
     		'adapter' => new Sqlite(),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
     #[Route('/_setup', name: 'hierarchy_setup', methods: 'POST')]
-    public function setup(UrlGeneratorInterface $urlGen, SchemaBuilder $relSchema, Connection $db)
+    public function setup(UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
     {
-    	$sqlite = new Sqlite();
-    	$db->beginTransaction();
-    	foreach ($relSchema->getAllViews() as $v) {
-    		$db->executeStatement($sqlite->dropViewToString($v));
-    	}
-		foreach ($relSchema->getAllTables() as $t) {
-			$db->executeStatement($sqlite->dropTableToString($t));
-		}
-		foreach ($relSchema->getAllTables() as $t) {
-			$db->executeStatement($sqlite->createTableToString($t));
-		}
-		foreach ($relSchema->getAllViews() as $v) {
-			$db->executeStatement($sqlite->createViewToString($v));
-		}
-    	$db->commit();
-    	$this->repo->createSchema();
+    	$storageConnection->getInstaller()->createSchema(true);
 
     	return new RedirectResponse($urlGen->generate('hierarchy_root'));
     }
 
-    #[Route('/_defects', name: 'show_hierarchy_defects', methods: 'GET')]
+    #[Route('/_diagnosis', name: 'show_diagnosis', methods: 'GET')]
 	#[Template()]
-    public function showDefects()
+    public function diagnosis(StorageConnection $storageConnection)
     {
-    	$diagnosis = $this->schema->getDiagnosis();
+    	$diagnosis = $storageConnection->getFetcher()->findAllDefects();
 
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
-    		'closureDefects' => $this->repo->loadAllClosureDefects(),
-    		'orderDefects' => $this->repo->loadAllRowOrder(),
+    		'diagnosis' => $diagnosis,
     	];
     }
 
-    #[Route('/_defects', name: 'repair_hierarchy_defects', methods: 'POST')]
+    #[Route('/_repair', name: 'repair', methods: 'POST')]
     public function repairDefects(UrlGeneratorInterface $urlGen)
     {
-    	$this->repo->repairAllClosureDefects(1);
-
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_diagnosis'));
     }
 
-    #[Route('/_defects', name: 'repair_hierarchy_key_defects', methods: 'POST')]
-    public function repairKeyDefects(UrlGeneratorInterface $urlGen)
+    #[Route('/_repair/{key}', name: 'repair_key', methods: 'POST')]
+    public function repairKeyDefects(UrlGeneratorInterface $urlGen, $key)
     {
-    	$this->repo->repairKeyClosureDefects($key, 1);
-
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
-    }
-
-    #[Route('/_normalize_order/{key}', name: 'normalize_key_order', methods: 'POST')]
-    public function normalizeKeyOrder(UrlGeneratorInterface $urlGen, $key)
-    {
-    	$this->repo->normalizedKeyAllRowOrder($key);
-
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
-    }
-
-    #[Route('/_normalize_order', name: 'normalize_all_order', methods: 'POST')]
-    public function normalizeAllOrder(UrlGeneratorInterface $urlGen)
-    {
-    	$this->repo->normalizedAllRowOrder();
-
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_defects'));
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_diagnosis'));
     }
 
     #[Route('/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]

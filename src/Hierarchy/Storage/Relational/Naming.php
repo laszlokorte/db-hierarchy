@@ -18,15 +18,40 @@ class Naming {
 	public function closureInvalidViewName($keyId) {
 		return new Identifier(sprintf('_%s_invalid', $this->schemaDef->getKeyReflexivityTableName($keyId)));
 	}
+
+	public function closureMissingReasonColumn($keyId) {
+		return new Identifier('_reason');
+	}
+
+	public function closureInvalidIdColumn($keyId) {
+		return new Identifier('_id');
+	}
+
+	public function closureInvalidParentColumn($keyId) {
+		return new Identifier('_parent');
+	}
+
+	public function closureInvalidChildColumn($keyId) {
+		return new Identifier('_child');
+	}
+
+	public function closureInvalidDepthColumn($keyId) {
+		return new Identifier('_depth');
+	}
+
 	public function closureMissingViewName($keyId) {
 		return new Identifier(sprintf('_%s_missing', $this->schemaDef->getKeyReflexivityTableName($keyId)));
 	}
 	public function normalizedOrderViewName($keyId) {
-		return new Identifier(sprintf('_%s_hierarchy', $this->schemaDef->getKeyTableName($keyId)));
+		return new Identifier(sprintf('_%s_normalized_order', $this->schemaDef->getKeyTableName($keyId)));
 	}
 
 	public function normalizedOrderStoredColumnName($keyId) {
 		return new Identifier('_stored_order');
+	}
+
+	public function normalizedOrderNormalizedColumnName($keyId) {
+		return new Identifier('_normalized_order');
 	}
 
 	public function normalizedOrderIdColumnName($keyId) {
@@ -37,6 +62,28 @@ class Naming {
 		return new Identifier('_parent');
 	}
 
+	public function normalizedOrderScopeColumnName($keyId) {
+		return new Identifier('_scope');
+	}
+
+	public function closureMissingIdColumn($keyId) {
+		return new Identifier('_id');
+	}
+
+	public function closureMissingParentColumn($keyId) {
+		return new Identifier('_parent');
+	}
+
+	public function closureMissingChildColumn($keyId) {
+		return new Identifier('_child');
+	}
+
+	public function closureMissingDepthColumn($keyId) {
+		return new Identifier('_depth');
+	}
+
+
+
 	public function closureParentColumnName($keyId) {
 		$parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
 		return new Identifier($parentColumn->getName());
@@ -45,14 +92,6 @@ class Naming {
 	public function closureChildColumnName($keyId) {
 		$childColumn = $this->schemaDef->getKeyReflexivityChildColumn($keyId);
 		return new Identifier($childColumn->getName());
-	}
-
-	public function normalizedOrderScopeColumnName($keyId) {
-		return new Identifier('_scope');
-	}
-
-	public function normalizedOrderNormalizedColumnName($keyId) {
-		return new Identifier('_normalized_order');
 	}
 
 	public function fieldColumnToName(ColumnDefinition $columnDefinition) {

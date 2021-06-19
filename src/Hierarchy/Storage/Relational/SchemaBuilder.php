@@ -445,10 +445,10 @@ class SchemaBuilder {
 		$childRefR = new ColumnReference($tableR, $childId);
 
 		$projections = [
-			new Projection($idRef),
-			new Projection($parentRef),
-			new Projection($childRef),
-			new Projection($depthRef),
+			new Projection($idRef, $this->naming->closureInvalidIdColumn($keyId)),
+			new Projection($parentRef, $this->naming->closureInvalidParentColumn($keyId)),
+			new Projection($childRef, $this->naming->closureInvalidChildColumn($keyId)),
+			new Projection($depthRef, $this->naming->closureInvalidDepthColumn($keyId)),
 		];
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
@@ -597,7 +597,7 @@ class SchemaBuilder {
 		$depthRefT = new ColumnReference($tableT, $depthId);
 
 		$projections = [];
-		$projections[] = new Projection(new Constant(null), $idColumnName);
+		$projections[] = new Projection(new Constant(null), $this->naming->closureMissingIdColumn($keyId));
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
@@ -611,10 +611,10 @@ class SchemaBuilder {
 			$scopeConditionT = new Constant(1);
 		}
 
-		$projections[] = new Projection($parentRefA, $parentId);
-		$projections[] = new Projection($childRefB, $parentId);
-		$projections[] = new Projection($childRefB, $depthId);
-		$projections[] = new Projection(new Constant("transitivity"), new Identifier('reason'));
+		$projections[] = new Projection($parentRefA, $this->naming->closureMissingParentColumn($keyId));
+		$projections[] = new Projection($childRefB, $this->naming->closureMissingChildColumn($keyId));
+		$projections[] = new Projection($childRefB, $this->naming->closureMissingDepthColumn($keyId));
+		$projections[] = new Projection(new Constant("transitivity"), $this->naming->closureMissingReasonColumn($keyId));
 
 		$condition = new AssociativeOperation(
 			new Conjunction(),

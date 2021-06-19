@@ -3,11 +3,12 @@
 namespace App\Hierarchy\Storage\Relational;
 
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
+use App\Hierarchy\Data;
 
 use Doctrine\DBAL\Connection;
 
 class Fetcher {
-	public function __construct(QueryBuilder $commandBuilder, Connection $connection, DialectInterface $dialect) {
+	public function __construct(private QueryBuilder $queryBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 
@@ -40,11 +41,29 @@ class Fetcher {
 	}
 
 	public function findAllDefects() {
-
+		return array_map([$this, 'findDefectsForKey'], $this->queryBuilder->getDiagnosableKeys());
 	}
 
 	public function findDefectsForKey(string $keyId) {
+		$rows = [];
+		$columns = [];
+		$this->connection->beginTransaction();
+		foreach($this->queryBuilder->getDiagnosisQueriesForKey($keyId) AS $name => $select) {
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			$stmt->execute();
+			$rows[$name] = $stmt->fetchAll();
+			$columns[$name] = $this->extractColumnNamesFromSelect($select);
+		}
+    	$this->connection->commit();
 
+    	dump($rows);
+
+    	return new Data\Diagnostic($keyId, $rows, $columns);
+	}
+
+	private function extractColumnNamesFromSelect($select) {
+		$projections = $select->getProjections();
+		return array_map(fn($proj, $i) => $proj->getAutoName($i)->getString(), $projections, array_keys($projections));
 	}
 
 	public function findDefectsForNode(string $keyId, string $nodeId) {

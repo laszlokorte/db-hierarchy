@@ -4,7 +4,7 @@ namespace App\Hierarchy\Storage\Relational;
 
 class CommandBuilder  {
 
-	public function __construct(private SchemaRoot $schema, private Naming $naming) {
+	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
 	}
 
 	public function getCommandForCreateNode(string $keyId) {
