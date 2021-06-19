@@ -11,6 +11,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Update;
 use App\Hierarchy\Storage\Relational\Algebra\Delete;
 
 class Commander {
+	private const MAX_REPAIR_RETRIES = 5;
+
 	public function __construct(private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
@@ -48,24 +50,34 @@ class Commander {
 	}
 
 	private function repairKeyInternal(string $keyId) {
-		$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
+		$retriesLeft = self::MAX_REPAIR_RETRIES;
 
-		foreach ($commands as $label => $command) {
-			switch (get_class($command)) {
-				case Insert::class:
-					$stmt = $this->connection->prepare($this->dialect->insertToString($command));
-					break;
-				case Update::class:
-					$stmt = $this->connection->prepare($this->dialect->updateToString($command));
-					break;
-				
-				case Delete::class:
-					$stmt = $this->connection->prepare($this->dialect->deleteToString($command));
-					break;
+		while($retriesLeft-- > 0) {
+			$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
+			$affected = 0;
 
-				default: throw new \Exception("invalid command");
+			foreach ($commands as $label => $command) {
+				switch (get_class($command)) {
+					case Insert::class:
+						$stmt = $this->connection->prepare($this->dialect->insertToString($command));
+						break;
+					case Update::class:
+						$stmt = $this->connection->prepare($this->dialect->updateToString($command));
+						break;
+					
+					case Delete::class:
+						$stmt = $this->connection->prepare($this->dialect->deleteToString($command));
+						break;
+
+					default: throw new \Exception("invalid command");
+				}
+				$stmt->execute();
+				$affected += $stmt->rowCount();
 			}
-			$stmt->execute();
+
+			if($affected < 1) {
+				return;
+			}
 		}
 	}
 }
