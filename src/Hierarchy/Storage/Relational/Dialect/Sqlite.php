@@ -7,6 +7,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
 use App\Hierarchy\Storage\Relational\Algebra\Update;
+use App\Hierarchy\Storage\Relational\Algebra\Setter;
 use App\Hierarchy\Storage\Relational\Algebra\Delete;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
@@ -162,6 +163,8 @@ class Sqlite implements DialectInterface {
 				return $this->constantToString($v);
 			case Value\Existence::class:
 				return $this->existenceToString($v);
+			case Value\ElementOf::class:
+				return $this->elementOfToString($v);
 			case Value\FunctionApplication::class:
 				return $this->functionApplicationToString($v);
 			case Value\Parameter::class:
@@ -270,6 +273,13 @@ class Sqlite implements DialectInterface {
 		$sub = $this->selectToString($existence->getSelect());
 		$this->outdent();
 		return 'EXISTS ('. PHP_EOL. $sub . PHP_EOL . $this->i() .')';
+	}
+
+	private function elementOfToString(Value\ElementOf $elementOf) {
+		$this->indent();
+		$sub = $this->selectToString($elementOf->getSelect());
+		$this->outdent();
+		return '(' . $this->valueToString($elementOf->getValue()) . ') IN ('. PHP_EOL. $sub . PHP_EOL . $this->i() .')';
 	}
 
 	private function functionApplicationToString(Value\FunctionApplication $functionApplication) {
@@ -399,15 +409,75 @@ class Sqlite implements DialectInterface {
 
 
 	public function insertToString(Insert $insert) {
-		return "INSERT INTO %s";
+		$query = 'INSERT INTO ' . $this->escapeIdentifier($insert->getTable()) . PHP_EOL;
+		if(!empty($insert->getColumns())) {
+			$query .= '('. implode(', ', array_map(
+				fn($name) => $this->escapeIdentifier($name),
+				$insert->getColumns()
+			)) .')' . PHP_EOL;
+		}
+
+		if($insert->getRows() instanceof Select) {
+			$query .= $this->selectToString($insert->getRows());
+		} else {
+			$query .= 'VALUES';
+			foreach ($insert->getRows() as $i => $row) {
+				$query .= ($i?',':'') . PHP_EOL;
+				$query .= 'UNIQUE('. implode(', ', array_map(
+				fn($c) => $this->escapeLiteral($c),
+				$row
+			)) .')' . PHP_EOL;
+			}
+		}
+
+		return $query;
 	}
 
 	public function updateToString(Update $update) {
-		return "UPDATE %s";
+		$query = 'UPDATE ' . $this->tableReferenceToString($update->getTable()) . PHP_EOL;
+		$query .= 'SET ';
+		$this->indent();
+		foreach ($update->getSetters() as $i => $s) {
+			$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->setterToString($s);
+		}
+		$this->outdent();
+
+		if($update->getSelect()) {
+			$query .= $this->i() . 'FROM (' . PHP_EOL;
+			$this->indent();
+			$query .= $this->i() . $this->selectToString($update->getSelect());
+			$this->outdent();
+			$query .= $this->i() . ')' . PHP_EOL;
+		}
+		
+		if($update->getCondition()) {
+			$query .= $this->i() . 'WHERE' . PHP_EOL;
+			$this->indent();
+			$query .= $this->i() . $this->valueToString($update->getCondition());
+			$this->outdent();
+		}
+
+		dump($update);
+
+		return $query;
+	}
+
+	private function setterToString(Setter $setter) {
+		return sprintf('%s = %s', $this->escapeIdentifier($setter->getColumn()->getName()), $this->valueToString($setter->getValue()));
 	}
 
 	public function deleteToString(Delete $delete) {
-		return "DELETE FROM %s";
+		$query = 'DELETE FROM ' . $this->tableReferenceToString($delete->getTable()) . PHP_EOL;
+
+		
+		if($delete->getCondition()) {
+			$query .= $this->i() . 'WHERE' . PHP_EOL;
+			$this->indent();
+			$query .= $this->i() . $this->valueToString($delete->getCondition());
+			$this->outdent();
+		}
+
+		return $query;
 	}
 
 	public function createViewToString(CreateView $createView) {

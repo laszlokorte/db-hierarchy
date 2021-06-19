@@ -6,8 +6,12 @@ use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 
 use Doctrine\DBAL\Connection;
 
+use App\Hierarchy\Storage\Relational\Algebra\Insert;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
+use App\Hierarchy\Storage\Relational\Algebra\Delete;
+
 class Commander {
-	public function __construct(CommandBuilder $commandBuilder, Connection $connection, DialectInterface $dialect) {
+	public function __construct(private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 
@@ -25,5 +29,43 @@ class Commander {
 
 	public function moveNode(string $keyId, $nodeId, $targetScopeId, $targetParentId) {
 		
+	}
+
+	public function repairAll() {
+		$this->connection->beginTransaction();
+		foreach ($this->commandBuilder->getRepairableKeys() as $key) {
+			$this->repairKeyInternal($key);
+		}
+    	$this->connection->commit();
+	}
+
+	public function repairKey(string $keyId) {
+		$this->connection->beginTransaction();
+		$result = $this->repairKeyInternal($keyId);
+    	$this->connection->commit();
+
+    	return $result;
+	}
+
+	private function repairKeyInternal(string $keyId) {
+		$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
+
+		foreach ($commands as $label => $command) {
+			switch (get_class($command)) {
+				case Insert::class:
+					$stmt = $this->connection->prepare($this->dialect->insertToString($command));
+					break;
+				case Update::class:
+					$stmt = $this->connection->prepare($this->dialect->updateToString($command));
+					break;
+				
+				case Delete::class:
+					$stmt = $this->connection->prepare($this->dialect->deleteToString($command));
+					break;
+
+				default: throw new \Exception("invalid command");
+			}
+			$stmt->execute();
+		}
 	}
 }

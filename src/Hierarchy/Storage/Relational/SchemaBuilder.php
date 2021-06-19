@@ -304,8 +304,8 @@ class SchemaBuilder {
 			$parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
 			$childColumn = $this->schemaDef->getKeyReflexivityChildColumn($keyId);
 
-			$parentId = $this->fieldColumnToName($parentColumn);
-			$childId = $this->fieldColumnToName($childColumn);
+			$parentId = $this->closureParentColumnName($keyId);
+			$childId = $this->closureChildColumnName($keyId);
 			$depthId = $this->closureTableDepthName($keyId);
 
 			$tableParent = new TableReference($this->nodeTableName($keyId), new Identifier('p'));
@@ -355,7 +355,7 @@ class SchemaBuilder {
 
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$orderColumn = $this->schemaDef->getKeyOrderColumn($keyId);
-			$orderRef = new ColumnReference($table, $this->fieldColumnToName($orderColumn));
+			$orderRef = new ColumnReference($table, $this->naming->orderColumnName($keyId));
 
 			$orderProjection = new Projection($orderRef, $this->naming->hierarchyOrderColumnName($keyId));
 
@@ -413,8 +413,8 @@ class SchemaBuilder {
 		$parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
 		$childColumn = $this->schemaDef->getKeyReflexivityChildColumn($keyId);
 
-		$parentId = $this->fieldColumnToName($parentColumn);
-		$childId = $this->fieldColumnToName($childColumn);
+		$parentId = $this->closureParentColumnName($keyId);
+		$childId = $this->closureChildColumnName($keyId);
 
 		$table = new TableReference($this->closureTableName($keyId), new Identifier('t'));
 		$tableA = new TableReference($this->closureTableName($keyId), new Identifier('a'));
@@ -453,9 +453,9 @@ class SchemaBuilder {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
-			$scopeRef = new ColumnReference($table, $this->fieldColumnToName($scopeColumn));
-			$scopeRefA = new ColumnReference($tableA, $this->fieldColumnToName($scopeColumn));
-			$scopeRefB = new ColumnReference($tableB, $this->fieldColumnToName($scopeColumn));
+			$scopeRef = new ColumnReference($table, $this->nodeOwnScopeColumnName($keyId));
+			$scopeRefA = new ColumnReference($tableA, $this->nodeOwnScopeColumnName($keyId));
+			$scopeRefB = new ColumnReference($tableB, $this->nodeOwnScopeColumnName($keyId));
 			$projections[] = new Projection($scopeRef);
 			$scopeCondition = new BinaryOperation(
 				new Equal(true),
@@ -576,8 +576,8 @@ class SchemaBuilder {
 		$tableB = new TableReference($this->closureTableName($keyId), new Identifier('b'));
 		$tableT = new TableReference($this->closureTableName($keyId), new Identifier('t'));
 
-		$parentId = $this->fieldColumnToName($parentColumn);
-		$childId = $this->fieldColumnToName($childColumn);
+		$parentId = $this->closureParentColumnName($keyId);
+		$childId = $this->closureChildColumnName($keyId);
 		$idColumnName = $this->closureTableDepthName($keyId);
 		$depthId = $this->closureTableDepthName($keyId);
 		
@@ -601,9 +601,9 @@ class SchemaBuilder {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
-			$scopeRefA = new ColumnReference($tableA, $this->fieldColumnToName($scopeColumn));
-			$scopeRefB = new ColumnReference($tableA, $this->fieldColumnToName($scopeColumn));
-			$projections[] = new Projection($scopeRefA, $this->fieldColumnToName($scopeColumn));
+			$scopeRefA = new ColumnReference($tableA, $this->nodeOwnScopeColumnName($keyId));
+			$scopeRefB = new ColumnReference($tableA, $this->nodeOwnScopeColumnName($keyId));
+			$projections[] = new Projection($scopeRefA, $this->nodeOwnScopeColumnName($keyId));
 			$scopeCondition = new BinaryOperation(new Equal(), $scopeRefA, $scopeRefB);
 			$scopeConditionT = new Constant(1);
 		} else {
@@ -660,9 +660,9 @@ class SchemaBuilder {
 		$unionProjects[] = new Projection(new Constant(null), $idColumnName);
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			$scopeRefM = new ColumnReference($tableM, $this->fieldColumnToName($scopeColumn));
+			$scopeRefM = new ColumnReference($tableM, $this->nodeOwnScopeColumnName($keyId));
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
-			$unionProjects[] = new Projection($scopeRefM, $this->fieldColumnToName($scopeColumn));
+			$unionProjects[] = new Projection($scopeRefM, $this->nodeOwnScopeColumnName($keyId));
 		}
 
 		$unionProjects[] = new Projection($idRefM, $parentId);

@@ -77,15 +77,19 @@ class HierarchyController {
     }
 
     #[Route('/_repair', name: 'repair', methods: 'POST')]
-    public function repairDefects(UrlGeneratorInterface $urlGen)
+    public function repairDefects(UrlGeneratorInterface $urlGen, StorageConnection $storageConnection)
     {
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_diagnosis'));
+    	$storageConnection->getCommander()->repairAll();
+
+    	return new RedirectResponse($urlGen->generate('show_diagnosis'));
     }
 
     #[Route('/_repair/{key}', name: 'repair_key', methods: 'POST')]
-    public function repairKeyDefects(UrlGeneratorInterface $urlGen, $key)
+    public function repairKeyDefects(UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, $key)
     {
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_diagnosis'));
+    	$storageConnection->getCommander()->repairKey($key);
+
+    	return new RedirectResponse($urlGen->generate('show_diagnosis'));
     }
 
     #[Route('/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]

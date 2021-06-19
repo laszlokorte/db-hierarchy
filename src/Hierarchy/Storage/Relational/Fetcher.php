@@ -41,22 +41,26 @@ class Fetcher {
 	}
 
 	public function findAllDefects() {
-		return array_map([$this, 'findDefectsForKey'], $this->queryBuilder->getDiagnosableKeys());
+		return array_map(fn($key) => $this->findDefectsForKeyInternal($key), $this->queryBuilder->getDiagnosableKeys());
 	}
 
 	public function findDefectsForKey(string $keyId) {
+		$this->connection->beginTransaction();
+		$result = $this->findDefectsForKeyInternal($keyId);
+    	$this->connection->commit();
+
+    	return $result;
+	}
+
+	private function findDefectsForKeyInternal(string $keyId) {
 		$rows = [];
 		$columns = [];
-		$this->connection->beginTransaction();
 		foreach($this->queryBuilder->getDiagnosisQueriesForKey($keyId) AS $name => $select) {
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->execute();
 			$rows[$name] = $stmt->fetchAll();
 			$columns[$name] = $this->extractColumnNamesFromSelect($select);
 		}
-    	$this->connection->commit();
-
-    	dump($rows);
 
     	return new Data\Diagnostic($keyId, $rows, $columns);
 	}
@@ -64,9 +68,5 @@ class Fetcher {
 	private function extractColumnNamesFromSelect($select) {
 		$projections = $select->getProjections();
 		return array_map(fn($proj, $i) => $proj->getAutoName($i)->getString(), $projections, array_keys($projections));
-	}
-
-	public function findDefectsForNode(string $keyId, string $nodeId) {
-
 	}
 }

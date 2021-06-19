@@ -82,8 +82,6 @@ class Naming {
 		return new Identifier('_depth');
 	}
 
-
-
 	public function closureParentColumnName($keyId) {
 		$parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
 		return new Identifier($parentColumn->getName());
@@ -121,6 +119,10 @@ class Naming {
 
 	public function closureTableName($keyId) {
 		return new Identifier($this->schemaDef->getKeyReflexivityTableName($keyId));
+	}
+
+	public function orderColumnName($keyId) {
+		return new Identifier($this->schemaDef->getKeyOrderColumn($keyId)->getName());
 	}
 
 	public function closureTablePkName($keyId) {
