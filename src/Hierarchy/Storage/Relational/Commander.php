@@ -2,11 +2,13 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
-use App\Hierarchy\Storage\StorageWriterInterface;
+use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 
-class RelationalWriter implements StorageWriterInterface {
+use Doctrine\DBAL\Connection;
 
-	public function __construct(private SchemaRoot $schema, private RelationalSchemaNaming $naming) {
+class Commander {
+	public function __construct(CommandBuilder $commandBuilder, Connection $connection, DialectInterface $dialect) {
+
 	}
 
 	public function createNode(string $keyId, $scopeId, $parentId) {

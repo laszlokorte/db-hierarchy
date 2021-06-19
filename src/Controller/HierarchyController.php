@@ -13,8 +13,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use App\Hierarchy\Repository;
 use App\Hierarchy\Schema\SchemaRoot;
-use App\Hierarchy\Storage\Relational\RelationalSchema;
-use App\Hierarchy\Storage\Relational\Adapter\Sqlite;
+use App\Hierarchy\Storage\Relational\SchemaBuilder;
+use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
+use Doctrine\DBAL\Connection;
 
 class HierarchyController {
 
@@ -45,17 +46,33 @@ class HierarchyController {
 
     #[Route('/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
 	#[Template()]
-    public function showSetup()
+    public function showSetup(SchemaBuilder $relSchema)
     {
     	return [
+    		'schema' => $relSchema,
+    		'adapter' => new Sqlite(),
     		'rootKeys' => $this->schema->getRootKeys(),
-    		'schemaSQL' => $this->repo->showSchema()
     	];
     }
 
     #[Route('/_setup', name: 'hierarchy_setup', methods: 'POST')]
-    public function setup(UrlGeneratorInterface $urlGen)
+    public function setup(UrlGeneratorInterface $urlGen, SchemaBuilder $relSchema, Connection $db)
     {
+    	$sqlite = new Sqlite();
+    	$db->beginTransaction();
+    	foreach ($relSchema->getAllViews() as $v) {
+    		$db->executeStatement($sqlite->dropViewToString($v));
+    	}
+		foreach ($relSchema->getAllTables() as $t) {
+			$db->executeStatement($sqlite->dropTableToString($t));
+		}
+		foreach ($relSchema->getAllTables() as $t) {
+			$db->executeStatement($sqlite->createTableToString($t));
+		}
+		foreach ($relSchema->getAllViews() as $v) {
+			$db->executeStatement($sqlite->createViewToString($v));
+		}
+    	$db->commit();
     	$this->repo->createSchema();
 
     	return new RedirectResponse($urlGen->generate('hierarchy_root'));
@@ -301,17 +318,6 @@ class HierarchyController {
     		'childKey' => $this->schema->getKey($childKey),
     		'node' => $this->repo->loadNode($key, $id),
     		'childNodes' => $this->repo->loadChildKeyNodes($key, $id, $childKey),
-    		'rootKeys' => $this->schema->getRootKeys(),
-    	];
-    }
-
-    #[Route('/_setup_refactored', name: 'show_hierarchy_refactored', methods: 'GET', priority: 1000)]
-	#[Template()]
-    public function refactored(RelationalSchema $relSchema)
-    {
-    	return [
-    		'schema' => $relSchema,
-    		'adapter' => new Sqlite(),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }

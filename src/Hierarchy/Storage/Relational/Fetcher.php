@@ -2,32 +2,13 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
-use App\Hierarchy\Storage\StorageReaderInterface;
-use App\Hierarchy\Data\NodeCollection;
-use App\Hierarchy\Data\KeyCollection;
-use App\Hierarchy\Data\Node;
-use App\Hierarchy\Data\Tree;
-use App\Hierarchy\Data\Field;
-use App\Hierarchy\Data\NodePath;
+use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 
-/*
-getParentKey
-loadAllClosureDefects
-loadAllKeyNodes
-loadAllRowOrder
-loadChildKeyNodes
-loadHierarchy
-loadMoveTargets
-loadNode
-loadNodeField
-loadNodesDirectParent
-loadRootKeyNodes
-loadRootNodes
-*/
+use Doctrine\DBAL\Connection;
 
-class RelationalReader implements StorageReaderInterface {
-	public function __construct(private SchemaRoot $schema, private RelationalSchemaNaming $naming) {
-		
+class Fetcher {
+	public function __construct(QueryBuilder $commandBuilder, Connection $connection, DialectInterface $dialect) {
+
 	}
 
 	public function findNodes(string $keyId, string $nodeId) : NodeCollection {

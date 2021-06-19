@@ -2,8 +2,6 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
-use App\Hierarchy\Storage\StorageSchemaInterface;
-
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
@@ -38,12 +36,11 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\Rank\RowNumber;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
-class RelationalSchema implements StorageSchemaInterface {
+class SchemaBuilder {
 	private const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
 	private const CLOSURE_TABLE_DEPTH_TYPE = 'INTEGER';
 
-	public function __construct(private SchemaDefinition $schemaDef) {
-		$this->naming = new RelationalSchemaNaming($schemaDef);
+	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
 	}
 
 	public function getTablesFor(string $keyId) {

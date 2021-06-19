@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hierarchy\Storage\Relational\Adapter;
+namespace App\Hierarchy\Storage\Relational\Dialect;
 
 use App\Hierarchy\Storage\Relational\Algebra;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
@@ -23,7 +23,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator;
 use App\Hierarchy\Storage\Relational\Algebra\Windowing;
 use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 
-class Sqlite implements AdapterInterface {
+class Sqlite implements DialectInterface {
 	private const INDENT = "\t";
 	private $depth = 0;
 

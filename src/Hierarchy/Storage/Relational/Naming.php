@@ -7,7 +7,7 @@ use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 
 
-class RelationalSchemaNaming {
+class Naming {
 	public function __construct(private SchemaDefinition $schemaDef) {
 
 	}

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hierarchy\Storage\Relational\Adapter;
+namespace App\Hierarchy\Storage\Relational\Dialect;
 
 use App\Hierarchy\Storage\Relational\Algebra;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
@@ -10,7 +10,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Delete;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 
-interface AdapterInterface {
+interface DialectInterface {
 	public function selectToString(Select $select);
 
 	public function insertToString(Insert $insert);
