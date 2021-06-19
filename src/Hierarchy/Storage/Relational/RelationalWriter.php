@@ -2,9 +2,11 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
-class RelationalWriter {
-	public function __construct(private SchemaRoot $schema) {
-		
+use App\Hierarchy\Storage\StorageWriterInterface;
+
+class RelationalWriter implements StorageWriterInterface {
+
+	public function __construct(private SchemaRoot $schema, private RelationalSchemaNaming $naming) {
 	}
 
 	public function createNode(string $keyId, $scopeId, $parentId) {

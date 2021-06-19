@@ -2,6 +2,8 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
+use App\Hierarchy\Storage\StorageSchemaInterface;
+
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
@@ -36,8 +38,12 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\Rank\RowNumber;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
-class RelationalSchema {
+class RelationalSchema implements StorageSchemaInterface {
+	private const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
+	private const CLOSURE_TABLE_DEPTH_TYPE = 'INTEGER';
+
 	public function __construct(private SchemaDefinition $schemaDef) {
+		$this->naming = new RelationalSchemaNaming($schemaDef);
 	}
 
 	public function getTablesFor(string $keyId) {
@@ -105,7 +111,7 @@ class RelationalSchema {
 
 			if($this->schemaDef->isKeyScopedUnique($keyId)) {
 				if(!$this->schemaDef->isKeyReflexive($keyId)) {
-					$uniques[] = [new Identifier($scopeColumn->getName())];
+					$uniques[] = [$this->nodeOwnScopeColumnName($keyId)];
 				}
 			}
 		}
@@ -167,45 +173,60 @@ class RelationalSchema {
 		);
 	}
 
-	private function fieldColumnToName(ColumnDefinition $columnDefinition) {
-		return new Identifier($columnDefinition->getName());
-	}
-
 	private function storageCodingToSqlType($storageCoding) {
 		return $storageCoding;
 	}
 
+	private function fieldColumnToName(ColumnDefinition $columnDefinition) {
+		return $this->naming->fieldColumnToName($columnDefinition);
+	}
+
 	private function nodeTableName($keyId) {
-		return new Identifier($this->schemaDef->getKeyTableName($keyId));
+		return $this->naming->nodeTableName($keyId);
 	}
 
 	private function nodeTablePKName($keyId) {
-		$pkColumn = $this->schemaDef->getKeyIdentityColumn($keyId);
-		return new Identifier($pkColumn->getName());
+		return $this->naming->nodeTablePKName($keyId);
+	}
+
+	private function closureParentColumnName($keyId) {
+		return $this->naming->closureParentColumnName($keyId);
+	}
+
+	private function closureChildColumnName($keyId) {
+		return $this->naming->closureChildColumnName($keyId);
 	}
 
 	private function scopeTablename($keyId) {
-		return $this->nodeTableName($this->schemaDef->getKeyScopeId($keyId));
+		return $this->naming->scopeTablename($keyId);
 	}
 
 	private function scopeTablePKName($keyId) {
-		return $this->nodeTablePKName($this->schemaDef->getKeyScopeId($keyId));
+		return $this->naming->scopeTablePKName($keyId);
 	}
 
 	private function nodeOwnScopeColumnName($keyId) {
-		return $this->fieldColumnToName($this->schemaDef->getKeyScopeColumn($keyId));
+		return $this->naming->nodeOwnScopeColumnName($keyId);
 	}
 
 	private function closureTableName($keyId) {
-		return new Identifier($this->schemaDef->getKeyReflexivityTableName($keyId));
+		return $this->naming->closureTableName($keyId);
+	}
+
+	private function closureTablePkName($keyId) {
+		return $this->naming->closureTablePkName($keyId);
+	}
+
+	private function closureTableDepthName($keyId) {
+		return $this->naming->closureTableDepthName($keyId);
 	}
 
 	private function buildClosureTable($keyId) {
 		$scopeColumnNames = [];
-		$pkColumnName = new Identifier('id');
+		$pkColumnName = $this->closureTablePkName($keyId);
 
 		$columns = [
-			new TableColumn($pkColumnName, 'INTEGER', false, null),
+			new TableColumn($pkColumnName, self::CLOSURE_TABLE_DEPTH_TYPE, false, null),
 		];
 
 		$targetTableName = $this->nodeTableName($keyId);
@@ -214,20 +235,20 @@ class RelationalSchema {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
-			$scopeColumnNames[] = new Identifier($scopeColumn->getName());
+			$scopeColumnNames[] = $this->nodeOwnScopeColumnName($keyId);
 
 			$columns[] = $this->fieldColumnToTableColumn($scopeColumn);
 		}
 
 		$columns[] = $this->fieldColumnToTableColumn($parentColumn);
 		$columns[] = $this->fieldColumnToTableColumn($childColumn);
-		$depthId = new Identifier('depth');
-		$columns[] = new TableColumn($depthId, 'INTEGER', false, null);
+		$depthId = $this->closureTableDepthName($keyId);
+		$columns[] = new TableColumn($depthId, self::CLOSURE_TABLE_DEPTH_TYPE, false, null);
 
 
 		$targetColumnName = $this->nodeTablePKName($keyId);
-		$parentColumnName = new Identifier($parentColumn->getName());
-		$childColumnName = new Identifier($childColumn->getName());
+		$parentColumnName = $this->closureParentColumnName($keyId);
+		$childColumnName = $this->closureChildColumnName($keyId);
 
 		$uniques = [
 			[$childColumnName, $parentColumnName],
@@ -268,7 +289,7 @@ class RelationalSchema {
 			$tableScope = new TableReference($this->scopeTableName($keyId), new Identifier('s'));
 			$idRefScope = new ColumnReference($tableScope, $scopePkId);
 			$scopeRef = new ColumnReference($table, $this->nodeOwnScopeColumnName($keyId));
-			$scopeProjection = new Projection($idRef, new Identifier('_scope'));
+			$scopeProjection = new Projection($idRef, $this->naming->hierarchyScopeColumnName($keyId));
 
 			$joins[] = new Join($tableScope, 
 				new BinaryOperation(
@@ -278,7 +299,7 @@ class RelationalSchema {
 				)
 			,'INNER');
 		} else {
-			$scopeProjection = new Projection(new Constant(null), new Identifier('_scope'));
+			$scopeProjection = new Projection(new Constant(null), $this->naming->hierarchyScopeColumnName($keyId));
 		}
 
 		if($this->schemaDef->isKeyReflexive($keyId)) {
@@ -288,13 +309,13 @@ class RelationalSchema {
 
 			$parentId = $this->fieldColumnToName($parentColumn);
 			$childId = $this->fieldColumnToName($childColumn);
-			$depthId = new Identifier('depth');
+			$depthId = $this->closureTableDepthName($keyId);
 
 			$tableParent = new TableReference($this->nodeTableName($keyId), new Identifier('p'));
 			$tableReflexive = new TableReference($this->closureTableName($keyId), new Identifier('r'));
 			$tableClosure = new TableReference($this->closureTableName($keyId), new Identifier('c'));
 			
-			$idRefParent = new ColumnReference($tableParent, new Identifier('id'));
+			$idRefParent = new ColumnReference($tableParent, $this->nodeTablePKName($keyId));
 			$parentRefClosure = new ColumnReference($tableClosure, $parentId);
 			$childRefClosure = new ColumnReference($tableClosure, $childId);
 			$depthRefClosure = new ColumnReference($tableClosure, $depthId);
@@ -304,7 +325,7 @@ class RelationalSchema {
 			$depthRefRelexive = new ColumnReference($tableReflexive, $depthId);
 
 
-			$parentProjection = new Projection($idRef, new Identifier('_parent'));
+			$parentProjection = new Projection($idRef, $this->naming->hierarchyParentColumnName($keyId));
 	
 			$joins[] = new Join($tableReflexive, 
 				new BinaryOperation(
@@ -332,25 +353,25 @@ class RelationalSchema {
 
 			$orders[] = new Order($idRefParent, true);
 		} else {
-			$parentProjection = new Projection(new Constant(null), new Identifier('_parent'));
+			$parentProjection = new Projection(new Constant(null), $this->naming->hierarchyParentColumnName($keyId));
 		}
 
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$orderColumn = $this->schemaDef->getKeyOrderColumn($keyId);
 			$orderRef = new ColumnReference($table, $this->fieldColumnToName($orderColumn));
 
-			$orderProjection = new Projection($orderRef, new Identifier('_order'));
+			$orderProjection = new Projection($orderRef, $this->naming->hierarchyOrderColumnName($keyId));
 
 			$orders[] = new Order($orderRef, $this->schemaDef->getKeyOrderDirection($keyId) === 'ASC');
 		} else {
-			$orderProjection = new Projection(new Constant(null), new Identifier('_order'));
+			$orderProjection = new Projection(new Constant(null), $this->naming->hierarchyOrderColumnName($keyId));
 		}
 
 		$projections = [
 			$scopeProjection,
 			$parentProjection,
 			$orderProjection,
-			new Projection($idRef, new Identifier('_id')),
+			new Projection($idRef, $this->naming->hierarchyIdColumnName($keyId)),
 		];
 
 		$orders[] = new Order($idRef, true);
@@ -384,7 +405,7 @@ class RelationalSchema {
 	}
 
 	public function hierarchyViewName($keyId) {
-		return new Identifier(sprintf('_%s_hierarchy', $this->schemaDef->getKeyTableName($keyId)));
+		return $this->naming->hierarchyViewName($keyId);
 	}
 
 	private function buildClosureInvalidsView($keyId) {
@@ -403,8 +424,8 @@ class RelationalSchema {
 		$tableB = new TableReference($this->closureTableName($keyId), new Identifier('b'));
 		$tableR = new TableReference($this->closureTableName($keyId), new Identifier('r'));
 
-		$idColumnName = new Identifier('id');
-		$depthId = new Identifier('depth');
+		$idColumnName = $this->closureTableDepthName($keyId);
+		$depthId = $this->closureTableDepthName($keyId);
 		$idRef = new ColumnReference($table, $idColumnName);
 		$parentRef = new ColumnReference($table, $parentId);
 		$childRef = new ColumnReference($table, $childId);
@@ -546,7 +567,7 @@ class RelationalSchema {
 	}
 
 	public function closureInvalidViewName($keyId) {
-		return new Identifier(sprintf('_%s_invalid', $this->schemaDef->getKeyReflexivityTableName($keyId)));
+		return $this->naming->closureInvalidViewName($keyId);
 	}
 
 	private function buildClosureMissingsView($keyId) {
@@ -560,8 +581,8 @@ class RelationalSchema {
 
 		$parentId = $this->fieldColumnToName($parentColumn);
 		$childId = $this->fieldColumnToName($childColumn);
-		$idColumnName = new Identifier('id');
-		$depthId = new Identifier('depth');
+		$idColumnName = $this->closureTableDepthName($keyId);
+		$depthId = $this->closureTableDepthName($keyId);
 		
 		$idRefA = new ColumnReference($tableA, $idColumnName);
 		$parentRefA = new ColumnReference($tableA, $parentId);
@@ -642,9 +663,9 @@ class RelationalSchema {
 		$unionProjects[] = new Projection(new Constant(null), $idColumnName);
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			$scopeRefA = new ColumnReference($tableA, $this->fieldColumnToName($scopeColumn));
+			$scopeRefM = new ColumnReference($tableM, $this->fieldColumnToName($scopeColumn));
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
-			$projections[] = new Projection($scopeRefA, $this->fieldColumnToName($scopeColumn));
+			$unionProjects[] = new Projection($scopeRefM, $this->fieldColumnToName($scopeColumn));
 		}
 
 		$unionProjects[] = new Projection($idRefM, $parentId);
@@ -730,34 +751,34 @@ class RelationalSchema {
 	}
 
 	public function closureMissingViewName($keyId) {
-		return new Identifier(sprintf('_%s_missing', $this->schemaDef->getKeyReflexivityTableName($keyId)));
+		return $this->naming->closureMissingViewName($keyId);
 	}
 
 	private function buildNormalizedOrderView($keyId) {
 		$table = new TableReference($this->hierarchyViewName($keyId), new Identifier('h'));
 
-		$orderRef = new ColumnReference($table, new Identifier('_order'));
-		$idRef = new ColumnReference($table, new Identifier('_id'));
-		$parentRef = new ColumnReference($table, new Identifier('_parent'));
-		$scopeRef = new ColumnReference($table, new Identifier('_scope'));
+		$idRef = new ColumnReference($table, $this->naming->hierarchyIdColumnName($keyId));
+		$orderRef = new ColumnReference($table, $this->naming->hierarchyOrderColumnName($keyId));
+		$parentRef = new ColumnReference($table, $this->naming->hierarchyParentColumnName($keyId));
+		$scopeRef = new ColumnReference($table, $this->naming->hierarchyScopeColumnName($keyId));
 
 		$select = new Select([
-			new Projection($orderRef, new Identifier('_stored_order')),
-			new Projection($idRef, new Identifier('_id')),
-			new Projection($parentRef, new Identifier('_parent')),
-			new Projection($scopeRef, new Identifier('_scope')),
+			new Projection($orderRef, $this->naming->normalizedOrderStoredColumnName($keyId)),
+			new Projection($idRef, $this->naming->normalizedOrderIdColumnName($keyId)),
+			new Projection($parentRef, $this->naming->normalizedOrderParentColumnName($keyId)),
+			new Projection($scopeRef, $this->naming->normalizedOrderScopeColumnName($keyId)),
 			new Projection(new Windowing(
 				new RankWindow(new RowNumber()),
 				[$parentRef, $orderRef],
 				[new Order($orderRef), new Order($idRef)]
-			), new Identifier('_normalized_order'))
+			), $this->naming->normalizedOrderNormalizedColumnName($keyId))
 		], [$table]);
 		
 		return new CreateView($this->normalizedOrderViewName($keyId), $select);
 	}
 
 	public function normalizedOrderViewName($keyId) {
-		return new Identifier(sprintf('_%s_hierarchy', $this->schemaDef->getKeyTableName($keyId)));
+		return $this->naming->normalizedOrderViewName($keyId);
 	}
 
 }

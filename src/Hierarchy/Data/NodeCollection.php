@@ -2,6 +2,6 @@
 
 namespace App\Hierarchy\Data;
 
-class Collection {
+class NodeCollection {
 
 }
