@@ -5,9 +5,14 @@ namespace App\Hierarchy\Storage\Relational;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\Value\UnaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
@@ -96,11 +101,30 @@ class CommandBuilder  {
 
 	private function getUpdateForOrderRepair($keyId) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
+		$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
 		$orderColumn = new ColumnReference($table, $this->naming->orderColumnName($keyId));
+		$orderId = new ColumnReference($orderView, $this->naming->normalizedOrderIdColumnName($keyId));
+		$storedOrder = new ColumnReference($orderView, $this->naming->normalizedOrderStoredColumnName($keyId));
+		$normalizedOrder = new ColumnReference($orderView, $this->naming->normalizedOrderNormalizedColumnName($keyId));
+		
+		$innerNormalized = new Projection($normalizedOrder, new Identifier("normalized_order"));
+		$innerId = new Projection($orderId, new Identifier("inner_id"));
+
 
 		return new Update($table, [
-			new Setter($orderColumn, new Constant(0)),
-		]);
+				new Setter($orderColumn, new Projected($innerNormalized))
+			],
+			new BinaryOperation(
+				new Equal(),
+				new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+				new Projected($innerId)
+			),
+			new Select([$innerId, $innerNormalized], [$orderView], [], new BinaryOperation(
+				new NotEqual(),
+				$storedOrder,
+				$normalizedOrder
+			))
+		);
 	}
 
 }

@@ -215,7 +215,7 @@ class Sqlite implements DialectInterface {
 					return '=';
 				}
 			case Operator\Comparison\GreaterThan::class:
-				return '<';
+				return '>';
 			case Operator\Comparison\GreaterThanEqual::class:
 				return '>=';
 			case Operator\Comparison\LessThan::class:
@@ -294,7 +294,7 @@ class Sqlite implements DialectInterface {
 		$projection = $projected->getProjection();
 
 		if($projection->getAlias()) {
-			return $projection->getAlias();
+			return $this->escapeIdentifier($projection->getAlias());
 		} else {
 			return $this->valueToString($projection->getValue());
 		}
@@ -443,7 +443,7 @@ class Sqlite implements DialectInterface {
 		$this->outdent();
 
 		if($update->getSelect()) {
-			$query .= $this->i() . 'FROM (' . PHP_EOL;
+			$query .= $this->i() . ' FROM (' . PHP_EOL;
 			$this->indent();
 			$query .= $this->i() . $this->selectToString($update->getSelect());
 			$this->outdent();

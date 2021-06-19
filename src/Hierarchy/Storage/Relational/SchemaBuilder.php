@@ -578,7 +578,7 @@ class SchemaBuilder {
 
 		$parentId = $this->closureParentColumnName($keyId);
 		$childId = $this->closureChildColumnName($keyId);
-		$idColumnName = $this->closureTableDepthName($keyId);
+		$idColumnName = $this->closureTablePkName($keyId);
 		$depthId = $this->closureTableDepthName($keyId);
 		
 		$idRefA = new ColumnReference($tableA, $idColumnName);
@@ -643,13 +643,10 @@ class SchemaBuilder {
 			]
 		);
 
-		$tableM = new TableReference($this->closureTableName($keyId), new Identifier('m'));
+		$tableM = new TableReference($this->nodeTableName($keyId), new Identifier('m'));
 		$tableR = new TableReference($this->closureTableName($keyId), new Identifier('r'));
 
 		$idRefM = new ColumnReference($tableM, $idColumnName);
-		$parentRefM = new ColumnReference($tableM, $parentId);
-		$childRefM = new ColumnReference($tableM, $childId);
-		$depthRefM = new ColumnReference($tableM, $depthId);
 
 		$idRefR = new ColumnReference($tableR, $idColumnName);
 		$parentRefR = new ColumnReference($tableR, $parentId);
@@ -667,9 +664,11 @@ class SchemaBuilder {
 
 		$unionProjects[] = new Projection($idRefM, $parentId);
 		$unionProjects[] = new Projection($idRefM, $childId);
-		$unionProjects[] = new Projection($depthRefM, $depthId);
+		$unionProjects[] = new Projection(new Constant(0), $depthId);
 		$unionProjects[] = new Projection(new Constant("reflexivity"), new Identifier('reason'));
-		$union = new Select($unionProjects, [$tableM], [], new UnaryOperation(
+		$union = new Select($unionProjects, [$tableM], [
+
+		], new UnaryOperation(
 			new Negation(),
 			new Existence(new Select([new Projection($idRefR)], [$tableR], [], new BinaryOperation(
 				new Equal(true),

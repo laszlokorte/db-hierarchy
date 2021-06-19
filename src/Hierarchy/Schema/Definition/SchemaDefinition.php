@@ -81,10 +81,6 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->isOrdered();
 	}
 
-	public function getKeyOrderColumnName($keyId) {
-		return $this->keys[$keyId]->getOrderColumnName();
-	}
-
 	public function getKeyOrderColumn($keyId) {
 		return new ColumnDefinition($this->keys[$keyId]->getOrderColumnName(), 'INTEGER', false, 0);
 	}

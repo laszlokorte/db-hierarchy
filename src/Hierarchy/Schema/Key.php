@@ -39,6 +39,10 @@ class Key {
 		return $this->def->isKeyOrdered($this->keyId);
 	}
 
+	public function getOrderColumnName() {
+		return $this->def->getKeyOrderColumnName($this->keyId);
+	}
+
 	public function isScoped() {
 		return $this->def->isKeyScoped($this->keyId);
 	}
