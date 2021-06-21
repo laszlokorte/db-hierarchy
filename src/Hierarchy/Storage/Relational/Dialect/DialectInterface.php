@@ -9,6 +9,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Update;
 use App\Hierarchy\Storage\Relational\Algebra\Delete;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
 interface DialectInterface {
 	public function selectToString(Select $select);
@@ -27,4 +28,5 @@ interface DialectInterface {
 
 	public function dropTableToString(CreateTable $createView);
 
+	public function parameterToString(Parameter $param);
 }

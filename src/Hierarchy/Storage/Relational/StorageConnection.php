@@ -21,7 +21,7 @@ class StorageConnection {
 	}
 
 	public function getFetcher() {
-		return new Fetcher(new QueryBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
+		return new Fetcher($this->schemaDef, new QueryBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
 	}
 
 	public function getInstaller() {

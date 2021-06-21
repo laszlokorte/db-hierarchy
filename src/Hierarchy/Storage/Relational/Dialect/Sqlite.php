@@ -286,7 +286,7 @@ class Sqlite implements DialectInterface {
 
 	}
 
-	private function parameterToString(Value\Parameter $parameter) {
+	public function parameterToString(Value\Parameter $parameter) {
 		return ':' . md5($parameter->getName());
 	}
 

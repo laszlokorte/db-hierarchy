@@ -2,13 +2,15 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Data;
 
 use Doctrine\DBAL\Connection;
 
 class Fetcher {
-	public function __construct(private QueryBuilder $queryBuilder, private Connection $connection, private DialectInterface $dialect) {
+	public function __construct(private SchemaDefinition $schemaDef, private QueryBuilder $queryBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 
@@ -16,8 +18,18 @@ class Fetcher {
 		
 	}
 
-	public function findNode(string $keyId, string $nodeId) : ?Node {
-		
+	public function findNode(string $keyId, string $nodeId) : ?Data\Node {
+		$param = new Parameter('nodeId');
+		$select = $this->queryBuilder->getSelectForFindNode($keyId, $param);
+
+		$this->connection->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
+		$stmt->execute();
+    	$this->connection->commit();
+		$result = $stmt->fetchAssociative();
+
+    	return new Data\Node($keyId, $nodeId, array_diff_key($result, array_flip(['_scope', '_parent', '_order'])), $result['_scope'], $result['_parent'], $result['_order']);
 	}
 
 	public function findNodeField(string $keyId, string $nodeId, string $fieldId) : ?Field {
@@ -37,7 +49,7 @@ class Fetcher {
 	}
 
 	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : NodePath {
-		
+		return new NodePath();
 	}
 
 	public function findAllDefects() {

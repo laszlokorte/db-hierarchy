@@ -19,12 +19,16 @@ loadRootNodes
 */
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 
 class QueryBuilder {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
@@ -35,8 +39,40 @@ class QueryBuilder {
 		
 	}
 
-	public function getSelectForFindNode(string $keyId) {
-		
+	public function getSelectForFindNode(string $keyId, Parameter $parameter) {
+		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+
+		$projections = [];
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)));
+
+		$joins = [];
+		$joins[] = new Join($tableH, new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+		));
+
+		$condition = new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
+			$parameter
+		);
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $options);
+
+			foreach ($columns AS $column) {
+				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())));
+			}
+		}
+
+		return new Select($projections, [$tableN], $joins, $condition);
 	}
 
 	public function getSelectForFindNodeField(string $keyId, string $fieldId) {

@@ -1,4 +1,4 @@
-<form action="{{ path('update_node',{key:key.id, id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('update_node',{key:key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
@@ -7,10 +7,10 @@
 		{% for field in key.fields %}
         <dt class="form-container-label">
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
-        <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id, field: field.id}) }}" title="" target="_blank">➥</a>
+        <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">➥</a>
         </dt>
         <dd class="form-container-field">
-        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{values[field.id]|join}}">
+        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{field.readValueOf(node)}}">
     	</dd>
     	{% endfor %}
 

@@ -143,11 +143,12 @@ class HierarchyController {
 
     #[Route('/{key}/{id}/_edit', name: 'edit_node', methods: 'GET')]
 	#[Template()]
-    public function editNode($key, $id)
+    public function editNode(StorageConnection $storageConnection, $key, $id)
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'node' => $this->repo->loadNode($key, $id),
+    		'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'node_parents' => $storageConnection->getFetcher()->findNode($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }

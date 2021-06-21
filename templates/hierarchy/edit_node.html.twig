@@ -1,15 +1,15 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    {{ key.label.singular }} {{node.self.id}} - {{ parent() }}
+    {{ key.label.singular }} {{node.id}} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, key, id:node.self.id, trailing: 'edit'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node_parents, key, id:node.id, trailing: 'edit'} only %}
 
-<h1>Edit {{ key.label.singular }} {{node.self.id}}</h1>
+<h1>Edit {{ key.label.singular }} {{node.id}}</h1>
 
-{% include 'hierarchy/partials/form_edit.html.twig' with {key, id:node.self.id, values: node.self, then: 'edit'} only %}
+{% include 'hierarchy/partials/form_edit.html.twig' with {key, node, then: 'edit'} only %}
 
 {% endblock %}
