@@ -7,15 +7,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Doctrine\DBAL\Connection;
 
 use App\Hierarchy\Repository;
 use App\Hierarchy\Schema\SchemaRoot;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
-use Doctrine\DBAL\Connection;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 
 class HierarchyController {

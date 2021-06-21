@@ -98,6 +98,9 @@ class SchemaBuilder {
 			$this->fieldColumnToTableColumn($pkColumn),
 		];
 
+		
+		$uniques = [];
+
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$columns[] = $this->fieldColumnToTableColumn($this->schemaDef->getKeyOrderColumn($keyId));
 		}
@@ -107,19 +110,13 @@ class SchemaBuilder {
 			$columns[] = $this->fieldColumnToTableColumn($scopeColumn);
 
 			if($this->schemaDef->isKeyScopedUnique($keyId)) {
-				if(!$this->schemaDef->isKeyReflexive($keyId)) {
-					$uniques[] = [$this->nodeOwnScopeColumnName($keyId)];
-				}
+				$uniques[] = [$this->nodeOwnScopeColumnName($keyId)];
 			}
 		}
 
 		foreach ($this->fieldsColumns($keyId) as $fieldColumn) {
 			$columns[] = $this->fieldColumnToTableColumn($fieldColumn);
-		}
-
-		$uniques = [];
-
-		
+		}	
 
 		$uniqueFieldsIds = array_filter(
 			$this->schemaDef->getKeyFieldIds($keyId), 
