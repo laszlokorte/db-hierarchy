@@ -296,7 +296,7 @@ class HierarchyController {
     		'childKey' => $this->schema->getKey($childKey),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
-            'nodeChildren' => $storageConnection->getFetcher()->findNodeChildren($key, $id, $childKey),
+            'nodeCollection' => $storageConnection->getFetcher()->findNodeChildren($key, $id, $childKey),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }

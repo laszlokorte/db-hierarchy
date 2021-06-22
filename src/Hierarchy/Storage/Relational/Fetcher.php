@@ -74,18 +74,24 @@ class Fetcher {
 
 	public function findNodeChildren(string $keyId, string $nodeId, string $childKeyId) : Data\NodeCollection {
 		if($keyId === $childKeyId) {
+			$self = $this->findNode($keyId, $nodeId);
+
+			$rows = [];
+
 			return new Data\NodeCollection(
-				$keyId
-				$rows
-				$scopeId
-				$parentId
+				$keyId,
+				$rows,
+				$self->getScope(),
+				$nodeId
 			);
 		} else {
+			$rows = [];
+			
 			return new Data\NodeCollection(
-				$keyId
-				$rows
-				$scopeId
-				$parentId
+				$childKeyId,
+				$rows,
+				$nodeId,
+				null
 			);
 		}
 	}
