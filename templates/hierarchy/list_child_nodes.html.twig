@@ -6,7 +6,7 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: nodeParents, key, id:node.id, trailing: childKey.label.plural} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, key, id:node.id, trailing: childKey.label.plural} only %}
 
 <h1>{{childKey.label.plural}}</h1>
 

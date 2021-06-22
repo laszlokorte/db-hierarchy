@@ -21,7 +21,7 @@
                     {% endif %}
                     <td class="data-table-cell"><a href="{{ path('show_node', {key: key.id, id: nodeId}) }}">{{ nodeId }}</a></td>
                     {% for field in key.fields %}
-                        <td class="{{ html_classes('data-table-cell', {'empty': field.readValueOfCollection(nodeCollection, nodeId) is empty}) }}">{{field.readValueOfCollection(nodeCollection, nodeId)}}</td>
+                        <td class="{{ html_classes('data-table-cell', {'empty': field.readValueOf(nodeCollection.getNode(nodeId)) is empty}) }}">{{field.readValueOf(nodeCollection.getNode(nodeId))}}</td>
                     {% endfor %}
             		<td></td>
                     <td class="data-table-cell" align="right">

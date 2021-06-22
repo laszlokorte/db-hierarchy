@@ -2,6 +2,6 @@
 
 namespace App\Hierarchy\Data;
 
-class KeyCollection {
+class MultiTree {
 
 }

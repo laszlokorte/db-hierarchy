@@ -69,6 +69,19 @@ class SchemaDefinition {
 		return array_filter(array_keys($this->keys), fn($k) => $this->isKeyScopedInsideOrReflexiveSelf($k, $keyId));
 	}
 
+	public function getKeyScopePath($keyId) {
+		$scopeIds = [];
+
+		$currentKey = $this->getKeyScopeId($keyId);
+
+		while($currentKey) {
+			$scopeIds[] = $currentKey;
+			$currentKey = $this->getKeyScopeId($currentKey);
+		}
+
+		return $scopeIds;
+	}
+
 	public function keyExists($keyId) {
 		return array_key_exists($keyId, $this->keys);
 	}

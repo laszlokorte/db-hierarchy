@@ -1,33 +1,42 @@
-
 <ul class="breadcrump">
     <li class="breadcrump-item"><a href="{{ path('hierarchy_root') }}">Root</a></li>
-    {%- if parentGroups is defined -%}
-    {%- for parentGroup in parentGroups -%}
-        {% for parentNode in parentGroup.items -%}
-            <li class="breadcrump-item">{#--#}
-                <a href="{{ path('show_node',{key: parentGroup.type, id: parentNode.id}) }}">
-                {{- parentGroup.type|capitalize }}-{{ parentNode.id -}}
-                </a>
-            {#--#}</li>
+    {%- if nodeParents is defined -%}
+        {%- for nodePath in nodeParents.segmentsTopDown -%}
+            {% for nodeId in nodePath.nodeIdsTopDown -%}
+                <li class="breadcrump-item">{#--#}
+                {%- if trailing|default(false) or not loop.last or not loop.parent.loop.last -%}
+                    <a href="{{ path('show_node',{key: nodePath.key, id: nodeId}) }}">
+                    {{- nodePath.key|capitalize }}-{{ nodeId -}}
+                    </a>
+                {%- else -%}
+                    {{- nodePath.key|capitalize }}-{{ nodeId -}}
+                {%- endif -%}
+                </li>
+            {%- endfor -%}
         {%- endfor -%}
-    {%- endfor -%}
     {%- endif -%}
 
-    {%- if key is defined -%}
-        {%- if id is defined -%}
-            <li class="breadcrump-item"><a href="{{ path('show_node', {key:key.id, id}) }}" title="">{{ key.label.singular }}-{{ id }}</a></li>
-            {%- if childKey is defined %}
-                <li class="breadcrump-item"><a href="{{ path('list_child_nodes', {key:key.id, id, childKey: childKey.id}) }}" title="">{{ key.label.singular }}s</a></li>
-            {%- endif %}
-        {%- else -%}
-            <li class="breadcrump-item"><a href="{{ path('list_root_nodes', {key:key.id}) }}" title="">{{ key.label.singular }}s</a></li>
-        {%- endif -%}
+
+    {% if childKey is defined %}
+        {% if nodeParents.empty or not trailing|default(false) %}
+            <li class="breadcrump-item">{{ childKey.label.plural }}</li>
+        {% elseif nodeParents.lastId %}
+            <li class="breadcrump-item"><a href="{{ path('list_child_nodes', {key:nodeParents.lastKey, id: nodeParents.lastId, childKey: childKey.id}) }}" title="">{{ childKey.label.plural }}</a></li>
+        {% else %}
+            <li class="breadcrump-item"><a href="{{ path('list_root_nodes', {key: nodeParents.lastKey}) }}" title="">{{ childKey.label.plural }}</a></li>
+        {% endif %}
     {% endif %}
 
-    {%- if trailing -%}
+    {%- if trailing|default(false) -%}
     <li class="breadcrump-item">{{ trailing|capitalize }}</li>
     {%- endif -%}
 </ul>
+
+
+
+
+
+
 
 
 

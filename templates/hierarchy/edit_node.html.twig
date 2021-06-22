@@ -6,7 +6,7 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node_parents, key, id:node.id, trailing: 'edit'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'edit'} only %}
 
 <h1>Edit {{ key.label.singular }} {{node.id}}</h1>
 

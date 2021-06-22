@@ -98,7 +98,7 @@ class Sqlite implements DialectInterface {
 			if(!$allowOrder) {
 				throw new \Exception("union queries must not ordered");
 			}
-			$query .= $this->i() .  'ORDER BY';
+			$query .= PHP_EOL . $this->i() . 'ORDER BY';
 			$this->indent();
 			foreach($select->getOrders() AS $i => $o) {
 				$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->orderToString($o);

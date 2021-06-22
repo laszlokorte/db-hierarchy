@@ -3,7 +3,7 @@
 namespace App\Hierarchy\Data;
 
 class NodeCollection implements \Countable {
-	public function __construct(private string $keyId, private array $rows, private ?string $scopeIds = NULL, private ?string $parentId = NULL, private ?array $orders = NULL) {
+	public function __construct(private string $keyId, private array $rows, private ?string $scopeId = NULL, private ?string $parentId = NULL) {
 	}
 
 	public function getKey() {
@@ -24,6 +24,10 @@ class NodeCollection implements \Countable {
 
 	public function getColumnValue($nodeId, $columnName) {
 		return $this->rows[$nodeId][$columnName];
+	}
+
+	public function getNode($nodeId) {
+		return new Node($this->keyId, $nodeId, $this->rows[$nodeId], $this->scopeId, $this->parentId);
 	}
 
 	public function pathArgs($nodeId) {

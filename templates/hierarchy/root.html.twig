@@ -9,6 +9,6 @@
 
     {% include 'hierarchy/partials/form_new.html.twig' with {key: rootKey, then: 'root'} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {key: rootKey, nodes: rootNodes[rootKey.id]|default([]), then: 'root', listLink: true} only %}
+    {% include 'hierarchy/partials/table.html.twig' with {key: rootKey, nodeCollection: rootNodes.nodesFor(rootKey.id), then: 'root', listLink: true} only %}
 {% endfor %}
 {% endblock %}

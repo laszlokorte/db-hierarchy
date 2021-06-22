@@ -14,10 +14,6 @@ class Fetcher {
 
 	}
 
-	public function findNodes(string $keyId) : Data\NodeCollection {
-		return new Data\NodeCollection();
-	}
-
 	public function findRootNodes(string $keyId) : Data\NodeCollection {
 		$select = $this->queryBuilder->getSelectForFindRootNodes($keyId);
 
@@ -36,16 +32,26 @@ class Fetcher {
 		);
 	}
 
-	public function findAllRootNodes() : Data\NodeCollection {
-		return new Data\NodeCollection();
+	public function findAllRootNodes() : Data\MultiCollection {
+		$groupedRows = [];
+		$scopeId = null;
+		$parentId = null;
+
+		return new Data\MultiCollection(
+			null, 
+			null, 
+			$groupedRows, 
+			null,
+			null
+		);
 	}
 
-	public function findHierarchyNodes() : Data\NodeCollection {
-		return new Data\NodeCollection();
+	public function findHierarchyNodes($keyId) : Data\NodeTree {
+		return new Data\NodeTree();
 	}
 
-	public function findAllHierarchyNodes() : Data\NodeCollection {
-		return new Data\NodeCollection();
+	public function findAllHierarchyNodes() : Data\MultiTree {
+		return new Data\MultiTree();
 	}
 
 	public function findNode(string $keyId, string $nodeId) : ?Data\Node {
@@ -67,27 +73,82 @@ class Fetcher {
 	}
 
 	public function findNodeChildren(string $keyId, string $nodeId, string $childKeyId) : Data\NodeCollection {
-		return new Data\NodeCollection();
+		if($keyId === $childKeyId) {
+			return new Data\NodeCollection(
+				$keyId
+				$rows
+				$scopeId
+				$parentId
+			);
+		} else {
+			return new Data\NodeCollection(
+				$keyId
+				$rows
+				$scopeId
+				$parentId
+			);
+		}
 	}
 
-	public function findNodeAllChildren(string $keyId, string $nodeId) {
-		return array_map(fn() =>[], array_flip($this->schemaDef->getKeyIdsScopedInsideAndReflexiveSelf($keyId)));
+	public function findNodeAllChildren(string $keyId, string $nodeId) : Data\MultiCollection {
+		$groupedRows = [];
+		$scopeId = null;
+		$parentId = null;
+
+		return new Data\MultiCollection(
+			$keyId, 
+			$nodeId, 
+			$groupedRows, 
+			$scopeId,
+			$parentId
+		);
 	}
 
 	public function findNodeDirectParent(string $keyId, string $nodeId) : ?Node {
-		
+		$self = $this->findNode($keyId, $nodeId);
+
+		if(!empty($self->hasParent())) {
+			return $this->findNode($keyId, $self->getParent());
+		} else if($self->hasScope()) {
+			return $this->findNode($this->schemaDef->getKeyScopeId($keyId), $self->getScope());
+		} else {
+			return null;
+		}
 	}
 
 	public function findNodeReflexiveParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\NodePath {
-		return new Data\NodePath();
+		if(!$this->schemaDef->isKeyReflexive($keyId)) {
+			return new Data\NodePath($keyId, [$nodeId]);
+		}
+
+		$select = $this->queryBuilder->getSelectForFindNodeReflexiveParents($keyId);
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->bindValue($this->dialect->parameterToString(new Parameter('_id')), $nodeId);
+		$stmt->execute();
+		$ids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+		return new Data\NodePath($keyId, $ids);
 	}
 
-	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\NodePath {
-		return new Data\NodePath();
+	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\MultiPath {
+		$nodePaths = [];
+
+
+		$currentKey = $keyId;
+		$currentId = $nodeId;
+		while($currentKey && $currentId && $currentNode = $this->findNode($currentKey, $currentId)) {
+			$nodePaths[] = $this->findNodeReflexiveParents($keyId, $nodeId);
+			$currentKey = $this->schemaDef->getKeyScopeId($currentKey);
+			$currentId = $currentNode->getParent();
+		}
+
+		dump($nodePaths);
+
+		return new Data\MultiPath($nodePaths);
 	}
 
 	public function findNodeMoveTargets(string $keyId, string $nodeId) {
-		
+		return new Data\MultiTree();
 	}
 
 	public function findAllDefects() {

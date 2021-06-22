@@ -18,6 +18,8 @@ use App\Hierarchy\Schema\SchemaRoot;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
 use App\Hierarchy\Storage\Relational\StorageConnection;
+use App\Hierarchy\Data\MultiPath;
+use App\Hierarchy\Data\NodePath;
 
 class HierarchyController {
 
@@ -42,7 +44,7 @@ class HierarchyController {
     {
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
-    		'hierarchy' => $this->repo->loadHierarchy(),
+    		'hierarchy' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
     	];
     }
 
@@ -114,6 +116,7 @@ class HierarchyController {
     {
     	return [
     		'key' => $this->schema->getKey($key),
+            'nodeParents' => new MultiPath([new NodePath($key, [])]),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
@@ -140,7 +143,7 @@ class HierarchyController {
             'moveTargets' => $storageConnection->getFetcher()->findNode($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
-            'nodeChildren' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),
+            'childNodes' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
@@ -152,7 +155,7 @@ class HierarchyController {
     	return [
     		'key' => $this->schema->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
-            'node_parents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
@@ -279,6 +282,7 @@ class HierarchyController {
     	return [
     		'key' => $this->schema->getKey($key),
     		'nodeCollection' => $storageConnection->getFetcher()->findRootNodes($key),
+            'nodeParents' => new MultiPath([new NodePath($key, [])]),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }

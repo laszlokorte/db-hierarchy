@@ -4,7 +4,7 @@ namespace App\Hierarchy\Data;
 
 class Node {
 
-	public function __construct(private string $keyId, private string $nodeId, private array $columns, private ?string $scopeId = NULL, private ?string $parentId = NULL, private ?string $order = NULL) {
+	public function __construct(private string $keyId, private string $nodeId, private array $columns, private ?string $scopeId = NULL, private ?string $parentId = NULL) {
 	}
 
 	public function getKey() {
@@ -21,6 +21,14 @@ class Node {
 
 	public function getParent() {
 		return $this->parentId;
+	}
+
+	public function hasScope() {
+		return !empty($this->scopeId);
+	}
+
+	public function hasParent() {
+		return !empty($this->parentId);
 	}
 
 	public function getColumnValues() {

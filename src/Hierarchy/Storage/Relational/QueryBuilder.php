@@ -23,6 +23,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Order;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
@@ -125,16 +126,21 @@ class QueryBuilder {
 		
 	}
 
-	public function getSelectForFindNodeDirectParent(string $keyId) {
-		
-	}
+	public function getSelectForFindNodeReflexiveParents(string $keyId) {
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 
-	public function getSelectForFindNodeReflexiveParents(string $keyId, ?int $limit = NULL) {
-		
-	}
+		$condition = new BinaryOperation(
+			new Equal(),
+			new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
+			new Parameter('_id')
+		);
+		$orders = [
+			new Order(new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)), true)
+		];
 
-	public function getSelectForFindNodeParents(string $keyId, ?int $limit = NULL) {
-		
+		return new Select([
+			new Projection(new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId))),
+		], [$closureTable], [], $condition, $orders);
 	}
 
 	public function getDiagnosableKeys() {

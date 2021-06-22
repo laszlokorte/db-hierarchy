@@ -34,11 +34,11 @@ class CommandBuilder  {
 		$values = [];
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			$columns[] = new Identifier($this->schemaDef->getKeyScopeColumnName($keyId));
+			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
 			$values[] = new Parameter('_scope'); 
 		}
 		if($this->schemaDef->isKeyOrdered($keyId)) {
-			$columns[] = new Identifier($this->schemaDef->getKeyOrderColumnName($keyId));
+			$columns[] = $this->naming->orderColumnName($keyId);
 			$values[] = new Constant(0);
 		}
 
@@ -46,7 +46,7 @@ class CommandBuilder  {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
 			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $column) {
-				$columns[] = new Identifier($column->getName());
+				$columns[] = $this->naming->fieldColumnToName($column);
 				$values[] = new Parameter($column->getName());
 			}
 		}
@@ -55,6 +55,34 @@ class CommandBuilder  {
 			$tableName,
 			$columns,
 			[$values]
+		);
+	}
+
+	public function getCommandForClosureInsert($keyId) {
+		$closureTableName = $this->naming->closureTableName($keyId);
+		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
+
+		$targetColumns = [
+			$this->naming->closureParentColumnName($keyId),
+			$this->naming->closureChildColumnName($keyId),
+			$this->naming->closureTableDepthName($keyId),
+		];
+
+		$sourceColumns = [
+			new Parameter('_parent'),
+			new Parameter('_child'),
+			new Parameter('_depth'),
+		];
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
+			$sourceColumns[] = new Parameter('_scope');
+		}
+
+		return new Insert(
+			$closureTableName,
+			$targetColumns,
+			[$sourceColumns]
 		);
 	}
 
@@ -91,7 +119,7 @@ class CommandBuilder  {
 		);
 	}
 
-	private function getDeleteForClosureRepair($keyId) {
+	public function getDeleteForClosureRepair($keyId) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		$invalidView = new TableReference($this->naming->closureInvalidViewName($keyId));
 		$invalidViewId = new ColumnReference($invalidView, $this->naming->closureInvalidIdColumn($keyId));
@@ -106,28 +134,37 @@ class CommandBuilder  {
 		);
 	}
 
-	private function getInsertForClosureRepair($keyId) {
+	public function getInsertForClosureRepair($keyId) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 
+		$targetColumns = [
+			$this->naming->closureTablePkName($keyId),
+			$this->naming->closureParentColumnName($keyId),
+			$this->naming->closureChildColumnName($keyId),
+			$this->naming->closureTableDepthName($keyId),
+		];
+
+		$sourceColumns = [
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingIdColumn($keyId))),
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingParentColumn($keyId))),
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingChildColumn($keyId))),
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingDepthColumn($keyId))),
+		];
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
+			$sourceColumns[] = new Projection(new ColumnReference($missingView, $this->naming->nodeOwnScopeColumnName($keyId)));
+		}
+
 		return new Insert(
 			$closureTableName,
-			[
-				$this->naming->closureTablePkName($keyId),
-				$this->naming->closureParentColumnName($keyId),
-				$this->naming->closureChildColumnName($keyId),
-				$this->naming->closureTableDepthName($keyId),
-			],
-			new Select([
-				new Projection(new ColumnReference($missingView, $this->naming->closureMissingIdColumn($keyId))),
-				new Projection(new ColumnReference($missingView, $this->naming->closureMissingParentColumn($keyId))),
-				new Projection(new ColumnReference($missingView, $this->naming->closureMissingChildColumn($keyId))),
-				new Projection(new ColumnReference($missingView, $this->naming->closureMissingDepthColumn($keyId))),
-			], [$missingView])
+			$targetColumns,
+			new Select($sourceColumns, [$missingView])
 		);
 	}
 
-	private function getUpdateForOrderRepair($keyId) {
+	public function getUpdateForOrderRepair($keyId) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
 		$orderColumn = new ColumnReference($table, $this->naming->orderColumnName($keyId));

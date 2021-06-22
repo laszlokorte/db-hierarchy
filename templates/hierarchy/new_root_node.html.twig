@@ -6,7 +6,7 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'New', key} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'New', childKey: key} only %}
 
 
 <h1>New {{key.label.singular}}</h1>

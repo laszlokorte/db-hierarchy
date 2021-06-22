@@ -20,11 +20,20 @@ class Commander {
 	}
 
 	public function createNode(string $keyId, $fieldData, $scopeId, $parentId) {
+		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
+			throw new \Exception("missing scope");
+		}
+
+		if(!$this->schemaDef->isKeyReflexive($keyId) && !empty($parentId)) {
+			throw new \Exception($parentId);
+		}
+
 		$insert = $this->commandBuilder->getCommandForCreateNode($keyId);
 
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
-    	
+
+
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString(new Parameter('_scope')),
@@ -46,6 +55,38 @@ class Commander {
 		}
 
     	$stmt->execute();
+    	$newNodeId = $this->connection->lastInsertId();
+
+    	if($this->schemaDef->isKeyReflexive($keyId)) {
+			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId);
+			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
+
+			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_parent')), $newNodeId);
+			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_child')), $newNodeId);
+			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_depth')), 0);
+
+			if($this->schemaDef->isKeyScoped($keyId)) {
+				$closureStmt->bindValue(
+					$this->dialect->parameterToString(new Parameter('_scope')),
+					$scopeId
+				);
+			}
+
+    		$closureStmt->execute();
+
+    		if(!empty($parentId)) {
+    			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_parent')), $parentId);
+				$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_child')), $newNodeId);
+				$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_depth')), 1);
+
+	    		$closureStmt->execute();
+    		}
+
+    		$this->connection->prepare($this->dialect->insertToString(
+    			$this->commandBuilder->getInsertForClosureRepair($keyId)
+    		));
+		}
+
     	$this->connection->commit();
 	}
 

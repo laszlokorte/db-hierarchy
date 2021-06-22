@@ -6,7 +6,8 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: nodeParents, key, id:node.id, trailing: 'delete'} only %}
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'delete'} only %}
 
 <h1>Delete {{ key.label.singular }} {{node.id}}</h1>
 

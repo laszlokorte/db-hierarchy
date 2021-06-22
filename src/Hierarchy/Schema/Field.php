@@ -38,9 +38,9 @@ class Field {
 		return implode(';', array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
 	}
 
-	public function readValueOfCollection(NodeCollection $collection, $nodeId) {
-		return implode(';', array_map(fn($col) => $collection->getColumnValue($nodeId, $col->getName()), $this->getColumns()));
-	}
+	// public function readValueOfCollection(NodeCollection $collection, $nodeId) {
+	// 	return implode(';', array_map(fn($col) => $collection->getColumnValue($nodeId, $col->getName()), $this->getColumns()));
+	// }
 
 	private function getColumns() {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
