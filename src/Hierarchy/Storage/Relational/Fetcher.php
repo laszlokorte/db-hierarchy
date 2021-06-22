@@ -19,7 +19,21 @@ class Fetcher {
 	}
 
 	public function findRootNodes(string $keyId) : Data\NodeCollection {
-		return new Data\NodeCollection();
+		$select = $this->queryBuilder->getSelectForFindRootNodes($keyId);
+
+		$this->connection->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->execute();
+    	$this->connection->commit();
+		$rows = $stmt->fetchAllAssociativeIndexed();
+
+		return new Data\NodeCollection(
+			$keyId,
+			$rows,
+			NULL,
+			NULL,
+			[]
+		);
 	}
 
 	public function findAllRootNodes() : Data\NodeCollection {

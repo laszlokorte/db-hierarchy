@@ -8,7 +8,7 @@ interface FieldTypeInterface {
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array;
 
-	public function columnDataToFieldData(string $fieldId, array $fieldOptions, ...$columnData);
+	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData);
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData);
 

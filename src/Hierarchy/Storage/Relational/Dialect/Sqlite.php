@@ -423,8 +423,8 @@ class Sqlite implements DialectInterface {
 			$query .= 'VALUES';
 			foreach ($insert->getRows() as $i => $row) {
 				$query .= ($i?',':'') . PHP_EOL;
-				$query .= 'UNIQUE('. implode(', ', array_map(
-				fn($c) => $this->escapeLiteral($c),
+				$query .= '('. implode(', ', array_map(
+				fn($c) => $this->valueToString($c),
 				$row
 			)) .')' . PHP_EOL;
 			}

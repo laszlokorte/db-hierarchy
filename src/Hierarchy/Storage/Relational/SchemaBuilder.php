@@ -319,7 +319,7 @@ class SchemaBuilder {
 			$depthRefRelexive = new ColumnReference($tableReflexive, $depthId);
 
 
-			$parentProjection = new Projection($idRef, $this->naming->hierarchyParentColumnName($keyId));
+			$parentProjection = new Projection($parentRefClosure, $this->naming->hierarchyParentColumnName($keyId));
 	
 			$joins[] = new Join($tableReflexive, 
 				new BinaryOperation(

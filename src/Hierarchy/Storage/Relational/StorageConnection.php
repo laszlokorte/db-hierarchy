@@ -17,7 +17,7 @@ class StorageConnection {
 	}
 
 	public function getCommander() {
-		return new Commander(new CommandBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
+		return new Commander($this->schemaDef, new CommandBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
 	}
 
 	public function getFetcher() {

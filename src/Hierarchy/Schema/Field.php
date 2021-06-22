@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Data\Node;
+use App\Hierarchy\Data\NodeCollection;
 
 class Field {
 	public function __construct(
@@ -35,6 +36,10 @@ class Field {
 
 	public function readValueOf(Node $node) {
 		return implode(';', array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+	}
+
+	public function readValueOfCollection(NodeCollection $collection, $nodeId) {
+		return implode(';', array_map(fn($col) => $collection->getColumnValue($nodeId, $col->getName()), $this->getColumns()));
 	}
 
 	private function getColumns() {

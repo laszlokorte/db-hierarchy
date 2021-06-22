@@ -2,6 +2,7 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 
 use Doctrine\DBAL\Connection;
@@ -9,16 +10,43 @@ use Doctrine\DBAL\Connection;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
 use App\Hierarchy\Storage\Relational\Algebra\Update;
 use App\Hierarchy\Storage\Relational\Algebra\Delete;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
 class Commander {
 	private const MAX_REPAIR_RETRIES = 5;
 
-	public function __construct(private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
+	public function __construct(private SchemaDefinition $schemaDef, private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 
-	public function createNode(string $keyId, $scopeId, $parentId) {
-		
+	public function createNode(string $keyId, $fieldData, $scopeId, $parentId) {
+		$insert = $this->commandBuilder->getCommandForCreateNode($keyId);
+
+		$this->connection->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
+    	
+    	if($this->schemaDef->isKeyScoped($keyId)) {
+			$stmt->bindValue(
+				$this->dialect->parameterToString(new Parameter('_scope')),
+				$scopeId
+			);
+		}
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
+
+			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $ci => $column) {
+				$stmt->bindValue(
+					$this->dialect->parameterToString(new Parameter($column->getName())),
+					$columnData[$ci]
+				);
+			}
+		}
+
+    	$stmt->execute();
+    	$this->connection->commit();
 	}
 
 	public function updateNode(string $keyId) {

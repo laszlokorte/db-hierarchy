@@ -50,10 +50,16 @@ class HierarchyController {
 	#[Template()]
     public function showSetup(StorageConnection $storageConnection)
     {
+        try {
+            $rootKeys = $this->schema->getRootKeys();
+        } catch(\Exception $e) {
+            $rootKeys = [];
+        }
+
     	return [
     		'installer' => $storageConnection->getInstaller(),
     		'adapter' => new Sqlite(),
-    		'rootKeys' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
+    		'rootKeys' => $rootKeys,
     	];
     }
 
@@ -272,7 +278,7 @@ class HierarchyController {
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'nodes' => $storageConnection->getFetcher()->findRootNodes($key),
+    		'nodeCollection' => $storageConnection->getFetcher()->findRootNodes($key),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }

@@ -13,6 +13,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
@@ -27,7 +28,34 @@ class CommandBuilder  {
 	}
 
 	public function getCommandForCreateNode(string $keyId) {
-		
+		$tableName = $this->naming->nodeTableName($keyId);
+
+		$columns = [];
+		$values = [];
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$columns[] = new Identifier($this->schemaDef->getKeyScopeColumnName($keyId));
+			$values[] = new Parameter('_scope'); 
+		}
+		if($this->schemaDef->isKeyOrdered($keyId)) {
+			$columns[] = new Identifier($this->schemaDef->getKeyOrderColumnName($keyId));
+			$values[] = new Constant(0);
+		}
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $column) {
+				$columns[] = new Identifier($column->getName());
+				$values[] = new Parameter($column->getName());
+			}
+		}
+
+		return new Insert(
+			$tableName,
+			$columns,
+			[$values]
+		);
 	}
 
 	public function getCommandForUpdateNode(string $keyId) {

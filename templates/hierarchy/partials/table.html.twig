@@ -12,30 +12,30 @@
             <th class="data-table-head-cell" align="right">actions</th>
         </tr>
     </thead>
-    {% if nodes|length %}
+    {% if not nodeCollection.isEmpty %}
     	<tbody class="data-table-body">
-            {% for node in nodes %}
+            {% for nodeId in nodeCollection.ids %}
                 <tr class="data-table-row">
                     {% if key.ordered %}
                         <td class="data-table-cell">{{nodes|length - loop.index0}}</td>
                     {% endif %}
-                    <td class="data-table-cell"><a href="{{ path('show_node', {key: key.id, id: node.id}) }}">{{ node.id }}</a></td>
+                    <td class="data-table-cell"><a href="{{ path('show_node', {key: key.id, id: nodeId}) }}">{{ nodeId }}</a></td>
                     {% for field in key.fields %}
-                        <td class="{{ html_classes('data-table-cell', {'empty': node[field.id] is empty}) }}">{{ node[field.id]|join }}</td>
+                        <td class="{{ html_classes('data-table-cell', {'empty': field.readValueOfCollection(nodeCollection, nodeId) is empty}) }}">{{field.readValueOfCollection(nodeCollection, nodeId)}}</td>
                     {% endfor %}
             		<td></td>
                     <td class="data-table-cell" align="right">
                         {% if quickDelete|default(false) %}
-                        <form class="inline-form" action="{{ path('delete_node', {key: key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
+                        <form class="inline-form" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
                             {% if then is defined %}
                             <input type="hidden" name="_then" value="{{then}}">
                             {% endif %}
                             <button class="inline-button">X</button>
                         </form>
                         {% else %}
-                        <a href="{{ path('ask_delete_node', {key: key.id, id: node.id}) }}" title="">Delete</a>
+                        <a href="{{ path('ask_delete_node', {key: key.id, id: nodeId}) }}" title="">Delete</a>
                         {% endif %}
-                        <a href="{{ path('edit_node', {key: key.id, id: node.id}) }}" title="">Edit</a>
+                        <a href="{{ path('edit_node', {key: key.id, id: nodeId}) }}" title="">Edit</a>
                     </td>
                 </tr>
             {% endfor %}

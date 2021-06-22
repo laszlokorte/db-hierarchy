@@ -27,16 +27,58 @@ use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 
 class QueryBuilder {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
 		
 	}
 
-	public function getSelectForFindNodes(string $keyId) {
-		
+	public function getSelectForFindRootNodes(string $keyId) {
+		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+
+		$projections = [];
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
+
+		$joins = [];
+		$joins[] = new Join($tableH, new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+		));
+
+		$condition = new BinaryOperation(
+			new Conjunction(),
+			new BinaryOperation(
+				new Equal(TRUE),
+				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
+				new Constant(null)
+			),
+			new BinaryOperation(
+				new Equal(TRUE),
+				new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
+				new Constant(null)
+			)
+		);
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $options);
+
+			foreach ($columns AS $column) {
+				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
+			}
+		}
+
+		return new Select($projections, [$tableN], $joins, $condition);
 	}
 
 	public function getSelectForFindNode(string $keyId, Parameter $parameter) {
@@ -44,10 +86,10 @@ class QueryBuilder {
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 
 		$projections = [];
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
 
 		$joins = [];
 		$joins[] = new Join($tableH, new BinaryOperation(
@@ -68,7 +110,7 @@ class QueryBuilder {
 			$columns = $type->getColumns($fieldId, $options);
 
 			foreach ($columns AS $column) {
-				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())));
+				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
 			}
 		}
 
