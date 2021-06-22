@@ -1,16 +1,16 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    {{ key.label.singular }} {{node.self.id}} - {{ parent() }}
+    {{ key.label.singular }} {{node.id}} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, key, id:node.self.id, trailing: 'delete'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: nodeParents, key, id:node.id, trailing: 'delete'} only %}
 
-<h1>Delete {{ key.label.singular }} {{node.self.id}}</h1>
+<h1>Delete {{ key.label.singular }} {{node.id}}</h1>
 
-<form action="{{ path('delete_node',{key: key.id, id:node.self.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('delete_node',{key: key.id, id:node.id}) }}" method="post" accept-charset="utf-8">
 
     <p>
         Are you sure you want to delete this {{ key.label.singular }}?
@@ -20,7 +20,7 @@
         <dt class="form-container-spacer"></dt>
         <dd class="form-container-buttons">
             <button>Delete</button>
-            <a href="{{ path('show_node', {key: key.id, id:node.self.id}) }}" title="cancel">Cancel</a>
+            <a href="{{ path('show_node', {key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
         </dd>
     </dl>
 </form>

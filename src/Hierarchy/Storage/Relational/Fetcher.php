@@ -14,8 +14,24 @@ class Fetcher {
 
 	}
 
-	public function findNodes(string $keyId, string $nodeId) : NodeCollection {
-		
+	public function findNodes(string $keyId) : Data\NodeCollection {
+		return new Data\NodeCollection();
+	}
+
+	public function findRootNodes(string $keyId) : Data\NodeCollection {
+		return new Data\NodeCollection();
+	}
+
+	public function findAllRootNodes() : Data\NodeCollection {
+		return new Data\NodeCollection();
+	}
+
+	public function findHierarchyNodes() : Data\NodeCollection {
+		return new Data\NodeCollection();
+	}
+
+	public function findAllHierarchyNodes() : Data\NodeCollection {
+		return new Data\NodeCollection();
 	}
 
 	public function findNode(string $keyId, string $nodeId) : ?Data\Node {
@@ -32,24 +48,32 @@ class Fetcher {
     	return new Data\Node($keyId, $nodeId, array_diff_key($result, array_flip(['_scope', '_parent', '_order'])), $result['_scope'], $result['_parent'], $result['_order']);
 	}
 
-	public function findNodeField(string $keyId, string $nodeId, string $fieldId) : ?Field {
-		
+	public function findNodeField(string $keyId, string $nodeId, string $fieldId) : Data\Field {
+		return new Data\Field($keyId, $nodeId, $fieldId, []);
 	}
 
-	public function findNodeChildren(string $keyId, string $nodeId, string $childKeyId) : NodeCollection {
-		
+	public function findNodeChildren(string $keyId, string $nodeId, string $childKeyId) : Data\NodeCollection {
+		return new Data\NodeCollection();
+	}
+
+	public function findNodeAllChildren(string $keyId, string $nodeId) {
+		return array_map(fn() =>[], array_flip($this->schemaDef->getKeyIdsScopedInsideAndReflexiveSelf($keyId)));
 	}
 
 	public function findNodeDirectParent(string $keyId, string $nodeId) : ?Node {
 		
 	}
 
-	public function findNodeReflexiveParents(string $keyId, string $nodeId, ?int $limit = NULL) : NodePath {
-		
+	public function findNodeReflexiveParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\NodePath {
+		return new Data\NodePath();
 	}
 
-	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : NodePath {
-		return new NodePath();
+	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\NodePath {
+		return new Data\NodePath();
+	}
+
+	public function findNodeMoveTargets(string $keyId, string $nodeId) {
+		
 	}
 
 	public function findAllDefects() {

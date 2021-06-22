@@ -15,12 +15,24 @@ class Node {
 		return $this->nodeId;
 	}
 
+	public function getScope() {
+		return $this->scopeId;
+	}
+
+	public function getParent() {
+		return $this->parentId;
+	}
+
 	public function getColumnValues() {
 		return $this->columns;
 	}
 
 	public function getColumnValue($columnName) {
 		return $this->columns[$columnName];
+	}
+
+	public function pathArgs() {
+		return ['key' => $this->keyId, 'id' => $this->nodeId];
 	}
 
 }

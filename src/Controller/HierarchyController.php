@@ -28,17 +28,17 @@ class HierarchyController {
 	
 	#[Route('/', name: 'hierarchy_root', methods: 'GET')]
 	#[Template()]
-    public function root(SchemaRoot $schema)
+    public function root(StorageConnection $storageConnection, SchemaRoot $schema)
     {
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
-    		'rootNodes' => $this->repo->loadRootNodes(),
+    		'rootNodes' => $storageConnection->getFetcher()->findAllRootNodes(),
     	];
     }
 
     #[Route('/_full-tree', name: 'hierarchy_tree', methods: 'GET')]
 	#[Template()]
-    public function tree()
+    public function tree(StorageConnection $storageConnection)
     {
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
@@ -53,7 +53,7 @@ class HierarchyController {
     	return [
     		'installer' => $storageConnection->getInstaller(),
     		'adapter' => new Sqlite(),
-    		'rootKeys' => $this->schema->getRootKeys(),
+    		'rootKeys' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
     	];
     }
 
@@ -95,16 +95,11 @@ class HierarchyController {
 
     #[Route('/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]
 	#[Template()]
-    public function showNodeField($key, $id, $field)
+    public function showNodeField(StorageConnection $storageConnection, $key, $id, $field)
     {
-    	$value = $this->repo->loadNodeField($key, $id, $field);
+    	$field = $storageConnection->getFetcher()->findNodeField($key, $id, $field);
 
-    	return new JsonResponse([
-    		'key' => $key,
-    		'id' => $id,
-    		'field' => $field,
-    		'value' => $value,
-    	]);
+    	return new JsonResponse($field->toArray());
     }
 
     #[Route('/{key}/+', name: 'new_root_node', methods: 'GET')]
@@ -119,24 +114,27 @@ class HierarchyController {
 
     #[Route('/{key}/{id}/{childKey}/+', name: 'new_child_node', methods: 'GET')]
 	#[Template()]
-    public function newChildNode($key, $id, $childKey)
+    public function newChildNode(StorageConnection $storageConnection, $key, $id, $childKey)
     {
     	return [
     		'key' => $this->schema->getKey($key),
     		'childKey' => $this->schema->getKey($childKey),
-    		'node' => $this->repo->loadNode($key, $id),
+            'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
     #[Route('/{key}/{id}', name: 'show_node', methods: 'GET')]
 	#[Template()]
-    public function showNode($key, $id)
+    public function showNode(StorageConnection $storageConnection, $key, $id)
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'moveTargets' => $this->repo->loadMoveTargets($key, $id),
-    		'node' => $this->repo->loadNode($key, $id),
+            'moveTargets' => $storageConnection->getFetcher()->findNode($key, $id),
+            'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
+            'nodeChildren' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
@@ -148,17 +146,17 @@ class HierarchyController {
     	return [
     		'key' => $this->schema->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
-            'node_parents' => $storageConnection->getFetcher()->findNode($key, $id),
+            'node_parents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
     #[Route('/{key}/{id}/-', name: 'delete_node', methods: 'POST')]
-    public function deleteNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    public function deleteNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-    	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
+    	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
 
-		$this->repo->deleteNode($key, $id);
+		$storageConnection->getCommander()->deleteNode($key, $id);
 
 		$then = $request->request->get('_then', null);
 
@@ -183,24 +181,23 @@ class HierarchyController {
 
     #[Route('/{key}/{id}/-', name: 'ask_delete_node', methods: 'GET')]
 	#[Template()]
-    public function askDeleteNode(UrlGeneratorInterface $urlGen, $key, $id)
+    public function askDeleteNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, $key, $id)
     {
-    	$lastParent = $this->repo->loadNodesDirectParent($key, $id);
-
 		return [
     		'key' => $this->schema->getKey($key),
-    		'node' => $this->repo->loadNode($key, $id),
+    		'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
     #[Route('/{key}', name: 'create_node', methods: 'POST')]
-    public function createNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key)
+    public function createNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key)
     {
     	$key = $this->schema->getKey($key);
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
-    	$newId = $this->repo->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
+    	$newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
 		$then = $request->request->get('_then', null);
 		
@@ -231,13 +228,13 @@ class HierarchyController {
     }
 
     #[Route('/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
-    public function moveNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    public function moveNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
     	$target = explode('/', $request->request->get('target_scope-parent','/'), 2);
     	$scope = $target[0]??null;
     	$parent = $target[1]??null;
 
-		$this->repo->moveNode($key, $id, $scope?:null, $parent?:null);
+		$storageConnection->getCommander()->moveNode($key, $id, $scope?:null, $parent?:null);
 
 		$session->getFlashBag()->add('success', 'Node Moved');
 
@@ -245,9 +242,9 @@ class HierarchyController {
     }
 
     #[Route('/{key}/{id}', name: 'update_node', methods: 'POST')]
-    public function updateNode(UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    public function updateNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-		$this->repo->updateNode($key, $id, $request->request->get('field', []));
+		$storageConnection->getCommander()->updateNode($key, $id, $request->request->get('field', []));
 
 		$then = $request->request->get('_then', null);
 
@@ -262,33 +259,34 @@ class HierarchyController {
 
     #[Route('_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]
 	#[Template()]
-    public function listAllNodes($key)
+    public function listAllNodes(StorageConnection $storageConnection, $key)
     {
     	return new JsonResponse([
-    		$key => $this->repo->loadAllKeyNodes($key)
+    		$key => $storageConnection->getFetcher()->findAllNodes($key)
     	]);
     }
 
     #[Route('/{key}', name: 'list_root_nodes', methods: 'GET')]
 	#[Template()]
-    public function listRootNodes($key)
+    public function listRootNodes(StorageConnection $storageConnection, $key)
     {
     	return [
     		'key' => $this->schema->getKey($key),
-    		'nodes' => $this->repo->loadRootKeyNodes($key),
+    		'nodes' => $storageConnection->getFetcher()->findRootNodes($key),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
     #[Route('/{key}/{id}/{childKey}', name: 'list_child_nodes', methods: 'GET')]
 	#[Template()]
-    public function listChildNodes($key, $id, $childKey)
+    public function listChildNodes(StorageConnection $storageConnection, $key, $id, $childKey)
     {
     	return [
     		'key' => $this->schema->getKey($key),
     		'childKey' => $this->schema->getKey($childKey),
-    		'node' => $this->repo->loadNode($key, $id),
-    		'childNodes' => $this->repo->loadChildKeyNodes($key, $id, $childKey),
+            'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
+            'nodeChildren' => $storageConnection->getFetcher()->findNodeChildren($key, $id, $childKey),
     		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }

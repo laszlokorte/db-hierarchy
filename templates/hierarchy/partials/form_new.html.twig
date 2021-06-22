@@ -6,9 +6,9 @@
 	{% if parent is defined %}
 	{% if parent.key == key.id %}
         <input type="hidden" name="scope" value="{{ parent.scope }}">
-        <input type="hidden" name="parent" value="{{ parent.self.id }}">
+        <input type="hidden" name="parent" value="{{ parent.id }}">
     {% else %}
-        <input type="hidden" name="scope" value="{{ parent.self.id }}">
+        <input type="hidden" name="scope" value="{{ parent.id }}">
     {% endif %}
 	{% endif %}
 	

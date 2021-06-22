@@ -67,7 +67,7 @@ class Loader {
 			),
 			'resource_directory' => new KeyDefinition(
 				new StorageDefinition('resource_directory'),
-				new LabelDefinition('Directory'),
+				new LabelDefinition('Directory', 'Directories'),
 				null, new ReflexivityDefinition(), null, [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),
 				]

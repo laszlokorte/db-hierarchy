@@ -6,7 +6,7 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, key, id:node.self.id, trailing: childKey.label.plural} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: nodeParents, key, id:node.id, trailing: childKey.label.plural} only %}
 
 <h1>{{childKey.label.plural}}</h1>
 
@@ -14,6 +14,6 @@
 {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'list'} only %}
 
 
-{% include 'hierarchy/partials/table.html.twig' with {nodes: childNodes, key: childKey, parent: {key:key.id,id: node.self.id}, then: 'list'} only %}
+{% include 'hierarchy/partials/table.html.twig' with {nodes: nodeChildren, key: childKey, parent: {key:key.id,id: node.id}, then: 'list'} only %}
 
 {% endblock %}

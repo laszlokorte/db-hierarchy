@@ -1,28 +1,28 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    {{ key.label.singular }} {{ node.self.id }} - {{ parent() }}
+    {{ key.label.singular }} {{ node.id }} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: node.parents, trailing: key.label.singular ~'-'~node.self.id} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {parentGroups: nodeParents, trailing: key.label.singular ~'-'~node.id} only %}
 
-<h1>{{ key.label.singular }} {{node.self.id}}</h1>
+<h1>{{ key.label.singular }} {{node.id}}</h1>
 
-<a href="{{ path('edit_node', {key:key.id, id:node.self.id}) }}" title="">Edit</a>
-<a href="{{ path('ask_delete_node', {key:key.id, id:node.self.id}) }}" title="">Delete</a>
+<a href="{{ path('edit_node', {key:key.id, id:node.id}) }}" title="">Edit</a>
+<a href="{{ path('ask_delete_node', {key:key.id, id:node.id}) }}" title="">Delete</a>
 
 {% if moveTargets is not null %}
 <h3>Move to</h3>
 
-{% include 'hierarchy/partials/movement.html.twig' with {key:key.id, id:node.self.id, moveTargets} only %}
+{% include 'hierarchy/partials/movement.html.twig' with {key:key.id, node, moveTargets} only %}
 
 {% endif %}
 
 <h2>Edit</h2>
 
-{% include 'hierarchy/partials/form_edit.html.twig' with {key, id:node.self.id, values: node.self} only %}
+{% include 'hierarchy/partials/form_edit.html.twig' with {key, node} only %}
 
 {% if key.nestedKeys|length %}
 <h2>Children</h2>
@@ -33,6 +33,6 @@
 
     {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {nodes: node['children'][childKey.id], key: childKey, parent: {key:key.id, id:node.self.id}, listLink: true} only %}
+    {% include 'hierarchy/partials/table.html.twig' with {nodes: nodeChildren[childKey.id], key: childKey, parent: node.pathArgs, listLink: true} only %}
 {% endfor %}
 {% endblock %}
