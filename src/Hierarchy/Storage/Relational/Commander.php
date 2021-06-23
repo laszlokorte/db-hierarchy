@@ -28,15 +28,25 @@ class Commander {
 			throw new \Exception($parentId);
 		}
 
-		$insert = $this->commandBuilder->getCommandForCreateNode($keyId);
+		$scopeParam = new Parameter('_scope');
+		$parentParam = new Parameter('_parent');
+		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $scopeParam, $parentParam);
 
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
 
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
-				$this->dialect->parameterToString(new Parameter('_scope')),
+				$this->dialect->parameterToString($scopeParam),
 				$scopeId
+			);
+		}
+
+
+    	if($this->schemaDef->isKeyReflexive($keyId) && $this->schemaDef->isKeyOrdered($keyId)) {
+			$stmt->bindValue(
+				$this->dialect->parameterToString($parentParam),
+				$parentId
 			);
 		}
 
@@ -44,6 +54,8 @@ class Commander {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
 			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
+
+			dump($columnData);
 
 			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $ci => $column) {
 				$stmt->bindValue(
@@ -56,7 +68,10 @@ class Commander {
     	$stmt->execute();
     	$newNodeId = $this->connection->lastInsertId();
 
+    	dump($newNodeId);
+
     	if($this->schemaDef->isKeyReflexive($keyId)) {
+    		dump('scoped');
 			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId);
 			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
 
@@ -145,6 +160,9 @@ class Commander {
 	}
 
 	public function collectChildNodesByNodeIds(string $keyId, $nodeIds) {
+		if(empty($nodeIds)) {
+			return [];
+		}
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
 			$select = $this->commandBuilder->getSelectForCollectChildByIdReflexive($keyId, $nodeIdParams);
@@ -156,6 +174,10 @@ class Commander {
 			$reflexiveIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 		} else {
 			$reflexiveIds = $nodeIds;
+		}
+
+		if(empty($reflexiveIds)) {
+			return [];
 		}
 
 		$ids = [
@@ -170,6 +192,9 @@ class Commander {
 	}
 
 	private function collectChildNodesByScopeIds(string $keyId, $scopeIds) {
+		if(empty($scopeIds)) {
+			return [];
+		}
 		$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($scopeIds)));
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$select = $this->commandBuilder->getSelectForCollectChildByScopeReflexive($keyId, $nodeIdParams);
@@ -183,6 +208,10 @@ class Commander {
 		}
 		$stmt->execute();
 		$reflexiveIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+		if(empty($reflexiveIds)) {
+			return [];
+		}
 
 		$ids = [
 			$keyId => $reflexiveIds

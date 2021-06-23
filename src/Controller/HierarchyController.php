@@ -182,11 +182,10 @@ class HierarchyController {
 
 		if($lastParent) {
 			if($then === 'list') {
-				$args = $lastParent;
-				$args['childKey'] = $key;
+				$args = array_merge($lastParent->pathArgs(), ['childKey' => $key]);
     			return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
 			} else {
-    			return new RedirectResponse($urlGen->generate('show_node', $lastParent));
+    			return new RedirectResponse($urlGen->generate('show_node', $lastParent->pathArgs()));
 			}
     	} else {
     		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));

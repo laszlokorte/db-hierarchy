@@ -26,10 +26,10 @@ class Installer {
 	public function createSchema($dropOld) {
 		$this->connection->beginTransaction();
 
-		foreach ($this->schmaBuilder->getAllViews() as $v) {
+		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
-		foreach ($this->schmaBuilder->getAllTables() as $t) {
+		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
 			$this->connection->executeStatement($this->dialect->dropTableToString($t));
 		}
 
@@ -44,10 +44,10 @@ class Installer {
 
 	public function dropSchema() {
 		$this->connection->beginTransaction();
-    	foreach ($this->schmaBuilder->getAllViews() as $v) {
+    	foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
-		foreach ($this->schmaBuilder->getAllTables() as $t) {
+		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
 			$this->connection->executeStatement($this->dialect->dropTableToString($t));
 		}
     	$this->connection->commit();

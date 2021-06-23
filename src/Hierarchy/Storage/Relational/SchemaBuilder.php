@@ -112,6 +112,8 @@ class SchemaBuilder {
 			if($this->schemaDef->isKeyScopedUnique($keyId)) {
 				$uniques[] = [$this->nodeOwnScopeColumnName($keyId)];
 			}
+
+			$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
 		}
 
 		foreach ($this->fieldsColumns($keyId) as $fieldColumn) {
@@ -133,7 +135,7 @@ class SchemaBuilder {
 			$ownColumnName = $this->nodeOwnScopeColumnName($keyId);
 			$targetColumnName = $this->scopeTablePKName($keyId);
 
-			$targetTableName = $this->nodeTableName($keyId);
+			$targetTableName = $this->scopeTableName($keyId);
 
 			$foreignKeys[] = new ForeignKey(
 				[$ownColumnName], 

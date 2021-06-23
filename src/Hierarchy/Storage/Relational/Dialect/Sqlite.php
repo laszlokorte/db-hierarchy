@@ -18,6 +18,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Order;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Value;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator;
@@ -291,11 +292,34 @@ class Sqlite implements DialectInterface {
 	}
 
 	private function functionApplicationToString(Value\FunctionApplication $functionApplication) {
+		$function = $functionApplication->getFunction();
+		$args = $functionApplication->getArguments();
 
+		return $this->functionToString($function) . '(' . 
+			implode(', ', array_map(
+				fn($a) => $this->valueToString($a),
+				$args
+			)) .
+		')';
+	}
+
+	private function functionToString(FunctionInterface $function) {
+		switch(get_class($function)) {
+			case Operator\Function\Coalesce::class:
+				return 'COALESCE';
+			case Operator\Function\IfElse::class:
+				return 'IF';
+			case Operator\Function\NullIf::class:
+				return 'NULLIF';
+			case Operator\Function\NamedFunction::class:
+				return $function->getName();
+			default:
+				throw new \Exception("unknown function " . get_class($function));
+		}
 	}
 
 	public function parameterToString(Value\Parameter $parameter) {
-		return ':' . md5($parameter->getName());
+		return ':' . ($parameter->getName());
 	}
 
 	private function projectedToString(Value\Projected $projected) {

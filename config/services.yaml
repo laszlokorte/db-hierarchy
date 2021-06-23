@@ -30,3 +30,8 @@ services:
 
     App\Hierarchy\Schema\Definition\SchemaDefinition:
         factory: ['@App\Hierarchy\Schema\Definition\Loader', 'loadDefinition']
+
+    App\Doctrine\SqliteForeignKeyActivationSubscriber:
+        class: App\Doctrine\SqliteForeignKeyActivationSubscriber
+        tags:
+            - { name: doctrine.event_listener, event: postConnect }

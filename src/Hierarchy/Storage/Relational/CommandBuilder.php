@@ -10,6 +10,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\Value\UnaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
@@ -19,6 +20,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Selection;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation\Maximum;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
@@ -32,7 +34,7 @@ class CommandBuilder  {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
 	}
 
-	public function getCommandForCreateNode(string $keyId) {
+	public function getCommandForCreateNode(string $keyId, $scopeParam, $parentParam) {
 		$tableName = $this->naming->nodeTableName($keyId);
 
 		$columns = [];
@@ -40,7 +42,7 @@ class CommandBuilder  {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$values[] = new Parameter('_scope'); 
+			$values[] = $scopeParam; 
 		}
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
@@ -50,26 +52,33 @@ class CommandBuilder  {
 				new BinaryOperation(
 					new Equal(true),
 					new ColumnReference($orderView, $this->naming->normalizedOrderScopeColumnName($keyId)),
-					new Parameter('_scope')
+					$scopeParam
 				),
 				new BinaryOperation(
 					new Equal(true),
 					new ColumnReference($orderView, $this->naming->normalizedOrderParentColumnName($keyId)),
-					new Parameter('_parent')
+					$parentParam
 				)
 			);
 
 			$columns[] = $this->naming->orderColumnName($keyId);
-			$values[] = new Selection(new Select([
-				new Projection(new BinaryOperation(
-					new Addition(),
-						new Aggregation(
-						new Maximum(), 
-						new ColumnReference($orderView, $this->naming->normalizedOrderIdColumnName($keyId))
-					),
-					new Constant(1)
-				))
-			], [$orderView], [], $orderCondition));
+			$values[] = new BinaryOperation(
+				new Addition(),
+				new FunctionApplication(
+					new Coalesce(), [
+						new Selection(
+							new Select([
+								new Projection(
+								new Aggregation(
+									new Maximum(), 
+									new ColumnReference($orderView, $this->naming->normalizedOrderNormalizedColumnName($keyId))
+								)
+							)], [$orderView], [], $orderCondition)
+						),
+						new Constant(0)
+				]),
+				new Constant(1)
+			);
 		}
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {

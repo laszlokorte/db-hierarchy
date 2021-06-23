@@ -22,11 +22,18 @@ class FileType implements FieldTypeInterface {
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [$fieldData];
+		$split = explode(',', $fieldData, 4);
+
+		return [
+			$split[0]??null,
+			$split[1]??null,
+			$split[2]??null,
+			$split[3]??null,
+		];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return $columnData[0];
+		return array_combine(implode(',', $columnData));
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {

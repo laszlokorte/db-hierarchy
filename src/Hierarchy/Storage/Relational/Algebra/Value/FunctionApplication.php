@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Storage\Relational\Algebra\Value;
 
 use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 
 class FunctionApplication implements ValueInterface {
 	public function __construct(

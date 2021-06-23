@@ -8,4 +8,8 @@ class NamedFunction implements FunctionInterface {
 	public function __construct(private string $name, private int $expectedArity) {
 
 	}
+
+	public function getName() {
+		return $this->name;
+	}
 }

@@ -157,7 +157,7 @@ class Fetcher {
 		);
 	}
 
-	public function findNodeDirectParent(string $keyId, string $nodeId) : ?Node {
+	public function findNodeDirectParent(string $keyId, string $nodeId) : ?Data\Node {
 		$self = $this->findNode($keyId, $nodeId);
 
 		if(!empty($self->hasParent())) {
