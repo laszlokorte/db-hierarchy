@@ -55,8 +55,6 @@ class Commander {
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
 			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
 
-			dump($columnData);
-
 			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $ci => $column) {
 				$stmt->bindValue(
 					$this->dialect->parameterToString(new Parameter($column->getName())),
@@ -68,16 +66,17 @@ class Commander {
     	$stmt->execute();
     	$newNodeId = $this->connection->lastInsertId();
 
-    	dump($newNodeId);
-
     	if($this->schemaDef->isKeyReflexive($keyId)) {
-    		dump('scoped');
+    		$parentParam = new Parameter('_parent');
+    		$childParam = new Parameter('_child');
+    		$depthParam = new Parameter('_depth');
+
 			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId);
 			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
 
-			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_parent')), $newNodeId);
-			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_child')), $newNodeId);
-			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_depth')), 0);
+			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId);
+			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId);
+			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0);
 
 			if($this->schemaDef->isKeyScoped($keyId)) {
 				$closureStmt->bindValue(
@@ -89,9 +88,11 @@ class Commander {
     		$closureStmt->execute();
 
     		if(!empty($parentId)) {
-    			$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_parent')), $parentId);
-				$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_child')), $newNodeId);
-				$closureStmt->bindValue($this->dialect->parameterToString(new Parameter('_depth')), 1);
+    			$closureInsertParent = $this->commandBuilder->getCommandForClosureParentInsert($keyId, $childParam, $parentParam);
+				$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsertParent));
+
+    			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId);
+				$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId);
 
 	    		$closureStmt->execute();
     		}

@@ -16,6 +16,22 @@ class Loader {
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),
 				]
 			),
+			'essen' => new KeyDefinition(
+				new StorageDefinition('essen'),
+				new LabelDefinition('Essen',"Essen"),
+				null, null, null, [
+					'name' => new FieldDefinition(new LabelDefinition('Name'), 'text', true, false),
+					'bewertung' => new FieldDefinition(new LabelDefinition('Bewertung'), 'text', true, false),
+				]
+			),
+
+			'zutaten' => new KeyDefinition(
+				new StorageDefinition('zutaten'),
+				new LabelDefinition('zutaten',"zutaten"),
+				new ScopeDefinition('essen', null), null, null, [
+					'name' => new FieldDefinition(new LabelDefinition('Name'), 'text', true, false),
+				]
+			),
 			'site_generator' => new KeyDefinition(
 				new StorageDefinition('site_generator'),
 				new LabelDefinition('Site Generator'),

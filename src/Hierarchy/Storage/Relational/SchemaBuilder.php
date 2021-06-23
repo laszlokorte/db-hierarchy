@@ -420,7 +420,7 @@ class SchemaBuilder {
 		$tableB = new TableReference($this->closureTableName($keyId), new Identifier('b'));
 		$tableR = new TableReference($this->closureTableName($keyId), new Identifier('r'));
 
-		$idColumnName = $this->closureTableDepthName($keyId);
+		$idColumnName = $this->closureTablePkName($keyId);
 		$depthId = $this->closureTableDepthName($keyId);
 		$idRef = new ColumnReference($table, $idColumnName);
 		$parentRef = new ColumnReference($table, $parentId);
@@ -522,7 +522,7 @@ class SchemaBuilder {
 								new BinaryOperation(
 									new Equal(true), 
 									new Tuple([$parentRef, $childRef]), 
-									new Tuple([$parentRefA, $childRefA])
+									new Tuple([$parentRefA, $childRefB])
 								),
 								$scopeCondition
 							]
@@ -612,7 +612,13 @@ class SchemaBuilder {
 
 		$projections[] = new Projection($parentRefA, $this->naming->closureMissingParentColumn($keyId));
 		$projections[] = new Projection($childRefB, $this->naming->closureMissingChildColumn($keyId));
-		$projections[] = new Projection($childRefB, $this->naming->closureMissingDepthColumn($keyId));
+		$projections[] = new Projection(
+			new BinaryOperation(
+				new Addition(),
+				$depthRefA,
+				$depthRefB
+			)
+			, $this->naming->closureMissingDepthColumn($keyId));
 		$projections[] = new Projection(new Constant("transitivity"), $this->naming->closureMissingReasonColumn($keyId));
 
 		$condition = new AssociativeOperation(

@@ -1,37 +1,25 @@
 {% extends 'hierarchy/base.html.twig' %}
 
-{% macro walkTree(nodes) %}
-    {% if nodes|length %}
-    <ul style="border: 1px solid black;">
-        {% for node in nodes %}
-            {% if node.id is not null %}
-                <li>
-                {% if node.id is not null %}
-                <a href="{{path('show_node',{key:node.hierarchyKey, id: node.id})}}" title="">{{ node.hierarchyKey }}-{{ node.id }}</a>
-                
-                {{ _self.walkTree(node.children) }}
+{% macro walkTree(key, h, scope, parent) %}
+    <ul>
+        {% for node in h.getNodes(key.id, scope, parent) %}
+            <li>
+            <a href="{{ path('show_node', {key:key.id, id: node._id}) }}" title="">{{key.label.singular}}-{{node._id}}</a>
+            {% for childKey in key.getNestedKeys %}
+                {% if childKey.id == key.id %}
+                    {{ _self.walkTree(childKey, h, node._scope, node._id) }}
+                {% else %}
+                    {{ _self.walkTree(childKey, h, node._id) }}
                 {% endif %}
-
-                    <ul>
-                        {% for c in node.children %}
-                    {% if c.id is not null %}
-                    <li>
-                    <a href="{{path('show_node',{key:c.hierarchyKey, id: c.id})}}" title="">{{ c.hierarchyKey }}-{{ c.id }}</a>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                    </ul>
-                </li>
-            {% endif %}
+            {% endfor %}
+            </li>
         {% endfor %}
     </ul>
-    {% endif %}
 {% endmacro %}
 
 {% block html_title -%}
     Tree - {{ parent() }}
 {%- endblock %}
-
 
 {% block area_main %}
 
@@ -39,7 +27,10 @@
 
 <h1>Tree</h1>
 
-not implemented
-
+{% for key in rootKeys %}
+    <h3>{{ key.label.plural }}</h3>
+    
+    {{ _self.walkTree(key, hierarchy) }}
+{% endfor %}
 
 {% endblock %}

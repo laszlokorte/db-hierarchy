@@ -27,12 +27,16 @@ use App\Hierarchy\Storage\Relational\Algebra\Order;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
+use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\String\Concat;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
 
 class QueryBuilder {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
@@ -69,6 +73,50 @@ class QueryBuilder {
 				$parent
 			)
 		);
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $options);
+
+			foreach ($columns AS $column) {
+				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
+			}
+		}
+
+		return new Select($projections, [$tableN], $joins, $condition);
+	}
+
+	public function getSelectForFindHierarchy(string $keyId, ValueInterface $scope, ValueInterface $parent) {
+		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+
+		$projections = [];
+		$projections[] = new Projection(new AssociativeOperation(
+			new Concat(), [
+			new FunctionApplication(new Coalesce(),  [
+				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
+				new Constant('-'),
+			]),
+			new Constant('/'),
+			new FunctionApplication(new Coalesce(), [
+				new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
+				new Constant('-'),
+			]),
+		]), new Identifier('_treeIndex'));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
+
+		$joins = [];
+		$joins[] = new Join($tableH, new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+		));
+
+		$condition = new Constant(1);
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);

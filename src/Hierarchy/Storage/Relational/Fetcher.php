@@ -59,11 +59,43 @@ class Fetcher {
 	}
 
 	public function findHierarchyNodes($keyId) : Data\NodeTree {
-		return new Data\NodeTree();
+		$select = $this->queryBuilder->getSelectForFindHierarchy($keyId, new Constant(null), new Constant(null));
+
+		$this->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->execute();
+    	$this->commitTransaction();
+		$rows = $stmt->fetchAll(\PDO::FETCH_GROUP);
+
+		return new Data\NodeTree(
+			$keyId,
+			$rows,
+			NULL,
+			NULL
+		);
 	}
 
 	public function findAllHierarchyNodes() : Data\MultiTree {
-		return new Data\MultiTree();
+		$groupedRows = [];
+		
+		$this->beginTransaction();
+
+		foreach ($this->schemaDef->getAllKeyIds() as $keyId) {
+			$select = $this->queryBuilder->getSelectForFindHierarchy($keyId, new Constant(null), new Constant(null));
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			$stmt->execute();
+			$groupedRows[$keyId] = $stmt->fetchAll(\PDO::FETCH_GROUP);
+		}
+
+    	$this->commitTransaction();
+
+		return new Data\MultiTree(
+			null, 
+			null, 
+			$groupedRows, 
+			null,
+			null
+		);
 	}
 
 	public function findNode(string $keyId, string $nodeId) : ?Data\Node {
@@ -178,6 +210,7 @@ class Fetcher {
 
 		$idParam = new Parameter('_id');
 		$select = $this->queryBuilder->getSelectForFindNodeReflexiveParents($keyId, $idParam);
+		dump($this->dialect->selectToString($select));
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 		$stmt->execute();
