@@ -5,7 +5,7 @@ namespace App\Hierarchy\Storage\Relational\Algebra\Value;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 
 class ElementOf implements ValueInterface {
-	public function __construct(private ValueInterface $value, private Select $select) {
+	public function __construct(private ValueInterface $value, private Select|array $select) {
 		
 	}
 

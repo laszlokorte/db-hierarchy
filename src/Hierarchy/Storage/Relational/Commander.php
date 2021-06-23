@@ -33,7 +33,6 @@ class Commander {
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
 
-
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString(new Parameter('_scope')),
@@ -90,12 +89,110 @@ class Commander {
     	$this->connection->commit();
 	}
 
-	public function updateNode(string $keyId) {
-		
+	public function updateNode(string $keyId, string $nodeId, $fieldData) {
+		$idParam = new Parameter('_id');
+		$update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
+
+		$this->connection->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
+
+			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $ci => $column) {
+				$stmt->bindValue(
+					$this->dialect->parameterToString(new Parameter($column->getName())),
+					$columnData[$ci]
+				);
+			}
+		}
+
+		$stmt->bindValue(
+			$this->dialect->parameterToString($idParam),
+			$nodeId
+		);
+		$stmt->execute();
+
+    	$this->connection->commit();
 	}
 
 	public function deleteNode(string $keyId, $nodeId) {
-		
+		$deletionPlan = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
+
+		try {
+			$this->connection->beginTransaction();
+			foreach (array_reverse($deletionPlan) as $key => $nodeIds) {
+				if(empty($nodeIds)) {
+					continue;
+				}
+				$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
+				$delete = $this->commandBuilder->getCommandForDeleteMultipleNodes($keyId, $nodeIdParams);
+
+				$stmt = $this->connection->prepare($this->dialect->deleteToString($delete));
+
+				foreach($nodeIdParams AS $i => $p) {
+					$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+				}
+				$stmt->execute();
+			}
+			$this->connection->commit();
+		} catch(\Exception $e) {
+			$this->connection->rollback();
+			throw $e;
+		}
+	}
+
+	public function collectChildNodesByNodeIds(string $keyId, $nodeIds) {
+		if($this->schemaDef->isKeyReflexive($keyId)) {
+			$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
+			$select = $this->commandBuilder->getSelectForCollectChildByIdReflexive($keyId, $nodeIdParams);
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			foreach($nodeIdParams AS $i => $p) {
+				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+			}
+			$stmt->execute();
+			$reflexiveIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		} else {
+			$reflexiveIds = $nodeIds;
+		}
+
+		$ids = [
+			$keyId => $reflexiveIds,
+		];
+
+		foreach ($this->schemaDef->getKeyIdsScopedInside($keyId) as $scopeId) {
+			$ids = array_merge($ids, $this->collectChildNodesByScopeIds($scopeId, $reflexiveIds));
+		}
+
+		return $ids;
+	}
+
+	private function collectChildNodesByScopeIds(string $keyId, $scopeIds) {
+		$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($scopeIds)));
+		if($this->schemaDef->isKeyReflexive($keyId)) {
+			$select = $this->commandBuilder->getSelectForCollectChildByScopeReflexive($keyId, $nodeIdParams);
+		} else {
+			$select = $this->commandBuilder->getSelectForCollectChildByScope($keyId, $nodeIdParams);
+		}
+
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		foreach($nodeIdParams AS $i => $p) {
+			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i]);
+		}
+		$stmt->execute();
+		$reflexiveIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+		$ids = [
+			$keyId => $reflexiveIds
+		];
+
+		foreach ($this->schemaDef->getKeyIdsScopedInside($keyId) as $scopeId) {
+			$ids = array_merge($ids, $this->collectChildNodesByScopeIds($scopeId, $reflexiveIds));
+		}
+
+		return $ids;
 	}
 
 	public function moveNode(string $keyId, $nodeId, $targetScopeId, $targetParentId) {

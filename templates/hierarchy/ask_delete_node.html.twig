@@ -17,6 +17,26 @@
         Are you sure you want to delete this {{ key.label.singular }}?
     </p>
 
+    {% if willDelete[key.id]|length > 1 or willDelete|length > 1 %}
+    <div style="padding: 1em; border: 1px solid darkred;">
+        <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
+        <p>Following nodes will also be deleted:</p>
+
+        <dl class="form-container">
+            {% for key, ids in willDelete %}
+                {% if ids|length %}
+                    <dt class="form-container-label">{{key|capitalize}}s</dt>
+                    <dd class="form-container-field">
+                        {% for id in ids %}
+                            <a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a>
+                        {% endfor %}
+                    </dd>
+                {% endif %}
+            {% endfor %}
+        </dl>
+    </div>
+    {% endif %}
+
     <dl class="form-container">
         <dt class="form-container-spacer"></dt>
         <dd class="form-container-buttons">

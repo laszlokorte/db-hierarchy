@@ -15,6 +15,11 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Aggregation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Selection;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
+use App\Hierarchy\Storage\Relational\Algebra\Aggregation\Maximum;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
@@ -38,8 +43,33 @@ class CommandBuilder  {
 			$values[] = new Parameter('_scope'); 
 		}
 		if($this->schemaDef->isKeyOrdered($keyId)) {
+			$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
+
+			$orderCondition = new BinaryOperation(
+				new Conjunction(),
+				new BinaryOperation(
+					new Equal(true),
+					new ColumnReference($orderView, $this->naming->normalizedOrderScopeColumnName($keyId)),
+					new Parameter('_scope')
+				),
+				new BinaryOperation(
+					new Equal(true),
+					new ColumnReference($orderView, $this->naming->normalizedOrderParentColumnName($keyId)),
+					new Parameter('_parent')
+				)
+			);
+
 			$columns[] = $this->naming->orderColumnName($keyId);
-			$values[] = new Constant(0);
+			$values[] = new Selection(new Select([
+				new Projection(new BinaryOperation(
+					new Addition(),
+						new Aggregation(
+						new Maximum(), 
+						new ColumnReference($orderView, $this->naming->normalizedOrderIdColumnName($keyId))
+					),
+					new Constant(1)
+				))
+			], [$orderView], [], $orderCondition));
 		}
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
@@ -86,13 +116,89 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForUpdateNode(string $keyId) {
-		
+	public function getCommandForUpdateNode(string $keyId, $idParam) {
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+
+		$setters = [];
+		$values = [];
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $column) {
+				$setters[] = new Setter(
+					new ColumnReference($table, $this->naming->fieldColumnToName($column)),
+					new Parameter($column->getName())
+				);
+			}
+		}
+
+		$condition = new BinaryOperation(
+			new Equal(),
+			new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+			$idParam
+		);
+
+		return new Update(
+			$table,
+			$setters,
+			$condition
+		);
 	}
 
-	public function getCommandForDeleteNode(string $keyId) {
-		
+	public function getCommandForDeleteMultipleNodes(string $keyId, $idParams) {
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+
+		$condition = new ElementOf(
+			new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+			$idParams
+		);
+
+		return new Delete(
+			$table,
+			$condition
+		);
 	}
+
+	public function getSelectForCollectChildByIdReflexive(string $keyId, $idParams) {
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+
+		$condition = new ElementOf(
+			new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
+			$idParams
+		);
+
+		return new Select([
+			new Projection(new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)))
+		], [$closureTable], [], $condition);
+	}
+
+	public function getSelectForCollectChildByScopeReflexive(string $keyId, $idParams) {
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+
+		$condition = new ElementOf(
+			new ColumnReference($closureTable, $this->naming->nodeOwnScopeColumnName($keyId)),
+			$idParams
+		);
+		
+		return new Select([
+			new Projection(new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)))
+		], [$closureTable], [], $condition);
+	}
+
+	public function getSelectForCollectChildByScope(string $keyId, $idParams) {
+		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+
+		$condition = new ElementOf(
+			new ColumnReference($nodeTable, $this->naming->nodeOwnScopeColumnName($keyId)),
+			$idParams
+		);
+		
+		return new Select([
+			new Projection(new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)))
+		], [$nodeTable], [], $condition);
+	}
+
 
 	public function getCommandForMoveNode(string $keyId) {
 		

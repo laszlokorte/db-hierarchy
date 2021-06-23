@@ -762,7 +762,7 @@ class SchemaBuilder {
 			new Projection($scopeRef, $this->naming->normalizedOrderScopeColumnName($keyId)),
 			new Projection(new Windowing(
 				new RankWindow(new RowNumber()),
-				[$parentRef, $orderRef],
+				[$parentRef, $scopeRef],
 				[new Order($orderRef), new Order($idRef)]
 			), $this->naming->normalizedOrderNormalizedColumnName($keyId))
 		], [$table]);

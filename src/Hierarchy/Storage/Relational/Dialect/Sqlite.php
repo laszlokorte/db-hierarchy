@@ -177,16 +177,19 @@ class Sqlite implements DialectInterface {
 				return $this->unaryOperationToString($v);
 			case Value\Windowing::class:
 				return $this->windowingToString($v);
+			case Value\Selection::class:
+				return '(' . $this->selectToString($v->getSelect()) . ')';
+			default:
+				throw new \Exception("unknown value:" . get_class($v));
 		}
 	}
 
 	private function aggregationToString(Value\Aggregation $aggregation) {
-		return sprintf('%s(%s)', $this->aggregationName($aggregation->getAggregation()), $this->valueToString($aggregation-getValue()));
+		return sprintf('%s(%s)', $this->aggregationName($aggregation->getAggregation()), $this->valueToString($aggregation->getValue()));
 	}
 
 	private function aggregationName($aggregation) {
-		$a = $aggregation->getAggregation();
-		switch(get_class($a)) {
+		switch(get_class($aggregation)) {
 			case Aggregation\Average::class:
 				return 'AVG';
 			case Aggregation\Count::class:
@@ -277,7 +280,12 @@ class Sqlite implements DialectInterface {
 
 	private function elementOfToString(Value\ElementOf $elementOf) {
 		$this->indent();
-		$sub = $this->selectToString($elementOf->getSelect());
+		if($elementOf->getSelect() instanceof Select) {
+			$sub = $this->selectToString($elementOf->getSelect());
+		} else {
+			$sub = implode(', ', array_map(fn($v) => $this->valueToString($v), $elementOf->getSelect()));
+		}
+
 		$this->outdent();
 		return '(' . $this->valueToString($elementOf->getValue()) . ') IN ('. PHP_EOL. $sub . PHP_EOL . $this->i() .')';
 	}
@@ -451,7 +459,7 @@ class Sqlite implements DialectInterface {
 		}
 		
 		if($update->getCondition()) {
-			$query .= $this->i() . 'WHERE' . PHP_EOL;
+			$query .= $this->i() . ' WHERE' . PHP_EOL;
 			$this->indent();
 			$query .= $this->i() . $this->valueToString($update->getCondition());
 			$this->outdent();

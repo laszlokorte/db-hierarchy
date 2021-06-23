@@ -197,11 +197,14 @@ class HierarchyController {
 	#[Template()]
     public function askDeleteNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, $key, $id)
     {
+        $willDelete = $storageConnection->getCommander()->collectChildNodesByNodeIds($key, [$id]);
+
 		return [
     		'key' => $this->schema->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
     		'rootKeys' => $this->schema->getRootKeys(),
+            'willDelete' => $willDelete,
     	];
     }
 
