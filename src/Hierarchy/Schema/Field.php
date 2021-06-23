@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Data\Node;
+use App\Hierarchy\Data\NodeField;
 use App\Hierarchy\Data\NodeCollection;
 
 class Field {
@@ -36,6 +37,12 @@ class Field {
 
 	public function readValueOf(Node $node) {
 		return implode(';', array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+	}
+
+	public function readObjectOf(NodeField $nodeField) {
+		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
+		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
+		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $nodeField->getColumnValue($col->getName()), $this->getColumns()));
 	}
 
 	// public function readValueOfCollection(NodeCollection $collection, $nodeId) {

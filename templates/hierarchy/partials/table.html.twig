@@ -17,7 +17,7 @@
             {% for nodeId in nodeCollection.ids %}
                 <tr class="data-table-row">
                     {% if key.ordered %}
-                        <td class="data-table-cell">{{nodes|length - loop.index0}}</td>
+                        <td class="data-table-cell">{{nodeCollection|length - loop.index0}}</td>
                     {% endif %}
                     <td class="data-table-cell"><a href="{{ path('show_node', {key: key.id, id: nodeId}) }}">{{ nodeId }}</a></td>
                     {% for field in key.fields %}

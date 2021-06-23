@@ -283,7 +283,7 @@ class SchemaBuilder {
 			$tableScope = new TableReference($this->scopeTableName($keyId), new Identifier('s'));
 			$idRefScope = new ColumnReference($tableScope, $scopePkId);
 			$scopeRef = new ColumnReference($table, $this->nodeOwnScopeColumnName($keyId));
-			$scopeProjection = new Projection($idRef, $this->naming->hierarchyScopeColumnName($keyId));
+			$scopeProjection = new Projection($scopeRef, $this->naming->hierarchyScopeColumnName($keyId));
 
 			$joins[] = new Join($tableScope, 
 				new BinaryOperation(

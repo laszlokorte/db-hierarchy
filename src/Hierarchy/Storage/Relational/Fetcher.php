@@ -5,22 +5,25 @@ namespace App\Hierarchy\Storage\Relational;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Data;
 
 use Doctrine\DBAL\Connection;
 
 class Fetcher {
+	private $transactionDepth = 0;
+
 	public function __construct(private SchemaDefinition $schemaDef, private QueryBuilder $queryBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 
 	public function findRootNodes(string $keyId) : Data\NodeCollection {
-		$select = $this->queryBuilder->getSelectForFindRootNodes($keyId);
+		$select = $this->queryBuilder->getSelectForFindNodes($keyId, new Constant(null), new Constant(null));
 
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->execute();
-    	$this->connection->commit();
+    	$this->commitTransaction();
 		$rows = $stmt->fetchAllAssociativeIndexed();
 
 		return new Data\NodeCollection(
@@ -34,8 +37,17 @@ class Fetcher {
 
 	public function findAllRootNodes() : Data\MultiCollection {
 		$groupedRows = [];
-		$scopeId = null;
-		$parentId = null;
+		
+		$this->beginTransaction();
+
+		foreach ($this->schemaDef->getRootScopeKeyIds() as $keyId) {
+			$select = $this->queryBuilder->getSelectForFindNodes($keyId, new Constant(null), new Constant(null));
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			$stmt->execute();
+			$groupedRows[$keyId] = $stmt->fetchAllAssociativeIndexed();
+		}
+
+    	$this->commitTransaction();
 
 		return new Data\MultiCollection(
 			null, 
@@ -58,55 +70,90 @@ class Fetcher {
 		$param = new Parameter('nodeId');
 		$select = $this->queryBuilder->getSelectForFindNode($keyId, $param);
 
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
 		$stmt->execute();
-    	$this->connection->commit();
+    	$this->commitTransaction();
 		$result = $stmt->fetchAssociative();
 
     	return new Data\Node($keyId, $nodeId, array_diff_key($result, array_flip(['_scope', '_parent', '_order'])), $result['_scope'], $result['_parent'], $result['_order']);
 	}
 
-	public function findNodeField(string $keyId, string $nodeId, string $fieldId) : Data\Field {
-		return new Data\Field($keyId, $nodeId, $fieldId, []);
+	public function findNodeField(string $keyId, string $nodeId, string $fieldId) : Data\NodeField {
+		$param = new Parameter('nodeId');
+		$select = $this->queryBuilder->getSelectForFindNodeField($keyId, $fieldId, $param);
+
+		$this->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
+		$stmt->execute();
+    	$this->commitTransaction();
+		$result = $stmt->fetch();
+
+		return new Data\NodeField($keyId, $nodeId, $fieldId, $result);
 	}
 
 	public function findNodeChildren(string $keyId, string $nodeId, string $childKeyId) : Data\NodeCollection {
+		$this->beginTransaction();
+
 		if($keyId === $childKeyId) {
 			$self = $this->findNode($keyId, $nodeId);
-
-			$rows = [];
-
-			return new Data\NodeCollection(
-				$keyId,
-				$rows,
-				$self->getScope(),
-				$nodeId
-			);
+			$scope = $self->getScope();
+			$parent = $nodeId;
 		} else {
-			$rows = [];
-			
-			return new Data\NodeCollection(
-				$childKeyId,
-				$rows,
-				$nodeId,
-				null
-			);
+			$scope = $nodeId;
+			$parent = null;
 		}
+
+		$scopeParam = new Parameter('_scope');
+		$parentParam = new Parameter('_parent');
+
+		$select = $this->queryBuilder->getSelectForFindNodes($childKeyId, $scopeParam, $parentParam);
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->bindValue($this->dialect->parameterToString($scopeParam), $scope);
+		$stmt->bindValue($this->dialect->parameterToString($parentParam), $parent);
+		$stmt->execute();    	
+		$rows = $stmt->fetchAllAssociativeIndexed();
+    	$this->commitTransaction();
+
+		return new Data\NodeCollection(
+			$childKeyId,
+			$rows,
+			$scope,
+			$parent
+		);
 	}
 
 	public function findNodeAllChildren(string $keyId, string $nodeId) : Data\MultiCollection {
 		$groupedRows = [];
-		$scopeId = null;
-		$parentId = null;
+		$self = $this->findNode($keyId, $nodeId);
+
+		$scopeParam = new Parameter('scope');
+		$parentParam = new Parameter('child');
+
+		foreach ($this->schemaDef->getKeyIdsScopedInsideAndReflexiveSelf($keyId) as $childKeyId) {
+			$select = $this->queryBuilder->getSelectForFindNodes($childKeyId, $scopeParam, $parentParam);
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			
+			if($childKeyId == $keyId) {
+				$stmt->bindValue($this->dialect->parameterToString($scopeParam), $self->getScope());
+				$stmt->bindValue($this->dialect->parameterToString($parentParam), $self->getId());
+			} else {
+				$stmt->bindValue($this->dialect->parameterToString($scopeParam), $nodeId);
+				$stmt->bindValue($this->dialect->parameterToString($parentParam), null);
+			}
+
+			$stmt->execute();
+			$groupedRows[$childKeyId] = $stmt->fetchAllAssociativeIndexed();
+		}
 
 		return new Data\MultiCollection(
 			$keyId, 
 			$nodeId, 
 			$groupedRows, 
-			$scopeId,
-			$parentId
+			$self->getScope(),
+			$self->getParent()
 		);
 	}
 
@@ -127,28 +174,33 @@ class Fetcher {
 			return new Data\NodePath($keyId, [$nodeId]);
 		}
 
-		$select = $this->queryBuilder->getSelectForFindNodeReflexiveParents($keyId);
+		$this->beginTransaction();
+
+		$idParam = new Parameter('_id');
+		$select = $this->queryBuilder->getSelectForFindNodeReflexiveParents($keyId, $idParam);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmt->bindValue($this->dialect->parameterToString(new Parameter('_id')), $nodeId);
+		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 		$stmt->execute();
 		$ids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+		$this->commitTransaction();
 
 		return new Data\NodePath($keyId, $ids);
 	}
 
 	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\MultiPath {
+		$this->beginTransaction();
 		$nodePaths = [];
-
 
 		$currentKey = $keyId;
 		$currentId = $nodeId;
 		while($currentKey && $currentId && $currentNode = $this->findNode($currentKey, $currentId)) {
-			$nodePaths[] = $this->findNodeReflexiveParents($keyId, $nodeId);
+			$nodePaths[] = $this->findNodeReflexiveParents($currentKey, $currentId);
 			$currentKey = $this->schemaDef->getKeyScopeId($currentKey);
-			$currentId = $currentNode->getParent();
+			$currentId = $currentNode->getScope();
 		}
 
-		dump($nodePaths);
+		$this->commitTransaction();
 
 		return new Data\MultiPath($nodePaths);
 	}
@@ -162,9 +214,9 @@ class Fetcher {
 	}
 
 	public function findDefectsForKey(string $keyId) {
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$result = $this->findDefectsForKeyInternal($keyId);
-    	$this->connection->commit();
+    	$this->commitTransaction();
 
     	return $result;
 	}
@@ -185,5 +237,17 @@ class Fetcher {
 	private function extractColumnNamesFromSelect($select) {
 		$projections = $select->getProjections();
 		return array_map(fn($proj, $i) => $proj->getAutoName($i)->getString(), $projections, array_keys($projections));
+	}
+
+	private function beginTransaction() {
+		if($this->transactionDepth++ === 0) {
+			$this->connection->beginTransaction();
+		}
+	}
+
+	private function commitTransaction() {
+		if(--$this->transactionDepth === 0) {
+			$this->connection->commit();
+		}
 	}
 }

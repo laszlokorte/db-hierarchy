@@ -105,9 +105,14 @@ class HierarchyController {
 	#[Template()]
     public function showNodeField(StorageConnection $storageConnection, $key, $id, $field)
     {
-    	$field = $storageConnection->getFetcher()->findNodeField($key, $id, $field);
-
-    	return new JsonResponse($field->toArray());
+    	return new JsonResponse((object)[
+            'key' => $key,
+            'id' => $id,
+            'field' => $field,
+            'value' => $this->schema->getKey($key)->getField($field)->readObjectOf(
+                $storageConnection->getFetcher()->findNodeField($key, $id, $field)
+            ),
+        ]);
     }
 
     #[Route('/{key}/+', name: 'new_root_node', methods: 'GET')]

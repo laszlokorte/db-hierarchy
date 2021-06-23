@@ -25,6 +25,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Projection;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Order;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
@@ -38,7 +39,7 @@ class QueryBuilder {
 		
 	}
 
-	public function getSelectForFindRootNodes(string $keyId) {
+	public function getSelectForFindNodes(string $keyId, ValueInterface $scope, ValueInterface $parent) {
 		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -60,12 +61,12 @@ class QueryBuilder {
 			new BinaryOperation(
 				new Equal(TRUE),
 				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
-				new Constant(null)
+				$scope
 			),
 			new BinaryOperation(
 				new Equal(TRUE),
 				new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
-				new Constant(null)
+				$parent
 			)
 		);
 
@@ -118,21 +119,39 @@ class QueryBuilder {
 		return new Select($projections, [$tableN], $joins, $condition);
 	}
 
-	public function getSelectForFindNodeField(string $keyId, string $fieldId) {
-		
+	public function getSelectForFindNodeField(string $keyId, string $fieldId, $idParam) {
+		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+
+		$projections = [];
+
+		$condition = new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
+			$idParam
+		);
+
+		$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+		$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+		$columns = $type->getColumns($fieldId, $options);
+
+		foreach ($columns AS $column) {
+			$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
+		}
+
+		return new Select($projections, [$tableN], [], $condition);
 	}
 
 	public function getSelectForFindNodeChildren(string $keyId, string $childKeyId) {
 		
 	}
 
-	public function getSelectForFindNodeReflexiveParents(string $keyId) {
+	public function getSelectForFindNodeReflexiveParents(string $keyId, ValueInterface $id) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 
 		$condition = new BinaryOperation(
 			new Equal(),
 			new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
-			new Parameter('_id')
+			$id
 		);
 		$orders = [
 			new Order(new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)), true)
