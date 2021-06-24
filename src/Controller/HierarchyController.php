@@ -143,9 +143,13 @@ class HierarchyController {
 	#[Template()]
     public function showNode(StorageConnection $storageConnection, $key, $id)
     {
+        $moveTargets = $storageConnection->getFetcher()->findNodeMoveTargets($key, $id);
+
+        dump($moveTargets);
+
     	return [
     		'key' => $this->schema->getKey($key),
-            'moveTargets' => $storageConnection->getFetcher()->findNode($key, $id),
+            'moveTargets' => $moveTargets,
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
             'childNodes' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),

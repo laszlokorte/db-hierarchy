@@ -125,9 +125,11 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForClosureParentInsert($keyId, $parentParam, $childParam) {
+	public function getCommandForClosureParentInsert($keyId, $scopeParam, $parentParam, $childParam) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
+		
+		$closureTable = new TableReference($closureTableName);
 
 		$targetColumns = [
 			$this->naming->closureParentColumnName($keyId),
@@ -135,9 +137,7 @@ class CommandBuilder  {
 			$this->naming->closureTableDepthName($keyId),
 		];
 
-
-		$closureTable = new TableReference($closureTableName);
-		$select = new Select([
+		$projections = [
 			new Projection(new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId))),
 			new Projection($parentParam),
 			new Projection(
@@ -147,16 +147,21 @@ class CommandBuilder  {
 					new Constant(1)
 				)
 			)
-		], [$closureTable], [], new BinaryOperation(
+		];
+
+
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
+			$projections[] = new Projection($scopeParam);
+		}
+
+
+		$select = new Select($projections, [$closureTable], [], new BinaryOperation(
 			new Equal(),
 			new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
 			$childParam
 		));
-
-		if($this->schemaDef->isKeyScoped($keyId)) {
-			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$sourceColumns[] = new Parameter('_scope');
-		}
 
 		return new Insert(
 			$closureTableName,

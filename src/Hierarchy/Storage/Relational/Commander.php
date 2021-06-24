@@ -70,6 +70,7 @@ class Commander {
     		$parentParam = new Parameter('_parent');
     		$childParam = new Parameter('_child');
     		$depthParam = new Parameter('_depth');
+    		$scopeParam = new Parameter('_scope');
 
 			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId);
 			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
@@ -80,7 +81,7 @@ class Commander {
 
 			if($this->schemaDef->isKeyScoped($keyId)) {
 				$closureStmt->bindValue(
-					$this->dialect->parameterToString(new Parameter('_scope')),
+					$this->dialect->parameterToString($scopeParam),
 					$scopeId
 				);
 			}
@@ -88,11 +89,18 @@ class Commander {
     		$closureStmt->execute();
 
     		if(!empty($parentId)) {
-    			$closureInsertParent = $this->commandBuilder->getCommandForClosureParentInsert($keyId, $childParam, $parentParam);
+    			$closureInsertParent = $this->commandBuilder->getCommandForClosureParentInsert($keyId, $scopeParam, $childParam, $parentParam);
 				$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsertParent));
 
     			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId);
 				$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId);
+
+				if($this->schemaDef->isKeyScoped($keyId)) {
+					$closureStmt->bindValue(
+						$this->dialect->parameterToString($scopeParam),
+						$scopeId
+					);
+				}
 
 	    		$closureStmt->execute();
     		}
