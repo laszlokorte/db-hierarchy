@@ -1,27 +1,38 @@
 <form action="{{ path('order_node', {key: node.key, id: node.id}) }}" method="post" accept-charset="utf-8">
-    {% set down = false %}
-    {% set prevId = 'Start' %}
-    <select name="target_order">
-        {% for id in orderTargets.ids %}
-            {% if id==node.id %}
-                {% set down = true %}
-                <optgroup label="{{ orderTargets.key ~' '~ prevId }}">
-                <option value="" selected="selected" disabled="disabled">{{ orderTargets.key }}-{{id}} (self)</option>
-                </optgroup>
-            {% elseif down %}
-                <optgroup label="{{ orderTargets.key }}-{{id}}">
-                    <option value="{{orderTargets.order(id)}}">below {{ orderTargets.key }}-{{id}}</option>
-                </optgroup>
-            {% else %}
-                <optgroup label="{{ orderTargets.key ~' '~ prevId }}">
-                    <option value="{{orderTargets.order(id)}}">above {{ orderTargets.key }}-{{id}}</option>
-                </optgroup>
-            {% endif %}
-            {% set prevId = id %}
-        {% endfor %}
-            <optgroup label="End">
-            </optgroup>
-    </select>
-    <button name="move">Reorder</button>
+     <dl class="form-container">
+        <dt class="form-container-label"><label class="target_order" for="target_scope-parent">New Position</label></dt>
+        <dd class="form-container-field">
+                
+            {% set down = false %}
+            {% set prevId = 'Start' %}
+            <select class="form-select" name="target_order">
+                {% for id in orderTargets.ids %}
+                    {% if id==node.id %}
+                        {% set down = true %}
+                        <optgroup label="{{ orderTargets.key ~' '~ prevId }}">
+                        <option value="" selected="selected" disabled="disabled">{{ orderTargets.key }}-{{id}} (self)</option>
+                        </optgroup>
+                    {% elseif down %}
+                        <optgroup label="{{ orderTargets.key }}-{{id}}">
+                            <option value="{{orderTargets.order(id)}}">below {{ orderTargets.key }}-{{id}}</option>
+                        </optgroup>
+                    {% else %}
+                        <optgroup label="{{ orderTargets.key ~' '~ prevId }}">
+                            <option value="{{orderTargets.order(id)}}">above {{ orderTargets.key }}-{{id}}</option>
+                        </optgroup>
+                    {% endif %}
+                    {% set prevId = id %}
+                {% endfor %}
+                    <optgroup label="End">
+                    </optgroup>
+            </select>
+
+
+        </dd>
+        <dt class="form-container-label form-container-spacer"></dt>
+        <dd class="form-container-buttons">
+            <button class="form-button primary">Reorder</button>
+        </dd>
+    </dl>
 </form>
 

@@ -27,7 +27,7 @@ class Loader {
 
 			'zutaten' => new KeyDefinition(
 				new StorageDefinition('zutaten'),
-				new LabelDefinition('zutaten',"zutaten"),
+				new LabelDefinition('Zutat',"Zutaten"),
 				new ScopeDefinition('essen', null), null, null, [
 					'name' => new FieldDefinition(new LabelDefinition('Name'), 'text', true, false),
 				]

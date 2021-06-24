@@ -29,12 +29,37 @@
                     
                 }
 
+                .data-table-cell.type-id::before {
+                    content: '#';
+                    color: #aaa;
+                    font-style: italic;
+                }
+
+                .data-table-cell.empty {
+                    text-align: center;
+                    color: #aaa;
+                }
+
                 .data-table-cell.empty::before {
                     content: '-';
                 }
 
                 .data-table-head-cell {
                     border-bottom: 1px solid gray;
+                    white-space: nowrap;
+                    padding-right: 1em;
+                }
+
+                .data-table-head-cell.spacer {
+                    color:  #aaa;
+                    font-weight: normal;
+                    font-size: 0.8em;
+                    padding-right: 1em;
+                    padding-left: 1em;
+                }
+
+                .data-table-cell.actions {
+                    white-space: nowrap;
                 }
 
                 .data-table-head-cell:not([align]) {
@@ -91,7 +116,7 @@
                 .keyvalue-container {
                     display: grid;
                     gap: 0.5em;
-                    grid-template-columns: max-content min-content min-content min-content;
+                    grid-template-columns: max-content max-content min-content min-content;
                     grid-auto-flow: row;
                     gap: 1em;
                 }
@@ -154,6 +179,8 @@
 
                 .icon-link:active {
                     opacity: 1;
+                    position: relative;
+                    top: 1px;
                 }
 
                 .plain-list {
@@ -333,9 +360,14 @@
                     border: 1px solid white;
                     cursor: pointer;
                     opacity: 0.95;
+                    background: #ddd;
+                    color: #000;
+                    opacity: 0.95;
+                }
+
+                .form-button.primary {
                     background: #034;
                     color: #fff;
-                    opacity: 0.95;
                 }
 
                 .form-button:hover {
@@ -345,7 +377,8 @@
 
                 .form-button:active {
                     opacity: 1;
-
+                    position: relative;
+                    top: 1px;
                 }
 
                 .action-button {
@@ -362,6 +395,8 @@
 
                 .action-button:active {
                     opacity: 1;
+                    position: relative;
+                    top: 1px;
 
                 }
 
@@ -375,6 +410,48 @@
                     display: block;
                     width: 100%;
                     box-sizing: border-box;
+                }
+
+                .form-select {
+                    padding:  0.7em;
+                    display: block;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+
+                .inline-list {
+                    display: flex;
+                    flex-flow: wrap;
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                    gap: 0.2em;
+                }
+
+                .inline-list.separator > li:not(:last-child):after {
+                    content: ', ';
+                }
+
+                .warning-box {
+                    padding: 1em; 
+                    border: 1px solid darkred;
+                    background: #fee;
+                }
+
+                .approve-box {
+                    padding: 1em; 
+                    border: 1px solid #04a;
+                    background: #def;
+                }
+
+                .faded-link {
+                    color: #034;
+                    opacity: 0.1;
+                    transition: opacity 0.05s linear;
+                }
+
+                .faded-link:hover {
+                    opacity: 1;
                 }
             </style>
         {% endblock %}

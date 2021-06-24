@@ -1,7 +1,7 @@
 {% extends 'hierarchy/base.html.twig' %}
 
 {% block html_title -%}
-    {{ key.label.singular }} {{node.id}} - {{ parent() }}
+    Delete {{ key.label.singular }} {{node.id}} - {{ parent() }}
 {%- endblock %}
 
 {% block area_main %}
@@ -17,29 +17,35 @@
 
 <form action="{{ path('delete_node',{key: key.id, id:node.id}) }}" method="post" accept-charset="utf-8">
 
-    <p>
-        Are you sure you want to delete this {{ key.label.singular }}?
-    </p>
 
     {% if willDelete[key.id]|length > 1 or willDelete|length > 1 %}
-    <div style="padding: 1em; border: 1px solid darkred;">
+    <div class="warning-box">
         <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
         <p>Following nodes will also be deleted:</p>
 
-        <dl class="form-container">
+        <dl class="keyvalue-container">
             {% for key, ids in willDelete %}
                 {% if ids|length %}
-                    <dt class="form-container-label">{{key|capitalize}}s</dt>
-                    <dd class="form-container-field">
-                        {% for id in ids %}
-                            <a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a>
-                        {% endfor %}
+                    <dt class="keyvalue-container-label">{{key|capitalize}}s</dt>
+                    <dd class="keyvalue-container-field">
+                        <ul class="inline-list separator">
+                            {% for id in ids %}
+                                <li><a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a></li>
+                            {% endfor %}
+                        </ul>
                     </dd>
                 {% endif %}
             {% endfor %}
         </dl>
     </div>
+    {% else %}
+        <div class="approve-box">This node does not have any child nodes.</div>
     {% endif %}
+
+
+    <p>
+        Are you sure you want to delete this {{ key.label.singular }}?
+    </p>
 
     <dl class="form-container">
         <dt class="form-container-spacer"></dt>

@@ -1,24 +1,35 @@
 <form action="{{ path('move_node', {key: node.key, id: node.id}) }}" method="post" accept-charset="utf-8">
-    <select name="target_scope-parent">
-    {% if not key.scoped %}
-        {% set selected = (null==node.scope and null==node.parent) %}
-        <option value="/">
-        Root
-        {% if selected %}
-            (current)
-        {% endif %}
-        </option>
-        {% if selected %}
-            <option disabled>{%- for _ in range(0, 1) -%}
-            {{ '&nbsp;&nbsp;&nbsp;'|raw }}
-        {%- endfor -%}{{node.key}}-{{node.id}} (self)</option>
-        {% endif %}
-    {% endif %}
-        {% for rootKey in moveTargets.getRootKeys %}
-            {{ _self.walkTree(key.id, node, rootKey, moveTargets, null, null) }}
-        {% endfor %}
-    </select>
-    <button name="move">Move</button>
+    
+
+
+    <dl class="form-container">
+        <dt class="form-container-label"><label class="form-label" for="target_scope-parent">Move To</label></dt>
+        <dd class="form-container-field">
+            <select class="form-select" id="target_scope-parent" name="target_scope-parent">
+            {% if not key.scoped %}
+                {% set selected = (null==node.scope and null==node.parent) %}
+                <option value="/">
+                Root
+                {% if selected %}
+                    (current)
+                {% endif %}
+                </option>
+                {% if selected %}
+                    <option disabled>{%- for _ in range(0, 1) -%}
+                    {{ '&nbsp;&nbsp;&nbsp;'|raw }}
+                {%- endfor -%}{{node.key}}-{{node.id}} (self)</option>
+                {% endif %}
+            {% endif %}
+                {% for rootKey in moveTargets.getRootKeys %}
+                    {{ _self.walkTree(key.id, node, rootKey, moveTargets, null, null) }}
+                {% endfor %}
+            </select>
+        </dd>
+        <dt class="form-container-label form-container-spacer"></dt>
+        <dd class="form-container-buttons">
+            <button class="form-button primary">Move</button>
+        </dd>
+    </dl>
 </form>
 
 {% macro walkTree(keyId, node, currentKey, h, scope, parent, depth = 0) %}
