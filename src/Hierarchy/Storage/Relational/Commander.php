@@ -72,7 +72,7 @@ class Commander {
     		$depthParam = new Parameter('_depth');
     		$scopeParam = new Parameter('_scope');
 
-			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId);
+			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId, $scopeParam, $parentParam, $childParam, $depthParam);
 			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
 
 			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId);
@@ -237,54 +237,105 @@ class Commander {
 		$idParam = new Parameter('_id');
 		$scopeParam = new Parameter('_scope');
 		$parentParam = new Parameter('_parent');
-		$childParam = new Parameter('_child');
 
 		if($this->schemaDef->isKeyScoped($keyId) === empty($targetScopeId)) {
 			throw new \Exception("missing parent");
 		}
 
-		if($this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
+		if(!$this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
 			throw new \Exception($targetParentId);
 		}
 
 		if(!empty($scopeId) && !empty($targetParentId)) {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam);
-			// SELECT FROm hierarchy WHERE scope=targetScope and id = targetparent
+			
+			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
+			// echo $this->dialect->selectToString($selectMoveTargetExists);
+
+			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
+			$validPositionStmt->execute();
 
 			if(!$validPositionStmt->fetchColumn()) {
 				throw new \Exception("invalid position");
 			}
 		}
 
-		if($this->schemaDef->isKeyReflexive($keyId) && !empty($parentId)) {
+		if($this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
 			$selectMoveTargetValid = $this->commandBuilder->getSelectForMoveTargetValid($keyId, $idParam, $parentParam);
+
+			$checkCycleStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetValid));
+			// echo $this->dialect->selectToString($selectMoveTargetValid);
+
+			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
+			$checkCycleStmt->execute();
 
 			if($checkCycleStmt->fetchColumn()) {
 				throw new ConsistencyException("invalid position");
 			}
 		}
 
-		if($this->schemaDef->isKeyReflexive($keyId) && empty($parentId)) {
-			$parentId = $nodeId;
+		if($this->schemaDef->isKeyReflexive($keyId) && empty($targetParentId)) {
+			$targetParentId = $nodeId;
 		}
 
 		$this->connection->beginTransaction();
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $id, $scopeParam);
+			$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
 
-			if($reflexive) {
-				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $id, $scopeParam);
+			$updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
+			// echo $this->dialect->updateToString($updateOwnScope);
 
-				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $id, $scopeParam);
+			$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+			$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+			$updateOwnScopeStmt->execute();
+
+			if($this->schemaDef->isKeyReflexive($keyId)) {
+				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam);
+
+				$updateClosureScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureScope));
+				// echo $this->dialect->updateToString($updateClosureScope);
+
+				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+				$updateClosureScopeStmt->execute();
+
+				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam);
+
+				$updateClosureParentsStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureParents));
+				// echo $this->dialect->updateToString($updateClosureParents);
+
+				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+				$updateClosureParentsStmt->execute();
 			}
 		}
 
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
 
-			if($parentId !== $nodeId) {				
-				$insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $scopeParam, $childParam, $parentParam);
+			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
+			// echo $this->dialect->deleteToString($deleteClosureParents);
+
+			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+			$deleteClosureParentsStmt->execute();
+
+
+			if($targetParentId !== $nodeId) {				
+				$insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam);
+
+				$insertClosureParentsStmt = $this->connection->prepare($this->dialect->insertToString($insertClosureParents));
+				// echo $this->dialect->insertToString($insertClosureParents);
+
+				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
+				if($this->schemaDef->isKeyScoped($keyId)) {
+					$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+				}
+
+				$insertClosureParentsStmt->execute();
 			}
 
 			$this->repairKeyInternal($keyId);

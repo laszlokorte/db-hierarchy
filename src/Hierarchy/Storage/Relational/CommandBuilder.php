@@ -18,6 +18,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Selection;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Tuple;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
@@ -97,7 +99,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForClosureInsert($keyId) {
+	public function getCommandForClosureInsert($keyId, $scopeParam, $parentParam, $childParam, $depthParam) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 
@@ -108,14 +110,14 @@ class CommandBuilder  {
 		];
 
 		$sourceColumns = [
-			new Parameter('_parent'),
-			new Parameter('_child'),
-			new Parameter('_depth'),
+			$parentParam,
+			$childParam,
+			$depthParam,
 		];
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$sourceColumns[] = new Parameter('_scope');
+			$sourceColumns[] = $scopeParam;
 		}
 
 		return new Insert(
@@ -255,33 +257,151 @@ class CommandBuilder  {
 
 
 	public function getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam) {
-
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+		// SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id
+		return new Select(
+			[new Projection(new Constant(1))],
+			[$table], [],
+			new BinaryOperation(
+				new Equal(),
+				new Tuple([
+					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
+					new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+				]),
+				new Tuple([$scopeParam, $parentParam])
+			)
+		);
 	}
-	
+
 	public function getSelectForMoveTargetValid($keyId, $idParam, $parentParam) {
-
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+		// SELECT 1 FROM %s WHERE parent_id = :id AND child_id=:newParent
+		return new Select(
+			[new Projection(new Constant(1))],
+			[$closureTable], [],
+			new BinaryOperation(
+				new Equal(),
+				new Tuple([
+					new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
+					new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
+				]),
+				new Tuple([$idParam, $parentParam])
+			)
+		);
 	}
-	
-	public function getUpdateForMoveOwnScope($keyId, $id, $scopeParam) {
 
+	public function getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam) {
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+		// UPDATE %s SET %s_id = :parentId WHERE id = :id
+		return new Update(
+			$table, [
+				new Setter(
+					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
+					$scopeParam
+				)
+			],
+			new BinaryOperation(
+				new Equal(), 
+				new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+				$idParam
+			)
+		);
 	}
-	
-	public function getUpdateForMoveClosureScope($keyId, $id, $scopeParam) {
 
+	public function getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam) {
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+		// UPDATE %s SET %s_id = :parentId WHERE id = :id
+		return new Update(
+			$table, [
+				new Setter(
+					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
+					$scopeParam
+				)
+			],
+			new ElementOf(
+				new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+				new Select([
+					new Projection(
+						new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId))
+					)
+				], [$closureTable], [], new BinaryOperation(
+					new Equal(),
+					new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
+					$idParam
+				))
+			)
+		);
 	}
-	
-	public function getUpdateForMoveClosureParents($keyId, $id, $scopeParam) {
 
+	public function getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam) {
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+		// UPDATE %s SET %s_id = :parentId WHERE id = :id
+		return new Update(
+			$closureTable, [
+				new Setter(
+					new ColumnReference($closureTable, $this->naming->nodeOwnScopeColumnName($keyId)),
+					$scopeParam
+				)
+			],
+			new ElementOf(
+				new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
+				new Select([
+					new Projection(
+						new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId))
+					)
+				], [$closureTable], [], new BinaryOperation(
+					new Equal(),
+					new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
+					$idParam
+				))
+			)
+		);
 	}
-	
+
 	public function getDeleteForMoveClosureOldParents($keyId, $idParam) {
-
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+		// DELETE FROM %s_closure WHERE child_id = :id AND depth > 0
+		return new Delete($closureTable, new BinaryOperation(
+			new Conjunction(),
+			new BinaryOperation(
+				new Equal(),
+				new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
+				$idParam
+			),
+			new BinaryOperation(
+				new GreaterThan(),
+				new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)),
+				new Constant(0)
+			)
+		));
 	}
-	
-	public function getInsertForMoveClosureParents($keyId, $scopeParam, $childParam, $parentParam) {
 
-	}
+	public function getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam) {
+		$closureTable = $this->naming->closureTableName($keyId);
+
+		// INSERT INTO %s_closure (%s_id, parent_id, child_id, depth) VALUES(:scope, :parent, :id, :depth)
+
+		$columns = [
+			$this->naming->closureParentColumnName($keyId),
+			$this->naming->closureChildColumnName($keyId),
+			$this->naming->closureTableDepthName($keyId)
+		];
+		$values = [
+			$parentParam,
+			$idParam,
+			new Constant(1),
+		];
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
+			$values[] = $scopeParam;
+		}
 	
+		return new Insert($closureTable, $columns, [$values]);
+	}
+
 
 	public function getCommandForRepairKey(string $keyId) {
 		$result = [];
