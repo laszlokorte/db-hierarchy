@@ -7,14 +7,16 @@
 		{% for field in key.fields %}
         <dt class="form-container-label">
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
-        <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">➥</a>
         </dt>
         <dd class="form-container-field">
         <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{field.readValueOf(node)}}">
     	</dd>
+    	<dd class="form-container-info">
+        <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
+    	</dd>
     	{% endfor %}
 
-	<dt class="form-container-spacer"></dt>
+	<dt class="form-container-label form-container-spacer"></dt>
 	<dd class="form-container-buttons"><button class="form-button">Update</button></dd>
     </dl>
 </form>

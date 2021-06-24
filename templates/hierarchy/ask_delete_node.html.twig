@@ -7,11 +7,11 @@
 {% block area_main %}
 
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'delete'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents} only %}
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'delete'} only %}
 
 <h2>Delete</h2>
 
@@ -44,8 +44,8 @@
     <dl class="form-container">
         <dt class="form-container-spacer"></dt>
         <dd class="form-container-buttons">
-            <button>Delete</button>
-            <a href="{{ path('show_node', {key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
+            <button class="action-button danger">Yes, Delete!</button>
+            <a class="link-button" href="{{ path('show_node', {key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
         </dd>
     </dl>
 </form>

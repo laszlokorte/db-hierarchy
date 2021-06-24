@@ -48,6 +48,12 @@
                             <button class="inline-button">X</button>
                         </form>
                         {% else %}
+                        <form class="inline-form quickform-inline" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
+                            {% if then is defined %}
+                            <input type="hidden" name="_then" value="{{then}}">
+                            {% endif %}
+                            <button class="inline-button">X</button>
+                        </form>
                         <a href="{{ path('ask_delete_node', {key: key.id, id: nodeId}) }}" title="">Delete</a>
                         {% endif %}
                         <a href="{{ path('edit_node', {key: key.id, id: nodeId}) }}" title="">Edit</a>

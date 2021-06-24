@@ -56,7 +56,67 @@
                 .form-container {
                     display: grid;
                     gap: 0.5em;
-                    grid-template-columns: max-content auto;
+                    grid-template-columns: max-content auto min-content min-content;
+                    grid-auto-flow: row;
+                    gap: 1em;
+                }
+
+                .form-container-field {
+                    margin: 0;
+                }
+
+                .form-container-info {
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: end;
+                }
+
+                .form-container-buttons {
+                    margin: 0;
+                    display: flex;
+                    gap:  1em;
+                    align-items: center;
+                    justify-content: start;
+                }
+
+                .form-container-label {
+                    display: flex;
+                    align-items: center;
+                    justify-content: end;
+                    grid-column: 1;
+                    margin-right: 2em;
+                }
+
+                .keyvalue-container {
+                    display: grid;
+                    gap: 0.5em;
+                    grid-template-columns: max-content min-content min-content min-content;
+                    grid-auto-flow: row;
+                    gap: 1em;
+                }
+
+                .keyvalue-container-field {
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .keyvalue-container-field.empty::after {
+                    content: 'None';
+                    color: #aaa;
+                    font-style: italic;
+                }
+
+                .keyvalue-container-label {
+                    display: flex;
+                    align-items: center;
+                    justify-content: end;
+                    grid-column: 1;
+                }
+
+                .keyvalue-container-label::after {
+                    content: ':';
                 }
 
                 .inline-form {
@@ -73,7 +133,27 @@
                 }
 
                 .icon-link {
+                    color: #fff;
                     text-decoration: none;
+                    border-radius: 100%;
+                    background: #034;
+                    width: 1.3em;
+                    height: 1.3em;
+                    display: flex;
+                    font-size: 0.8em;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    vertical-align: center;
+                    opacity: 0.95;
+                }
+
+                .icon-link:hover {
+                    opacity: 0.85;
+                }
+
+                .icon-link:active {
+                    opacity: 1;
                 }
 
                 .plain-list {
@@ -178,6 +258,123 @@
 
                 .dragger:not(.state-dragging).state-over {
                     background: #ffff88;
+                }
+
+                .tab-list {
+                    display: flex;
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    gap:  0.5em;
+                    border-width: 0 0 1px 0;
+                    border-style: solid;
+                    border-color: gray;
+                    padding: 0 0.2em;
+                    background-image: linear-gradient(transparent 50%, #0341);
+                }
+
+                .tab-list-item {
+                    display: block;
+                }
+
+                .tab-link {
+                    display: block;
+                    border-style: solid;
+                    border-width: 1px 1px 0 1px;
+                    border-color: gray;
+                    padding: 0.5em 1em;
+                    border-radius: 0.2em 0.2em 0 0;
+                    background: white;
+                    margin-bottom: -1px;
+                    border-bottom: 1px solid gray;
+                    background: #eee;
+                    color: #034;
+                }
+
+                .tab-link:hover {
+                    background: #f4f4f4;
+                }
+
+                .tab-link:active {
+                    background: #e4e4e4;
+                }
+
+                .tab-link.state-active {
+                    background: #fff;
+                    border-bottom-color: white;
+                    text-decoration: none;
+                    color: #000;
+                    box-shadow: 0 -5px 5px -3px #0342;
+                }
+
+                .tab-label {
+                    display: block;
+                    padding: 0.8em 1em;
+                    font-size: small;
+                    color: #999;
+                }
+
+                .quickform {
+                    display: none;
+                }
+
+                .quickform-inline {
+                    display: none;
+                }
+
+                .link-button {
+                    padding:  0.7em;
+                    cursor: pointer;
+                    color: #034;
+                }
+
+                .form-button {
+                    padding:  0.7em 1em;
+                    border: 1px solid white;
+                    cursor: pointer;
+                    opacity: 0.95;
+                    background: #034;
+                    color: #fff;
+                    opacity: 0.95;
+                }
+
+                .form-button:hover {
+                    opacity: 0.85;
+
+                }
+
+                .form-button:active {
+                    opacity: 1;
+
+                }
+
+                .action-button {
+                    padding:  0.7em 1em;
+                    border: 1px solid white;
+                    cursor: pointer;
+                    opacity: 0.95;
+                }
+
+                .action-button:hover {
+                    opacity: 0.85;
+
+                }
+
+                .action-button:active {
+                    opacity: 1;
+
+                }
+
+                .action-button.danger {
+                    background: #a00;
+                    color: #fff;
+                }
+
+                .form-field {
+                    padding:  0.7em;
+                    display: block;
+                    width: 100%;
+                    box-sizing: border-box;
                 }
             </style>
         {% endblock %}

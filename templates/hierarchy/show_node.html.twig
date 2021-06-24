@@ -10,11 +10,21 @@
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'show'} only %}
 
-<h2>Edit</h2>
 
-{% include 'hierarchy/partials/form_edit.html.twig' with {key, node} only %}
+<div class="quickform">
+    <h2>Edit</h2>
+        
+    {% include 'hierarchy/partials/form_edit.html.twig' with {key, node} only %}
+
+</div>
+
+
+<h2>Fields</h2>
+
+{% include 'hierarchy/partials/fields.html.twig' with {key, node} only %}
+
 
 {% if key.nestedKeys|length %}
 <h2>Children</h2>
@@ -23,8 +33,9 @@
 {% for childKey in key.nestedKeys %}
     <h3>{{ childKey.label.singular }}s</h3>
 
+<div class="quickform">
     {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
-
+</div>
     {% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
 {% endfor %}
 {% endblock %}

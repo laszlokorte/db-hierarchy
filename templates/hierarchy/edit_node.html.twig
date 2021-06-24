@@ -6,11 +6,11 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'edit'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents} only %}
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'edit'} only %}
 
 <h2>Edit</h2>
 

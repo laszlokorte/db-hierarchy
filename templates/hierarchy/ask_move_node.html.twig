@@ -7,11 +7,11 @@
 {% block area_main %}
 
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'move'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents} only %}
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'move'} only %}
 
 <h2>Move</h2>
 
