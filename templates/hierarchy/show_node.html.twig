@@ -31,11 +31,13 @@
 {% endif %}
 
 {% for childKey in key.nestedKeys %}
-    <h3>{{ childKey.label.singular }}s</h3>
+<h3>{{ childKey.label.plural }}</h3>
+
+{% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
 
 <div class="quickform">
+<h4>New</h4>
     {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
 </div>
-    {% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
 {% endfor %}
 {% endblock %}

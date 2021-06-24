@@ -24,9 +24,10 @@
 
 <h2>List</h2>
 
-    <div class="quickform">
-    {% include 'hierarchy/partials/form_new.html.twig' with {key, then:'list'} only %}
-    </div>
+{% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key, then:'list'} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key, then:'list'} only %}
+<div class="quickform">
+<h3>New</h3>
+{% include 'hierarchy/partials/form_new.html.twig' with {key, then:'list'} only %}
+</div>
 {% endblock %}

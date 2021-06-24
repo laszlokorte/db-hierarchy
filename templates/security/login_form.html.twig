@@ -14,21 +14,21 @@
     		{% endif %}
 
     			<div class="prompt-body">
-    				<dl class="form-container">
-				        <dt class="form-container-label"><label for="">Username</label></dt>
+    				<dl class="form-container dense">
+				        <dt class="form-container-label dense"><label for="">Username</label></dt>
 				        <dd class="form-container-field">
-				        	<input type="text" name="_username" value="{{lastUsername}}">
+				        	<input class="form-field" type="text" name="_username" value="{{lastUsername}}">
 				        </dd>
-				        <dt class="form-container-label"><label for="">Password</label></dt>
+				        <dt class="form-container-label dense"><label for="">Password</label></dt>
 				        <dd class="form-container-field">
-				        	<input type="password" name="_password">
+				        	<input class="form-field" type="password" name="_password">
 				        </dd>
-				        <dt class="form-container-spacer"></dt>
+				        <dt class="form-container-label form-container-spacer"></dt>
 				        <dd class="form-container-buttons">
 				        	<input type="hidden" name="_csrf_token"
 	        value="{{ csrf_token('authenticate') }}"
 	    >
-				            <button class="form-button">Login</button>
+				            <button class="form-button primary">Login</button>
 				        </dd>
 				    </dl>
     			</div>

@@ -1,4 +1,31 @@
 <table class="data-table">
+    <caption class="data-table-caption">List of {{key.label.plural}}</caption>
+    <colgroup>
+    {% if key.ordered %}
+    <col class="data-table-col" />
+    {% endif %}
+    <col class="data-table-col" />
+    </colgroup>
+    {% if key.fields %}
+    <colgroup>
+        {% for field in key.fields %}
+        <col class="data-table-col" />
+        {% endfor %}
+    </colgroup>
+    {% endif %}
+    <colgroup>
+    <col class="data-table-col" />
+    </colgroup>
+    {% if key.nestedKeys %}
+    <colgroup>
+        {% for nested in key.nestedKeys %}
+        <col class="data-table-col" />
+        {% endfor %}
+    </colgroup>
+    {% endif %}
+    <colgroup>
+    <col class="data-table-col" />
+    </colgroup>
     <thead class="data-table-head">
         <tr class="data-table-head-row">
             {% if key.ordered %}
@@ -12,7 +39,7 @@
             {% for nested in key.nestedKeys %}
             <th class="data-table-head-cell spacer" align="center">{{ nested.label.plural }}</th>
             {% endfor %}
-            <th class="data-table-head-cell spacer" align="right">actions</th>
+            <th class="data-table-head-cell spacer" align="right">Actions</th>
         </tr>
     </thead>
     {% if not nodeCollection.isEmpty %}
@@ -74,10 +101,10 @@
 		<tbody>
             <tr class="data-table-empty-row">
                 {% if parent is defined %}
-                <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">empty<br><a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">Add {{key.label.singular}}</a>
+                <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">Empty<br><a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">Add first {{key.label.singular}}</a>
 				</td>
                 {% else %}
-                <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">empty<br><a href="{{ path('new_root_node', {key: key.id}) }}" title="">Add {{key.label.singular}}</a>
+                <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">Empty<br><a href="{{ path('new_root_node', {key: key.id}) }}" title="">Add first {{key.label.singular}}</a>
                 </td>
                 {% endif %}
             </tr>
@@ -86,21 +113,21 @@
     <tfoot class="data-table-foot">
     	<tr class="data-table-foot-row">
         	{% if parent is defined %}
-                <td class="data-table-foot-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 2 + (key.ordered?1:0) }}">
+                <td class="data-table-foot-cell" colspan="{{ key.fields|length + 2 + (key.ordered?1:0) }}">
                 {% if listLink|default(false) %}
                     <a href="{{ path('list_child_nodes', parent|merge({childKey: key.id})) }}" title="">Show {{key.label.singular}}s</a>
                 {% endif %}
                 </td>
-                <td class="data-table-foot-cell" align="right">
+                <td class="data-table-foot-cell" align="right" colspan="{{key.nestedKeys|length + 1 }}">
                     <a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">New {{key.label.singular}}</a>
                 </td>
             {% else %}
-                <td class="data-table-foot-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 2 + (key.ordered?1:0) }}">
+                <td class="data-table-foot-cell" colspan="{{ key.fields|length + 2 + (key.ordered?1:0) }}">
                 {% if listLink|default(false) %}
                     <a href="{{ path('list_root_nodes', {key: key.id}) }}" title="">Show {{key.label.singular}}s</a>
                 {% endif %} 
                 </td>
-                <td class="data-table-foot-cell" align="right">
+                <td class="data-table-foot-cell" colspan="{{key.nestedKeys|length + 1 }}" align="right">
                     <a href="{{ path('new_root_node', {key: key.id}) }}" title="">New {{key.label.singular}}</a>
                 </td>
             {% endif %}

@@ -26,8 +26,8 @@
         <dl class="keyvalue-container">
             {% for key, ids in willDelete %}
                 {% if ids|length %}
-                    <dt class="keyvalue-container-label">{{key|capitalize}}s</dt>
-                    <dd class="keyvalue-container-field">
+                    <dt class="keyvalue-container-label top">{{key|capitalize}}s</dt>
+                    <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
                             {% for id in ids %}
                                 <li><a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a></li>

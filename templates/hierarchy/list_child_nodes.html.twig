@@ -13,14 +13,15 @@
 
 {% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'list', childKey} only %}
 
-<div class="quickform">
-    {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'list'} only %}
-</div>
 
 <h2>{{ childKey.label.plural }}</h2>
 
 
-
 {% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key: childKey, parent: {key:key.id,id: node.id}, then: 'list'} only %}
+
+<div class="quickform">
+<h3>Add </h3>
+    {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'list'} only %}
+</div>
 
 {% endblock %}

@@ -10,50 +10,57 @@
 
 <h1>Hierarchy Defects</h1>
 
-<form action="{{ path('repair') }}" method="post" accept-charset="utf-8">
+<div class="details-summary">
+<form style="margin-left: auto; "action="{{ path('repair') }}" method="post" accept-charset="utf-8">
     <button>Repair all</button>
 </form>
+</div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(25em, 1fr));align-content: stretch;">
+
 {% for d in diagnosis %}
-    <h2 style="grid-column: 1 / -1" class="{{ html_classes({'color-valid': d.valid, 'color-invalid': not d.valid}) }}">{{ d.keyId|capitalize }}</h2>
+    <details class="details">
+        <summary class="{{ html_classes('details-summary', {'color-valid': d.valid, 'color-invalid': not d.valid}) }}">
+        {{ d.keyId }}
 
-    {% for type in d.types %}
-        <div>
-            <h3 class="{{ html_classes({'color-valid': d.validType(type), 'color-invalid': not d.validType(type)}) }}">{{ type|capitalize }}</h3>
-            <table class="data-table">
-                <thead class="data-table-head">
-                    <tr class="data-table-head-row">
-                        {% for col in d.columns(type) %}
-                        <th class="data-table-head-cell">{{col}}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody class="data-table-body">
-                    {% for row in d.rows(type) %}
-                        <tr class="data-table-row">
-                            {% for col in d.columns(type) %}
-                            <td class="data-table-cell" align="center">{{ row[col] }}</td>
-                            {% endfor %}
-                        </tr>
-                    {% else %}
-                        <tr class="data-table-empty-row">
-                            <td class="data-table-empty-cell" colspan="{{d.columns(type)|length}}">✅ Valid</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% endfor %}
-    
-    <div style="grid-column: 1 / -1;">
-        <form action="{{ path('repair_key',{key: d.keyId}) }}" method="post" accept-charset="utf-8">
+
+        <form style="margin-left: auto;" action="{{ path('repair_key',{key: d.keyId}) }}" method="post" accept-charset="utf-8">
             <button>Repair {{d.keyId}} closure</button>
         </form>
-    </div>
-    <hr style="border: 1px solid gray; grid-column: 1 / -1; margin: 1em 0;">
+
+        </summary>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(25em, 1fr));align-content: stretch;">
+        {% for type in d.types %}
+            <div>
+                <h3 class="{{ html_classes({'color-valid': d.validType(type), 'color-invalid': not d.validType(type)}) }}">{{ type }}</h3>
+                <table class="data-table">
+                    <thead class="data-table-head">
+                        <tr class="data-table-head-row">
+                            {% for col in d.columns(type) %}
+                            <th class="data-table-head-cell">{{col}}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="data-table-body">
+                        {% for row in d.rows(type) %}
+                            <tr class="data-table-row">
+                                {% for col in d.columns(type) %}
+                                <td class="data-table-cell" align="center">{{ row[col] }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% else %}
+                            <tr class="data-table-empty-row">
+                                <td class="data-table-empty-cell" colspan="{{d.columns(type)|length}}">✅ Valid</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+        
+        </div>
+    </details>
 {% endfor %}
-</div>
 
 
 </div>
