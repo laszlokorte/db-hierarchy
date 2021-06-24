@@ -143,13 +143,9 @@ class HierarchyController {
 	#[Template()]
     public function showNode(StorageConnection $storageConnection, $key, $id)
     {
-        $moveTargets = $storageConnection->getFetcher()->findNodeMoveTargets($key, $id);
-
-        dump($moveTargets);
-
     	return [
     		'key' => $this->schema->getKey($key),
-            'moveTargets' => $moveTargets,
+            'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
             'childNodes' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),
@@ -250,10 +246,8 @@ class HierarchyController {
     #[Route('/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
     public function moveNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-    	$target = explode('/', $request->request->get('target_scope-parent','/'), 2);
-    	$scope = $target[0]??null;
-    	$parent = $target[1]??null;
-
+    	list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
+        
 		$storageConnection->getCommander()->moveNode($key, $id, $scope?:null, $parent?:null);
 
 		$session->getFlashBag()->add('success', 'Node Moved');

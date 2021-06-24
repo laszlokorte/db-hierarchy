@@ -234,7 +234,63 @@ class Commander {
 	}
 
 	public function moveNode(string $keyId, $nodeId, $targetScopeId, $targetParentId) {
-		
+		$idParam = new Parameter('_id');
+		$scopeParam = new Parameter('_scope');
+		$parentParam = new Parameter('_parent');
+		$childParam = new Parameter('_child');
+
+		if($this->schemaDef->isKeyScoped($keyId) === empty($targetScopeId)) {
+			throw new \Exception("missing parent");
+		}
+
+		if($this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
+			throw new \Exception($targetParentId);
+		}
+
+		if(!empty($scopeId) && !empty($targetParentId)) {
+			$selectMoveTargetExists = $this->commandBuilder->getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam);
+			// SELECT FROm hierarchy WHERE scope=targetScope and id = targetparent
+
+			if(!$validPositionStmt->fetchColumn()) {
+				throw new \Exception("invalid position");
+			}
+		}
+
+		if($this->schemaDef->isKeyReflexive($keyId) && !empty($parentId)) {
+			$selectMoveTargetValid = $this->commandBuilder->getSelectForMoveTargetValid($keyId, $idParam, $parentParam);
+
+			if($checkCycleStmt->fetchColumn()) {
+				throw new ConsistencyException("invalid position");
+			}
+		}
+
+		if($this->schemaDef->isKeyReflexive($keyId) && empty($parentId)) {
+			$parentId = $nodeId;
+		}
+
+		$this->connection->beginTransaction();
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $id, $scopeParam);
+
+			if($reflexive) {
+				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $id, $scopeParam);
+
+				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $id, $scopeParam);
+			}
+		}
+
+		if($this->schemaDef->isKeyReflexive($keyId)) {
+			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
+
+			if($parentId !== $nodeId) {				
+				$insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $scopeParam, $childParam, $parentParam);
+			}
+
+			$this->repairKeyInternal($keyId);
+		}
+
+		$this->connection->commit();
 	}
 
 	public function repairAll() {

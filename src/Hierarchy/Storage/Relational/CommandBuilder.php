@@ -128,7 +128,7 @@ class CommandBuilder  {
 	public function getCommandForClosureParentInsert($keyId, $scopeParam, $parentParam, $childParam) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
-		
+
 		$closureTable = new TableReference($closureTableName);
 
 		$targetColumns = [
@@ -254,9 +254,34 @@ class CommandBuilder  {
 	}
 
 
-	public function getCommandForMoveNode(string $keyId) {
-		
+	public function getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam) {
+
 	}
+	
+	public function getSelectForMoveTargetValid($keyId, $idParam, $parentParam) {
+
+	}
+	
+	public function getUpdateForMoveOwnScope($keyId, $id, $scopeParam) {
+
+	}
+	
+	public function getUpdateForMoveClosureScope($keyId, $id, $scopeParam) {
+
+	}
+	
+	public function getUpdateForMoveClosureParents($keyId, $id, $scopeParam) {
+
+	}
+	
+	public function getDeleteForMoveClosureOldParents($keyId, $idParam) {
+
+	}
+	
+	public function getInsertForMoveClosureParents($keyId, $scopeParam, $childParam, $parentParam) {
+
+	}
+	
 
 	public function getCommandForRepairKey(string $keyId) {
 		$result = [];
