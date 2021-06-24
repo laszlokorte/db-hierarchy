@@ -178,6 +178,8 @@ class Sqlite implements DialectInterface {
 				return $this->unaryOperationToString($v);
 			case Value\Windowing::class:
 				return $this->windowingToString($v);
+			case Value\Cases::class:
+				return $this->casesToString($v);
 			case Value\Selection::class:
 				return '(' . $this->selectToString($v->getSelect()) . ')';
 			default:
@@ -343,6 +345,28 @@ class Sqlite implements DialectInterface {
 			$this->operatorSymbol($unaryOperation->getOperator()),
 			$this->valueToString($unaryOperation->getOperand())
 		);
+	}
+
+	private function casesToString(Value\Cases $cases) {
+		if($cases->count() > 0) {
+			$result = $this->i() . 'CASE';
+			$this->indent();
+			for ($i=0; $i < $cases->count(); $i++) { 
+				$result .= PHP_EOL . $this->i() . 'WHEN ';
+				$result .= PHP_EOL . $this->i() . $this->valueToString($cases->getCondition($i));
+				$result .= PHP_EOL . $this->i() . 'THEN ';
+				$result .= PHP_EOL . $this->i() . $this->valueToString($cases->getConsequence($i));
+			}
+
+			if($cases->getFallback()) {
+				$result .= PHP_EOL . $this->i() . 'ELSE ' . $this->valueToString($cases->getFallback());
+			}
+			$this->outdent();
+			$result .= PHP_EOL . $this->i() . 'END';
+			return $result;
+		} else {
+			return $this->valueToString($cases->getFallback());
+		}
 	}
 
 	private function windowingToString(Value\Windowing $windowing) {

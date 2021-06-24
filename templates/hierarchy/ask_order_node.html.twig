@@ -6,14 +6,15 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'edit'} only %}
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents, trailing: 'move'} only %}
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
 {% include 'hierarchy/partials/tabs.html.twig' with {key, node} only %}
 
-<h2>Edit</h2>
+<h2>Reorder</h2>
 
-{% include 'hierarchy/partials/form_edit.html.twig' with {key, node, then: 'edit'} only %}
+{% include 'hierarchy/partials/ordering.html.twig' with {key:key, node, orderTargets} only %}
 
 {% endblock %}

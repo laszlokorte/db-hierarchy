@@ -26,6 +26,10 @@ class NodeCollection implements \Countable {
 		return $this->rows[$nodeId][$columnName];
 	}
 
+	public function getOrder($nodeId) {
+		return $this->rows[$nodeId]['_order'] ?? null;
+	}
+
 	public function getNode($nodeId) {
 		return new Node($this->keyId, $nodeId, $this->rows[$nodeId], $this->scopeId, $this->parentId);
 	}

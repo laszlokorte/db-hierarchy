@@ -64,4 +64,8 @@ class Key {
 			$this->def->getKeyIdsScopedInsideAndReflexiveSelf($this->keyId)
 		);
 	}
+
+	public function isNested() {
+		return $this->def->isKeyNested($this->keyId);
+	}
 }

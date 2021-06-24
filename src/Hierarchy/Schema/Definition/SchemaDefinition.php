@@ -133,6 +133,10 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->isReflexive();
 	}
 
+	public function isKeyNested($keyId) {
+		return $this->keys[$keyId]->isReflexive() || $this->keys[$keyId]->isScoped();
+	}
+
 	public function getKeyReflexivityTableName($keyId) {
 		return $this->keys[$keyId]->getReflexivityTableName();
 	}

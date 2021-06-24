@@ -16,4 +16,8 @@ class MultiTree {
 	public function getRootKeys() {
 		return $this->rootKeyIds;
 	}
+
+	public function isEmpty() {
+		return empty($this->rootKeyIds) || empty($this->groupedRows);
+	}
 }

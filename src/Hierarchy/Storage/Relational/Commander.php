@@ -344,6 +344,26 @@ class Commander {
 		$this->connection->commit();
 	}
 
+	public function orderNode(string $keyId, $nodeId, $targetPosition) {
+		$idParam = new Parameter('_id');
+		$orderParam = new Parameter('_order');
+
+		if(empty($targetPosition)) {
+			dump($targetPosition);
+			throw new \Exception("target position must not be empty");
+		}
+
+		$update = $this->commandBuilder->getUpdateforReorderNode($keyId, $idParam, $orderParam);
+
+		$this->connection->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
+		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, \PDO::PARAM_INT);
+
+		$stmt->execute();
+		$this->connection->commit();
+	}
+
 	public function repairAll() {
 		$this->connection->beginTransaction();
 		foreach ($this->commandBuilder->getRepairableKeys() as $key) {

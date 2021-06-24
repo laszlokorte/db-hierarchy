@@ -30,8 +30,7 @@ class Fetcher {
 			$keyId,
 			$rows,
 			NULL,
-			NULL,
-			[]
+			NULL
 		);
 	}
 
@@ -270,6 +269,20 @@ class Fetcher {
 			$rootKeyIds,
 			$groupedRows
 		);
+	}
+
+	public function findNodeSiblings(string $keyId, string $nodeId) {
+		$directParent = $this->findNodeDirectParent($keyId, $nodeId);
+
+		$self = $this->findNode($keyId, $nodeId);
+
+		if(!empty($self->hasParent())) {
+			return $this->findNodeChildren($keyId, $self->getParent(), $keyId);
+		} else if($self->hasScope()) {
+			return $this->findNodeChildren($this->schemaDef->getKeyScopeId($keyId), $self->getScope(), $keyId);
+		} else {
+			return $this->findRootNodes($keyId);
+		}
 	}
 
 	public function findAllDefects() {

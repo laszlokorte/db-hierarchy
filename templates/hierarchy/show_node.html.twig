@@ -10,15 +10,7 @@
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
-<a href="{{ path('edit_node', {key:key.id, id:node.id}) }}" title="">Edit</a>
-<a href="{{ path('ask_delete_node', {key:key.id, id:node.id}) }}" title="">Delete</a>
-
-{% if moveTargets is not null %}
-<h3>Move to</h3>
-
-{% include 'hierarchy/partials/movement.html.twig' with {key:key, node, moveTargets} only %}
-
-{% endif %}
+{% include 'hierarchy/partials/tabs.html.twig' with {key, node} only %}
 
 <h2>Edit</h2>
 

@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -145,7 +146,6 @@ class HierarchyController {
     {
     	return [
     		'key' => $this->schema->getKey($key),
-            'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
             'childNodes' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),
@@ -243,16 +243,74 @@ class HierarchyController {
     	}
     }
 
+    #[Route('/{key}/{id}/_move', name: 'ask_move_node', methods: 'GET')]
+    #[Template()]
+    public function askMoveNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    {
+        $k = $this->schema->getKey($key);
+        if(!$k->isNested()) {
+            throw new NotFoundHttpException(sprintf('%s are not nested', $k->getLabel()->getPlural()));
+        }
+
+        return [
+            'key' => $k,
+            'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key, $id),
+            'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
+            'rootKeys' => $this->schema->getRootKeys(),
+        ];
+    }
+
     #[Route('/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
     public function moveNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-    	list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
+        $k = $this->schema->getKey($key);
+        if(!$k->isNested()) {
+            throw new NotFoundHttpException(sprintf('%s are not nested', $k->getLabel()->getPlural()));
+        }
+
+        list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
         
-		$storageConnection->getCommander()->moveNode($key, $id, $scope?:null, $parent?:null);
+        $storageConnection->getCommander()->moveNode($key, $id, $scope?:null, $parent?:null);
 
-		$session->getFlashBag()->add('success', 'Node Moved');
+        $session->getFlashBag()->add('success', 'Node Moved');
 
-    	return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
+        return new RedirectResponse($urlGen->generate('ask_move_node', ['key' => $key, 'id' => $id]));
+    }
+
+    #[Route('/{key}/{id}/_order', name: 'ask_order_node', methods: 'GET')]
+    #[Template()]
+    public function askOrderNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    {
+        $k = $this->schema->getKey($key);
+        if(!$k->isOrdered()) {
+            throw new NotFoundHttpException(sprintf('%s are not ordered', $k->getLabel()->getPlural()));
+        }
+
+        return [
+            'key' => $this->schema->getKey($key),
+            'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key, $id),
+            'node' => $storageConnection->getFetcher()->findNode($key, $id),
+            'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
+            'rootKeys' => $this->schema->getRootKeys(),
+        ];
+    }
+
+    #[Route('/{key}/{id}/_order', name: 'order_node', methods: 'POST')]
+    public function orderNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    {
+
+        $k = $this->schema->getKey($key);
+        if(!$k->isOrdered()) {
+            throw new NotFoundHttpException(sprintf('%s are not ordered', $k->getLabel()->getPlural()));
+        }
+        
+        $target = $request->request->get('target_order');
+        $storageConnection->getCommander()->orderNode($key, $id, $target);
+
+        $session->getFlashBag()->add('success', 'Node Reordered');
+
+        return new RedirectResponse($urlGen->generate('ask_order_node', ['key' => $key, 'id' => $id]));
     }
 
     #[Route('/{key}/{id}', name: 'update_node', methods: 'POST')]

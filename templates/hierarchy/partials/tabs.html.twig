@@ -1,0 +1,9 @@
+<a href="{{ path('show_node', {key:key.id, id:node.id}) }}" title="">Show</a>
+<a href="{{ path('edit_node', {key:key.id, id:node.id}) }}" title="">Edit</a>
+<a href="{{ path('ask_delete_node', {key:key.id, id:node.id}) }}" title="">Delete</a>
+{% if key.nested %}
+<a href="{{ path('ask_move_node', {key:key.id, id:node.id}) }}" title="">Move</a>
+{% endif %}
+{% if key.ordered %}
+<a href="{{ path('ask_order_node', {key:key.id, id:node.id}) }}" title="">Reorder</a>
+{% endif %}
