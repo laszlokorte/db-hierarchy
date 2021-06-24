@@ -176,19 +176,20 @@ class HierarchyController {
 
 		$session->getFlashBag()->add('success', 'Node Deleted');
 
-		if($then === 'root') {
-			return new RedirectResponse($urlGen->generate('hierarchy_root'));
-		}
 
-		if($lastParent) {
-			if($then === 'list') {
+        if($then === 'list') {
+            if($lastParent) {
 				$args = array_merge($lastParent->pathArgs(), ['childKey' => $key]);
     			return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
 			} else {
-    			return new RedirectResponse($urlGen->generate('show_node', $lastParent->pathArgs()));
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
 			}
     	} else {
-    		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+            if($lastParent) {
+                return new RedirectResponse($urlGen->generate('show_node', $lastParent->pathArgs()));
+            } else {
+                return new RedirectResponse($urlGen->generate('hierarchy_root'));
+            }
     	}
     }
 
@@ -219,28 +220,36 @@ class HierarchyController {
 		
 		$session->getFlashBag()->add('success', 'Node Created');
 
-		if($then === 'new') {
-			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $newId]));
-		} elseif($then === 'root') {
-			return new RedirectResponse($urlGen->generate('hierarchy_root'));
-		}
-
-    	if($parent) {
-			if($then === 'list') {
-    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
-			} else {
-    			return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $parent]));
-			}
-    	} elseif($scope) {
-    		$parentKey = $key->getScopeKey()->getId();
-    		if($then === 'list') {
-    			return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
-			} else {
-    			return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
-			}
-    	} else {
-    		return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
-    	}
+		if($then === 'form') {
+            if($parent) {
+                return new RedirectResponse($urlGen->generate('new_child_node', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
+            } elseif ($scope) {
+                $parentKey = $key->getScopeKey()->getId();
+                return new RedirectResponse($urlGen->generate('new_child_node', ['key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
+            } else {
+                return new RedirectResponse($urlGen->generate('new_root_node', ['key' => $key->getId()]));
+            }
+        } elseif($then === 'new') {
+            return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $newId]));
+        } elseif($then === 'list') {
+			if($parent) {
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
+            } elseif ($scope) {
+                $parentKey = $key->getScopeKey()->getId();
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
+            } else {
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
+            }
+		} else {
+            if($parent) {
+                return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $parent]));
+            } elseif ($scope) {
+                $parentKey = $key->getScopeKey()->getId();
+                return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
+            } else {
+                return new RedirectResponse($urlGen->generate('hierarchy_root'));
+            }
+        }
     }
 
     #[Route('/{key}/{id}/_move', name: 'ask_move_node', methods: 'GET')]
@@ -310,7 +319,29 @@ class HierarchyController {
 
         $session->getFlashBag()->add('success', 'Node Reordered');
 
-        return new RedirectResponse($urlGen->generate('ask_order_node', ['key' => $key, 'id' => $id]));
+        $then = $request->request->get('_then', null);
+
+        if($then === 'list') {
+            $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
+
+            if($directParent) {
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $directParent->getKey(), 'id' => $directParent->getId(), 'childKey' => $key]));
+
+            } else {
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+            }
+        } elseif($then === 'parent') {
+            $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
+
+            if($directParent) {
+                return new RedirectResponse($urlGen->generate('show_node', ['key' => $directParent->getKey(), 'id' => $directParent->getId()]));
+
+            } else {
+                return new RedirectResponse($urlGen->generate('hierarchy_root'));
+            }
+        } else {
+            return new RedirectResponse($urlGen->generate('ask_order_node', ['key' => $key, 'id' => $id]));
+        }
     }
 
     #[Route('/{key}/{id}', name: 'update_node', methods: 'POST')]

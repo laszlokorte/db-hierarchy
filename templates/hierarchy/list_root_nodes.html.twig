@@ -10,7 +10,7 @@
 
 <h1>{{key.label.plural}}</h1>
 
-    {% include 'hierarchy/partials/form_new.html.twig' with {key} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {key, then:'list'} only %}
 
-    {% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key} only %}
+    {% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key, then:'list'} only %}
 {% endblock %}

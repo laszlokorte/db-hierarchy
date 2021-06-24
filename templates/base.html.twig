@@ -159,6 +159,24 @@
                 .color-invalid {
                     color: #a00;
                 }
+
+                .dragger {
+                    cursor: move;
+                }
+
+                .dragger::before {
+                    content: '☰';
+                }
+
+                .dragger.state-dragging {
+                    background: #eee;
+                    box-shadow: 0 0 4px #eeee;
+                    pointer-events: none;
+                }
+
+                .dragger:not(.state-dragging).state-over {
+                    background: #ffff88;
+                }
             </style>
         {% endblock %}
 

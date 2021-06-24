@@ -111,6 +111,8 @@ class Commander {
 		}
 
     	$this->connection->commit();
+
+    	return $newNodeId;
 	}
 
 	public function updateNode(string $keyId, string $nodeId, $fieldData) {
