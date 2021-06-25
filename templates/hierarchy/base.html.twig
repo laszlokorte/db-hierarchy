@@ -1,10 +1,12 @@
 {% extends 'base.html.twig' %}
 {% block html_body %}
 
-    <div style="display: grid; gap: 3em; grid-template-columns: 16em 60em; max-width: 80em; margin: 5em auto 5em; justify-content: center;">
+    <div style="display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center; padding: 0 1em">
 
         <nav class="site-nav">
-            <h1 class="site-title"><a class="stealth-link" href="{{ path('hierarchy_root') }}" title="">Hierarchy Manager</a></h1>
+            <a class="stealth-link" href="{{ path('hierarchy_root') }}" title="">
+            <h1 class="site-title">Hierarchy Manager</h1>
+            </a>
             <ul class="block-list">
                 {% for rootKey in rootKeys %}
                 <li><a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a></li>

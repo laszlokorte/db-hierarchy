@@ -36,12 +36,12 @@
 }
 
 .data-table-cell.empty {
-    text-align: center;
+    text-align: left;
     color: #aaa;
 }
 
 .data-table-cell.empty::before {
-    content: '-';
+    content: '---';
 }
 
 .data-table-head-cell {
@@ -606,6 +606,9 @@ details>.details-summary ~ * {
     margin: 0;
     text-decoration: none;
     font-size: 1.4em;
+    background-image: url("/favicon.svg");
+    background-repeat: no-repeat;
+    padding-left: 3em;
 }
 
 .site-section-title {

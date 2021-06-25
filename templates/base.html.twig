@@ -14,6 +14,8 @@
         {% block html_javascripts %}
             {#{{ encore_entry_script_tags('app') }}#}
         {% endblock %}
+
+        <link rel="icon" href="/favicon.svg">
         {% endblock %}
     </head>
     <body class="html-body">
@@ -33,7 +35,7 @@
                         json['nodes'].forEach(node => {
                             const opt = document.createElement('option')
                             opt.setAttribute('value', node.id);
-                            opt.appendChild(document.createTextNode(node.slug))
+                            opt.appendChild(document.createTextNode(`${node.slug} [${json['key']}-${node.id}]`))
                             options.appendChild(opt)
                         })
 

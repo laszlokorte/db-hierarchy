@@ -40,7 +40,7 @@
                 {% for nested in key.nestedKeys %}
                 <th class="data-table-head-cell spacer" align="center">{{ nested.label.plural }}</th>
                 {% endfor %}
-                <th class="data-table-head-cell spacer" align="right">Actions</th>
+                <th class="data-table-head-cell spacer" align="right" style="position: sticky; right: 0;padding-right: 0.5em;">Actions</th>
             </tr>
         </thead>
         {% if not nodeCollection.isEmpty %}
@@ -77,7 +77,7 @@
                             <a class="faded-link" href="{{ path('list_child_nodes', {key: key.id, id: nodeId,childKey:nested.id}) }}" title="{{ nested.label.plural }}">Show</a>
                         </td>
                         {% endfor %}
-                        <td class="data-table-cell actions" align="right">
+                        <td class="data-table-cell actions" align="right" style="position: sticky; right: 0;padding-right: 0.5em;">
                             {% if quickDelete|default(false) %}
                             <form class="inline-form" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
                                 {% if then is defined %}

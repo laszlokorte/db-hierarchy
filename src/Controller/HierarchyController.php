@@ -14,7 +14,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
 use Doctrine\DBAL\Connection;
 
-use App\Hierarchy\Repository;
 use App\Hierarchy\Schema\SchemaRoot;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
@@ -24,8 +23,7 @@ use App\Hierarchy\Data\NodePath;
 
 class HierarchyController {
 
-	public function __construct(Repository $hierarchyRepository, SchemaRoot $schema) {
-		$this->repo = $hierarchyRepository;
+	public function __construct(SchemaRoot $schema) {
 		$this->schema = $schema;
 	}
 	
