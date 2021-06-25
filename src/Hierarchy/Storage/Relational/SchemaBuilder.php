@@ -35,6 +35,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\Rank\RowNumber;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\ReferenceCoding;
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class SchemaBuilder {
 	private const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
@@ -120,17 +122,32 @@ class SchemaBuilder {
 		foreach ($this->fieldsColumns($keyId) as $fieldColumn) {
 			$columns[] = $this->fieldColumnToTableColumn($fieldColumn);
 			
-			if($fieldColumn->getStorageCoding()->isReference()) {
-				$targetKeyName = $fieldColumn->getStorageCoding()->getParameter();
+			if($fieldColumn->isReference()) {
+				$targetKeyName = $fieldColumn->getCoding()->getTarget();
 				$ownColumnName = $this->fieldColumnToname($fieldColumn);
 				$targetColumnName = $this->nodeTablePKName($keyId);
 
 				$targetTableName = $this->nodeTableName($targetKeyName);
 
+				switch ($fieldColumn->getCoding()->getCascade()) {
+					case ReferenceCoding::FOLLOW:
+						$onDelete = ForeignKey::CASCADE;
+						break;
+					case ReferenceCoding::CLEAR:
+						$onDelete = ForeignKey::SET_NULL;
+						break;
+					case ReferenceCoding::RESTRICT:
+						$onDelete = ForeignKey::RESTRICT;
+						break;
+					default:
+						throw new \Exception("Unexpected cascade value");
+				}
+
 				$foreignKeys[] = new ForeignKey(
 					[$ownColumnName], 
 					$targetTableName, 
-					[$targetColumnName]
+					[$targetColumnName],
+					$onDelete
 				);
 			}
 		}	
@@ -178,18 +195,18 @@ class SchemaBuilder {
 	private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition) {
 		return new TableColumn(
 			$this->fieldColumnToname($columnDefinition),
-			$this->storageCodingToSqlType($columnDefinition->getStorageCoding()),
+			$this->columnCodingToSqlType($columnDefinition->getCoding()),
 			$columnDefinition->isNullable(),
 			$columnDefinition->getDefault() !== null ?
 			new Constant($columnDefinition->getDefault()) : null
 		);
 	}
 
-	private function storageCodingToSqlType($storageCoding) {
-		if($storageCoding->isReference()) {
-			$targetKey = $storageCoding->getParameter();
+	private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding) {
+		if($storageCoding instanceof ReferenceCoding) {
+			$targetKey = $storageCoding->getTarget();
 
-			return $this->storageCodingToSqlType($this->schemaDef->getKeyIdentityColumn($targetKey)->getStorageCoding());
+			return $this->columnCodingToSqlType($this->schemaDef->getKeyIdentityColumn($targetKey)->getCoding());
 		} else {
 			return $storageCoding->getType();
 		}
@@ -281,12 +298,14 @@ class SchemaBuilder {
 			new ForeignKey(
 				array_merge($scopeColumnNames, [$childColumnName]), 
 				$targetTableName, 
-				array_merge($scopeColumnNames, [$targetColumnName])
+				array_merge($scopeColumnNames, [$targetColumnName]),
+				ForeignKey::CASCADE
 			),
 			new ForeignKey(
 				array_merge($scopeColumnNames, [$parentColumnName]), 
 				$targetTableName, 
-				array_merge($scopeColumnNames, [$targetColumnName])
+				array_merge($scopeColumnNames, [$targetColumnName]),
+				ForeignKey::CASCADE
 			)
 		];
 		

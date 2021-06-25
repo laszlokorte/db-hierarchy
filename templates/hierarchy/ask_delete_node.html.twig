@@ -16,43 +16,69 @@
 <h2>Delete</h2>
 
 <form action="{{ path('delete_node',{key: key.id, id:node.id}) }}" method="post" accept-charset="utf-8">
+    
+    {% if deletionPlan.willDelete[key.id]|length > 1 or deletionPlan.willDelete|length > 1 %}
+        <div class="warning-box">
+            <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
+            <p>Following nodes will also be deleted:</p>
 
+            <dl class="keyvalue-container">
+                {% for key, ids in deletionPlan.willDelete %}
+                    {% if ids|length %}
+                        <dt class="keyvalue-container-label top">{{key|capitalize}}s</dt>
+                        <dd class="keyvalue-container-field wide">
+                            <ul class="inline-list separator">
+                                {% for id in ids %}
+                                    <li><a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                    {% endif %}
+                {% endfor %}
+            </dl>
+        </div>
+        {% else %}
+            <div class="approve-box">This node does not have any child nodes.</div>
+        {% endif %}
+    
+    {% if deletionPlan.blockers|length %}
+        <div class="warning-box">
+            <h3 style="margin: 0">Node can not be deleted.</h3>
 
-    {% if willDelete[key.id]|length > 1 or willDelete|length > 1 %}
-    <div class="warning-box">
-        <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
-        <p>Following nodes will also be deleted:</p>
+            <p>
+                There are one or more references from other nodes to the nodes to be deleted. Please remove these references.
+            </p>
 
-        <dl class="keyvalue-container">
-            {% for key, ids in willDelete %}
-                {% if ids|length %}
-                    <dt class="keyvalue-container-label top">{{key|capitalize}}s</dt>
-                    <dd class="keyvalue-container-field wide">
-                        <ul class="inline-list separator">
-                            {% for id in ids %}
-                                <li><a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </dd>
-                {% endif %}
-            {% endfor %}
-        </dl>
-    </div>
+            <dl class="keyvalue-container">
+                {% for key, ids in deletionPlan.blockers %}
+                    {% if ids|length %}
+                        <dt class="keyvalue-container-label top">{{key|capitalize}}s</dt>
+                        <dd class="keyvalue-container-field wide">
+                            <ul class="inline-list separator">
+                                {% for id in ids %}
+                                    <li><a href="{{path('show_node',{key, id})}}">{{key}}-{{id}}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                    {% endif %}
+                {% endfor %}
+            </dl>
+        </div>
     {% else %}
-        <div class="approve-box">This node does not have any child nodes.</div>
+            <p>
+                Are you sure you want to delete this {{ key.label.singular }}?
+            </p>
+
+            <dl class="form-container">
+                <dt class="form-container-spacer"></dt>
+                <dd class="form-container-buttons">
+                    <button class="action-button danger">Yes, Delete!</button>
+                    <a class="link-button" href="{{ path('show_node', {key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
+                </dd>
+            </dl>
+
     {% endif %}
 
-
-    <p>
-        Are you sure you want to delete this {{ key.label.singular }}?
-    </p>
-
-    <dl class="form-container">
-        <dt class="form-container-spacer"></dt>
-        <dd class="form-container-buttons">
-            <button class="action-button danger">Yes, Delete!</button>
-            <a class="link-button" href="{{ path('show_node', {key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
-        </dd>
-    </dl>
+    
 </form>
 {% endblock %}

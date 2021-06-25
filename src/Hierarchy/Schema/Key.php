@@ -68,4 +68,11 @@ class Key {
 	public function isNested() {
 		return $this->def->isKeyNested($this->keyId);
 	}
+
+	public function getReferencingKeys() {
+		return array_map(
+			fn($k) => new Key($this->def, $k),
+			$this->def->getReferencingKeys($this->keyId)
+		);
+	}
 }

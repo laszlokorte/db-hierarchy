@@ -276,7 +276,7 @@
     margin: 0 auto 1em;
     text-align: center;
 
-    background-image: url("/favicon.svg");
+    background-image: var(--favicon-url);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: 0 50%;
@@ -556,6 +556,7 @@ body.show-quickform .quickform-inline {
     padding: 1em; 
     border: 1px solid darkred;
     background: #fee;
+    margin: 1em 0;
 }
 
 .approve-box {
@@ -629,7 +630,7 @@ details>.details-summary ~ * {
     margin: 0;
     text-decoration: none;
     font-size: 1.4em;
-    background-image: url("/favicon.svg");
+    background-image: var(--favicon-url);
     background-repeat: no-repeat;
     background-size: contain;
     padding-left: 3em;

@@ -8,6 +8,11 @@
            and uncomment the following Encore helpers to start using Symfony UX #}
         {% block html_stylesheets %}
             {#{{ encore_entry_link_tags('app') }}#}
+            <style>
+                :root {
+                    --favicon-url: url('{{path('favicon_svg')}}');
+                }
+            </style>
             <link rel="stylesheet" type="text/css" href="/style.css">
         {% endblock %}
 

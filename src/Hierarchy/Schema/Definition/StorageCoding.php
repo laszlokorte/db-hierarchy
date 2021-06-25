@@ -3,7 +3,6 @@
 namespace App\Hierarchy\Schema\Definition;
 
 class StorageCoding {
-	public const REFERENCE = 'REFERENCE';
 	public const STRING = 'STRING';
 	public const TEXT = 'TEXT';
 	public const INTEGER = 'INTEGER';
@@ -28,9 +27,5 @@ class StorageCoding {
 
 	public function getParameter() {
 		return $this->parameter;
-	}
-
-	public function isReference() {
-		return self::REFERENCE === $this->type;
 	}
 }

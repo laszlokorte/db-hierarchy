@@ -599,7 +599,7 @@ class Sqlite implements DialectInterface {
 		'(' . implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getTargetColumns()
-		)) . ') ' . PHP_EOL . $this->i() . 'ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED';
+		)) . ') ' . PHP_EOL . $this->i() . sprintf('ON UPDATE CASCADE ON DELETE %s DEFERRABLE INITIALLY DEFERRED', $fk->getOnDelete());
 	}
 
 

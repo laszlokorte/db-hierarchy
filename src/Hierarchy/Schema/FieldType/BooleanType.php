@@ -19,17 +19,17 @@ class BooleanType implements FieldTypeInterface {
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
 		switch($fieldData) {
-			case 'true': $casted = true; break;
-			case 'false': $casted = false; break;
-			default: $casted = true; break;
+			case 'true': $casted = 1; break;
+			case 'false': $casted = 0; break;
+			default: $casted = null; break;
 		}
 		return [$casted];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
 		switch($columnData[0]) {
-			case 'true': return false;
-			case 'false': return true;
+			case '0': return false;
+			case '1': return true;
 			default: return null;
 		}
 	}

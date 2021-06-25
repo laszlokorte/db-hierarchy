@@ -5,7 +5,7 @@ namespace App\Hierarchy\Schema\Definition;
 class ColumnDefinition {
 	public function __construct(
 		private string $name, 
-		private StorageCoding $storageCoding,
+		private StorageCoding|ReferenceCoding $coding,
 		private ?bool $nullable = false,
 		private ?string $default = null
 	) {
@@ -15,8 +15,12 @@ class ColumnDefinition {
 		return $this->name;
 	}
 
-	public function getStorageCoding() {
-		return $this->storageCoding;
+	public function getCoding() {
+		return $this->coding;
+	}
+
+	public function isReference() {
+		return $this->coding instanceof ReferenceCoding;
 	}
 
 	public function isNullable() {
@@ -32,6 +36,10 @@ class ColumnDefinition {
 	}
 
 	public function deriveSameWithName($columnName) {
-		return new self($columnName, $this->storageCoding, $this->nullable, $this->default);
+		return new self($columnName, $this->coding, $this->nullable, $this->default);
+	}
+
+	public function isReferencing($keyId) {
+		return $this->isReference() && $this->coding->isReferencing($keyId);
 	}
 }

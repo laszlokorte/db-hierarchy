@@ -24,11 +24,16 @@ class Installer {
 	}
 
 	public function createSchema($dropOld) {
+		$this->connection->executeStatement('PRAGMA foreign_keys=OFF;');
+
 		$this->connection->beginTransaction();
 
 		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
+		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
+			$this->connection->executeStatement($this->dialect->dropTableToString($t));
+		}
 		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
 			$this->connection->executeStatement($this->dialect->dropTableToString($t));
 		}
@@ -39,7 +44,9 @@ class Installer {
 		foreach ($this->schmaBuilder->getAllViews() as $v) {
 			$this->connection->executeStatement($this->dialect->createViewToString($v));
 		}
+
     	$this->connection->commit();
+		$this->connection->executeStatement('PRAGMA foreign_keys=ON;');
 	}
 
 	public function dropSchema() {

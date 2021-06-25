@@ -185,6 +185,21 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->getFieldOption($fieldId, $optionId);
 	}
 
+	public function getKeyFieldColumns($keyId, $fieldId) {
+		$fieldType = $this->getKeyFieldType($keyId, $fieldId);
+		$fieldOptions = $this->getKeyFieldOptions($keyId, $fieldId);
+		$required = $this->isKeyFieldRequired($keyId, $fieldId);
+
+		return $fieldType->getColumns($fieldId, $required, $fieldOptions);
+	}
+
+	public function convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData) {
+		$fieldType = $this->getKeyFieldType($keyId, $fieldId);
+		$fieldOptions = $this->getKeyFieldOptions($keyId, $fieldId);
+
+		return $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData);
+	}
+
 	public function getKeyFieldType($keyId, $fieldId) {
 		$fieldTypeId = $this->getKeyFieldTypeId($keyId, $fieldId);
 
@@ -210,5 +225,40 @@ class SchemaDefinition {
 
 	public function getKeyTableName($keyId) {
 		return $this->keys[$keyId]->getTableName();
+	}
+
+	public function isKeyReferencedByField($targetKey, $sourceKey, $fieldId) {
+		foreach ($this->getKeyFieldColumns($sourceKey, $fieldId) as $column) {
+			if($column->isReferencing($targetKey)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function isKeyReferencedBy($targetKey, $sourceKey) {
+		foreach ($this->getKeyFieldIds($sourceKey) as $fieldId) {
+			if($this->isKeyReferencedByField($targetKey, $sourceKey, $fieldId)) {
+				return true;
+			}
+		}
+	}
+
+	public function getReferencingKeys($targetKey) {
+		return array_filter($this->getAllKeyIds(), fn($keyId) => $this->isKeyReferencedBy($targetKey, $keyId));
+	}
+
+	public function getReferencingKeyColumns($targetKey, $sourceKey) {
+		$result = [];
+		foreach ($this->getKeyFieldIds($sourceKey) as $fieldId) {
+			foreach ($this->getKeyFieldColumns($sourceKey, $fieldId) as $column) {
+				if($column->isReferencing($targetKey)) {
+					$result[] = $column;
+				}
+			}
+		}
+
+		return $result;
 	}
 }

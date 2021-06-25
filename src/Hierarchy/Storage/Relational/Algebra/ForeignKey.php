@@ -3,10 +3,15 @@
 namespace App\Hierarchy\Storage\Relational\Algebra;
 
 class ForeignKey {
+	public const CASCADE = 'CASCADE';
+	public const RESTRICT = 'RESTRICT';
+	public const SET_NULL = 'SET NULL';
+
 	public function __construct(
 		private array $ownColumns,
 		private Identifier $foreignTable,
-		private array $targetColumns
+		private array $targetColumns,
+		private string $onDelete = 'CASCADE'
 	) {
 
 	}
@@ -21,5 +26,9 @@ class ForeignKey {
 
 	public function getTargetColumns() {
 		return $this->targetColumns;
+	}
+
+	public function getOnDelete() {
+		return $this->onDelete;
 	}
 }

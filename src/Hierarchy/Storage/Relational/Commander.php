@@ -51,12 +51,9 @@ class Commander {
 		}
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
-			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
+			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
+			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
 				$stmt->bindValue(
 					$this->dialect->parameterToString(new Parameter($column->getName())),
 					$columnData[$ci]
@@ -147,11 +144,15 @@ class Commander {
 	}
 
 	public function deleteNode(string $keyId, $nodeId) {
-		$deletionPlan = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
+		$deletionPlan = $this->getDeletionPlan($keyId, $nodeId);
+
+		if(!empty($deletionPlan['blockers'])) {
+			throw new \Exception("can not delete");
+		}
 
 		try {
 			$this->connection->beginTransaction();
-			foreach (array_reverse($deletionPlan) as $key => $nodeIds) {
+			foreach ($deletionPlan['willDelete'] as $key => $nodeIds) {
 				if(empty($nodeIds)) {
 					continue;
 				}
@@ -172,7 +173,22 @@ class Commander {
 		}
 	}
 
-	public function collectChildNodesByNodeIds(string $keyId, $nodeIds) {
+	public function getDeletionPlan($keyId, $nodeId) {
+		$willDelete = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
+
+        $blockers = $this->collectReferencedNodesByIds($keyId, [$nodeId]);
+
+        foreach ($willDelete as $willkey => $willIds) {
+            $blockers = array_merge($blockers, $this->collectReferencedNodesByIds($willkey, $willIds));
+        }
+
+        return [
+        	'willDelete' => array_reverse($willDelete),
+        	'blockers' => array_filter($blockers),
+        ];
+	}
+
+	private function collectChildNodesByNodeIds(string $keyId, $nodeIds) {
 		if(empty($nodeIds)) {
 			return [];
 		}
@@ -235,6 +251,33 @@ class Commander {
 		}
 
 		return $ids;
+	}
+
+	private function collectReferencedNodesByIds($keyId, $nodeIds) {
+		if(empty($nodeIds)) {
+			return [];
+		}
+
+		$result = [];
+		$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
+
+		foreach ($this->schemaDef->getAllKeyIds() as $refKey) {
+			$columns = $this->schemaDef->getReferencingKeyColumns($keyId, $refKey);
+			if(empty($columns)) {
+				continue;
+			}
+
+			$select = $this->commandBuilder->getSelectForReferencedNodes($refKey, $columns, $nodeIdParams);
+
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			foreach($nodeIdParams AS $i => $p) {
+				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+			}
+			$stmt->execute();
+			$result[$refKey] = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		}
+
+		return $result;
 	}
 
 	public function moveNode(string $keyId, $nodeId, $targetScopeId, $targetParentId) {

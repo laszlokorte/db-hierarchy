@@ -3,7 +3,7 @@
 namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
-use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\ReferenceCoding;
 
 class ReferenceType implements FieldTypeInterface {
 
@@ -12,8 +12,14 @@ class ReferenceType implements FieldTypeInterface {
 	}
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
+		if($required) {
+			$cascade = $fieldOptions['cascade']??false ? ReferenceCoding::FOLLOW : ReferenceCoding::RESTRICT; 
+		} else {
+			$cascade = $fieldOptions['cascade']??false ? ReferenceCoding::CLEAR : ReferenceCoding::RESTRICT;
+		}
+
 		return [
-			new ColumnDefinition($fieldId . '_ref', new StorageCoding(StorageCoding::REFERENCE, $fieldOptions['target']), !$required, null)
+			new ColumnDefinition($fieldId . '_ref', new ReferenceCoding($fieldOptions['target'], $cascade), !$required, null)
 		];
 	}
 

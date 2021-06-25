@@ -25,6 +25,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThanEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Disjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Subtraction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
@@ -90,11 +91,7 @@ class CommandBuilder  {
 		}
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
-			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-
-			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $column) {
+			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
 				$columns[] = $this->naming->fieldColumnToName($column);
 				$values[] = new Parameter($column->getName());
 			}
@@ -187,10 +184,7 @@ class CommandBuilder  {
 		$values = [];
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
-			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $column) {
+			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
 				$setters[] = new Setter(
 					new ColumnReference($table, $this->naming->fieldColumnToName($column)),
 					new Parameter($column->getName())
@@ -262,6 +256,23 @@ class CommandBuilder  {
 		return new Select([
 			new Projection(new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)))
 		], [$nodeTable], [], $condition);
+	}
+
+	public function getSelectForReferencedNodes(string $keyId, $columns, $idParams) {
+		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+
+		$conditions = [];
+
+		foreach ($columns as $col) {
+			$conditions[] = new ElementOf(
+				new ColumnReference($nodeTable, $this->naming->fieldColumnToName($col)),
+				$idParams
+			);
+		}
+		
+		return new Select([
+			new Projection(new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)))
+		], [$nodeTable], [], new AssociativeOperation(new Disjunction(), $conditions));
 	}
 
 
