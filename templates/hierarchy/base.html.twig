@@ -3,6 +3,18 @@
 
     <div style="display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center; padding: 0 1em">
 
+        {% for label, messages in app.flashes(['error','success']) %}
+            {% if messages %}
+            <div class="{{ html_classes('flash-message', label) }}" style="grid-column: 1 / -1; align-self: flex-start;">
+                <ul class="plain-list">
+                    {% for msg in messages %}
+                        <li>{{ msg }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        {% endfor %}
+
         <nav class="site-nav">
             <a class="stealth-link" href="{{ path('hierarchy_root') }}" title="">
             <h1 class="site-title">Hierarchy Manager</h1>
@@ -34,18 +46,6 @@
         </nav>
 
         <section>
-
-            {% for label, messages in app.flashes(['error','success']) %}
-                {% if messages %}
-                <div class="{{ html_classes('flash-message', label) }}" style="grid-column: 1 / -1; align-self: flex-start;">
-                    <ul class="plain-list">
-                        {% for msg in messages %}
-                            <li>{{ msg }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-            {% endfor %}
             {% block area_main %}
         
             {% endblock %}

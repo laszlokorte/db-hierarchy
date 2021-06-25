@@ -8,7 +8,8 @@ class LabelDefinition {
 		private $singular, 
 		private $plural = NULL, 
 		private $description = NULL, 
-		private $icon = NULL
+		private $icon = NULL, 
+		private $color = 'black'
 	) {
 		$this->plural = $plural ?? $singular . 's';
 	}
@@ -27,5 +28,9 @@ class LabelDefinition {
 
 	public function getIcon() {
 		return $this->icon;
+	}
+
+	public function getColor() {
+		return $this->color;
 	}
 }

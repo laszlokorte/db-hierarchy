@@ -385,7 +385,11 @@ class Commander {
 				$insertClosureParentsStmt->execute();
 			}
 
-			$this->repairKeyInternal($keyId);
+			// IMPROVE: instead of auto repair the transitive closure
+			// DROP all transitive edges pointing higher than nodeId AND
+			// CREATE transitive edges for all combinations of
+			// edges pointing TO nodeId x edges pointing FROM targetParentId
+			$this->repairKeyInternal($keyId, 100);
 		}
 
 		$this->connection->commit();
@@ -426,14 +430,15 @@ class Commander {
     	return $result;
 	}
 
-	private function repairKeyInternal(string $keyId) {
-		$retriesLeft = self::MAX_REPAIR_RETRIES;
+	private function repairKeyInternal(string $keyId, $maxRetries = self::MAX_REPAIR_RETRIES) {
+		$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
+		
 
-		while($retriesLeft-- > 0) {
-			$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
-			$affected = 0;
+		foreach ($commands as $label => $command) {
+			$retriesLeft = $maxRetries;
 
-			foreach ($commands as $label => $command) {
+			while($retriesLeft-- > 0) {
+				echo $retriesLeft;
 				switch (get_class($command)) {
 					case Insert::class:
 						$stmt = $this->connection->prepare($this->dialect->insertToString($command));
@@ -449,11 +454,15 @@ class Commander {
 					default: throw new \Exception("invalid command");
 				}
 				$stmt->execute();
-				$affected += $stmt->rowCount();
+
+				if($stmt->rowCount() < 1) {
+					break;
+				}
+
 			}
 
-			if($affected < 1) {
-				return;
+			if(!$retriesLeft) {
+				throw new \Exception('repair timed out');
 			}
 		}
 	}

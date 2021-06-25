@@ -171,7 +171,8 @@ class SchemaBuilder {
 			$foreignKeys[] = new ForeignKey(
 				[$ownColumnName], 
 				$targetTableName, 
-				[$targetColumnName]
+				[$targetColumnName],
+				ForeignKey::CASCADE
 			);
 		}
 
