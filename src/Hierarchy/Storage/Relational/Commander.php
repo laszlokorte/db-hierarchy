@@ -54,7 +54,7 @@ class Commander {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
 			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
+			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
 
 			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
 				$stmt->bindValue(
@@ -127,7 +127,7 @@ class Commander {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
 			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
+			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
 
 			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
 				$stmt->bindValue(

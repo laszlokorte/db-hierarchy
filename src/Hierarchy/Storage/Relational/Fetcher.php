@@ -34,6 +34,23 @@ class Fetcher {
 		);
 	}
 
+	public function findAllNodes(string $keyId) : Data\NodeCollection {
+		$select = $this->queryBuilder->getSelectForFindNodes($keyId, null, null);
+
+		$this->beginTransaction();
+		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+		$stmt->execute();
+    	$this->commitTransaction();
+		$rows = $stmt->fetchAllAssociativeIndexed();
+
+		return new Data\NodeCollection(
+			$keyId,
+			$rows,
+			NULL,
+			NULL
+		);
+	}
+
 	public function findAllRootNodes() : Data\MultiCollection {
 		$groupedRows = [];
 		

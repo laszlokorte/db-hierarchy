@@ -47,7 +47,7 @@ class QueryBuilder {
 		
 	}
 
-	public function getSelectForFindNodes(string $keyId, ValueInterface $scope, ValueInterface $parent) {
+	public function getSelectForFindNodes(string $keyId, ?ValueInterface $scope, ?ValueInterface $parent) {
 		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -64,19 +64,32 @@ class QueryBuilder {
 			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
 		));
 
-		$condition = new BinaryOperation(
-			new Conjunction(),
-			new BinaryOperation(
+		$conditionFragments = [];
+
+		if($scope !== null) {
+			$conditionFragments[] = new BinaryOperation(
 				new Equal(TRUE),
 				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
 				$scope
-			),
-			new BinaryOperation(
-				new Equal(TRUE),
-				new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
-				$parent
-			)
+			);
+		}
+
+		if($parent !== null) {
+			$conditionFragments[] = new BinaryOperation(
+			new Equal(TRUE),
+			new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
+			$parent
 		);
+		}
+		
+		
+		if(empty($conditionFragments)) {
+			$condition = NULL;
+		} else {
+			$condition = new AssociativeOperation(
+				new Conjunction(), $conditionFragments
+			);
+		}
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);

@@ -4,17 +4,19 @@
         {% if field.option('explicit') or not field.isRequired %}
         <option value="">---</option>
         {% endif %}
-        <option value="">A</option>
-        <option value="">B</option>
-        <option value="">C</option>
+        {% for value in field.option('values') %}
+            <option value="{{value}}">{{value}}</option>
+        {% endfor %}
     </select>
     {% else %}
-    <label><input type="radio" name="" value="">A</label>
-    <label><input type="radio" name="" value="">B</label>
-    <label><input type="radio" name="" value="">C</label>
-    {% if field.option('explicit') or not field.isRequired %}
-    <label><input type="radio" name="" value="">None</label>
-    {% endif %}
+    <ul class="form-choice-list">
+        {% for value in field.option('values') %}
+        <li class="form-choice-item"><label class="form-choice-label"><input type="radio"  name="field[{{field.id}}]" value="{{value}}">{{value}}<i class="marker"></i></label></li>
+        {% endfor %}
+        {% if field.option('explicit') or not field.isRequired %}
+        <li class="form-choice-item"><label class="form-choice-label"><input type="radio"  name="field[{{field.id}}]" value="">None<i class="marker"></i></label></li>
+        {% endif %}
+    </ul>
     {% endif %}
 {% endblock %}
 

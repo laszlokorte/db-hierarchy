@@ -8,14 +8,24 @@
             <option value="">NO</option>
         </select>
     {% elseif field.option('style') == 'check' and not field.option('explicit') %}
-        <input type="checkbox" name=""> YES
+        <ul class="form-choice-list">
+        <li class="form-choice-item">
+        <input type="hidden" name="field[{{field.id}}]" value="false">
+        <label class="form-choice-label">
+        <input type="checkbox" name="field[{{field.id}}]" value="true"> YES
+        <i class="marker"></i>
+        </label>
+        </li>
+        </ul>
     {% else %}
-        <label><input class="form-radio" type="radio" id="field_{{field.id}}" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == false %} checked{%endif%}> NO</label>
-        <label><input class="form-radio" type="radio" id="field_{{field.id}}" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == true %} checked{%endif%}> YES</label>
+        <ul class="form-choice-list">
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" id="field_{{field.id}}_true" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == false %} checked{%endif%}> NO<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" id="field_{{field.id}}_false" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == true %} checked{%endif%}> YES<i class="marker"></i></label></li>
 
         {% if field.option('explicit') or not field.isRequired %}
-        <label><input class="form-radio" type="radio" id="field_{{field.id}}" name="field[{{field.id}}]" {% if node is not defined or field.readValueOf(node) is null %} checked{%endif%}> Not set</label>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" id="field_{{field.id}}_null" name="field[{{field.id}}]" {% if node is not defined or field.readValueOf(node) is null %} checked{%endif%}> Not set<i class="marker"></i></label></li>
         {% endif %}
+        </ul>
     {% endif %}
 {% endblock %}
 

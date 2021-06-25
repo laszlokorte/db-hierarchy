@@ -102,6 +102,22 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('show_diagnosis'));
     }
 
+
+
+    #[Route('_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]
+    #[Template()]
+    public function listAllNodes(StorageConnection $storageConnection, $key)
+    {
+        $all = $storageConnection->getFetcher()->findAllNodes($key);
+        return new JsonResponse([
+            'key' => $key,
+            'nodes' => array_map(fn($id) => [
+                'id' => $id,
+                'slug' => $all->getNode($id)->getColumnValue('slug'),
+            ], $all->getIds()),
+        ]);
+    }
+
     #[Route('/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]
 	#[Template()]
     public function showNodeField(StorageConnection $storageConnection, $key, $id, $field)
@@ -214,6 +230,7 @@ class HierarchyController {
     	$key = $this->schema->getKey($key);
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
+        dump($request->request->get('field', []));
     	$newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
 		$then = $request->request->get('_then', null);
@@ -361,15 +378,6 @@ class HierarchyController {
 		} else {
     		return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
 		}
-    }
-
-    #[Route('_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]
-	#[Template()]
-    public function listAllNodes(StorageConnection $storageConnection, $key)
-    {
-    	return new JsonResponse([
-    		$key => $storageConnection->getFetcher()->findAllNodes($key)
-    	]);
     }
 
     #[Route('/{key}', name: 'list_root_nodes', methods: 'GET')]

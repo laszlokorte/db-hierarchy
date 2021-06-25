@@ -1,138 +1,140 @@
-<table class="data-table">
-    <caption class="data-table-caption">List of {{key.label.plural}}</caption>
-    <colgroup>
-    {% if key.ordered %}
-    <col class="data-table-col" />
-    {% endif %}
-    <col class="data-table-col" />
-    </colgroup>
-    {% if key.fields %}
-    <colgroup>
-        {% for field in key.fields %}
+<div class="data-table-scroller">
+    <table class="data-table">
+        <caption class="data-table-caption">List of {{key.label.plural}}</caption>
+        <colgroup>
+        {% if key.ordered %}
         <col class="data-table-col" />
-        {% endfor %}
-    </colgroup>
-    {% endif %}
-    <colgroup>
-    <col class="data-table-col" />
-    </colgroup>
-    {% if key.nestedKeys %}
-    <colgroup>
-        {% for nested in key.nestedKeys %}
+        {% endif %}
         <col class="data-table-col" />
-        {% endfor %}
-    </colgroup>
-    {% endif %}
-    <colgroup>
-    <col class="data-table-col" />
-    </colgroup>
-    <thead class="data-table-head">
-        <tr class="data-table-head-row">
-            {% if key.ordered %}
-            <th class="data-table-head-cell" width="5%">Sort</th>
-            {% endif %}
-            <th class="data-table-head-cell">ID</th>
+        </colgroup>
+        {% if key.fields %}
+        <colgroup>
             {% for field in key.fields %}
-            <th class="data-table-head-cell">{{ field.label.singular }}</th>
+            <col class="data-table-col" />
             {% endfor %}
-            <th class="data-table-head-cell" width="50%"></th>
+        </colgroup>
+        {% endif %}
+        <colgroup>
+        <col class="data-table-col" />
+        </colgroup>
+        {% if key.nestedKeys %}
+        <colgroup>
             {% for nested in key.nestedKeys %}
-            <th class="data-table-head-cell spacer" align="center">{{ nested.label.plural }}</th>
+            <col class="data-table-col" />
             {% endfor %}
-            <th class="data-table-head-cell spacer" align="right">Actions</th>
-        </tr>
-    </thead>
-    {% if not nodeCollection.isEmpty %}
-    	<tbody class="data-table-body">
-            {% for nodeId in nodeCollection.ids %}
-                <tr class="data-table-row">
-                    {% if key.ordered %}
-                        <td class="data-table-cell">
-                            <div data-order="{{nodeCollection.order(nodeId)}}" data-url="{{url('order_node',{key:key.id, id:nodeId})}}" class="dragger" draggable="true" ondragstart="event.dataTransfer.setData('myurl', this.dataset.url);this.classList.add('state-dragging')" ondragend="this.classList.remove('state-dragging')" ondragover="this.classList.add('state-over');event.preventDefault()" ondragleave="this.classList.remove('state-over')" ondrop="this.classList.remove('state-over');
-                                let fd = new FormData();
-                                fd.append('target_order', this.dataset.order);
-                                fd.append('_then', '{{then}}');
-                                fetch(event.dataTransfer.getData('myurl'), {
-                                  method: 'POST',
-                                  body: fd
-                                }).then((r) => {if(r.url != window.location.href) {
-                                    window.location.href = r.url
-                                } else {
-                                    window.location.reload()
-                                }})
-                            ">
-                            </div>
-                        </td>
-                    {% endif %}
-                    <td class="data-table-cell type-id"><a href="{{ path('show_node', {key: key.id, id: nodeId}) }}">{{ nodeId }}</a></td>
-                    {% for field in key.fields %}
-                        <td class="{{ html_classes('data-table-cell', {'empty': not field.hasValue(nodeCollection.getNode(nodeId))}) }}">
-                        {{ block('cell', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
-                        </td>
-                    {% endfor %}
-                    <td></td>
-                    {% for nested in key.nestedKeys %}
-                    <td class="data-table-cell" align="center">
-                        <a class="faded-link" href="{{ path('list_child_nodes', {key: key.id, id: nodeId,childKey:nested.id}) }}" title="{{ nested.label.plural }}">Show</a>
-                    </td>
-                    {% endfor %}
-                    <td class="data-table-cell actions" align="right">
-                        {% if quickDelete|default(false) %}
-                        <form class="inline-form" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
-                            {% if then is defined %}
-                            <input type="hidden" name="_then" value="{{then}}">
-                            {% endif %}
-                            <button class="inline-button">X</button>
-                        </form>
-                        {% else %}
-                        <form class="inline-form quickform-inline" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
-                            {% if then is defined %}
-                            <input type="hidden" name="_then" value="{{then}}">
-                            {% endif %}
-                            <button class="inline-button">X</button>
-                        </form>
-                        <a href="{{ path('ask_delete_node', {key: key.id, id: nodeId}) }}" title="">Delete</a>
+        </colgroup>
+        {% endif %}
+        <colgroup>
+        <col class="data-table-col" />
+        </colgroup>
+        <thead class="data-table-head">
+            <tr class="data-table-head-row">
+                {% if key.ordered %}
+                <th class="data-table-head-cell" width="5%">Sort</th>
+                {% endif %}
+                <th class="data-table-head-cell">ID</th>
+                {% for field in key.fields %}
+                <th class="data-table-head-cell">{{ field.label.singular }}</th>
+                {% endfor %}
+                <th class="data-table-head-cell" width="50%"></th>
+                {% for nested in key.nestedKeys %}
+                <th class="data-table-head-cell spacer" align="center">{{ nested.label.plural }}</th>
+                {% endfor %}
+                <th class="data-table-head-cell spacer" align="right">Actions</th>
+            </tr>
+        </thead>
+        {% if not nodeCollection.isEmpty %}
+            <tbody class="data-table-body">
+                {% for nodeId in nodeCollection.ids %}
+                    <tr class="data-table-row">
+                        {% if key.ordered %}
+                            <td class="data-table-cell">
+                                <div data-order="{{nodeCollection.order(nodeId)}}" data-url="{{url('order_node',{key:key.id, id:nodeId})}}" class="dragger" draggable="true" ondragstart="event.dataTransfer.setData('myurl', this.dataset.url);this.classList.add('state-dragging')" ondragend="this.classList.remove('state-dragging')" ondragover="this.classList.add('state-over');event.preventDefault()" ondragleave="this.classList.remove('state-over')" ondrop="this.classList.remove('state-over');
+                                    let fd = new FormData();
+                                    fd.append('target_order', this.dataset.order);
+                                    fd.append('_then', '{{then}}');
+                                    fetch(event.dataTransfer.getData('myurl'), {
+                                      method: 'POST',
+                                      body: fd
+                                    }).then((r) => {if(r.url != window.location.href) {
+                                        window.location.href = r.url
+                                    } else {
+                                        window.location.reload()
+                                    }})
+                                ">
+                                </div>
+                            </td>
                         {% endif %}
-                        <a href="{{ path('edit_node', {key: key.id, id: nodeId}) }}" title="">Edit</a>
-                    </td>
-                </tr>
-            {% endfor %}
+                        <td class="data-table-cell type-id"><a href="{{ path('show_node', {key: key.id, id: nodeId}) }}">{{ nodeId }}</a></td>
+                        {% for field in key.fields %}
+                            <td class="{{ html_classes('data-table-cell', {'empty': not field.hasValue(nodeCollection.getNode(nodeId))}) }}">
+                            {{ block('cell', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
+                            </td>
+                        {% endfor %}
+                        <td></td>
+                        {% for nested in key.nestedKeys %}
+                        <td class="data-table-cell" align="center">
+                            <a class="faded-link" href="{{ path('list_child_nodes', {key: key.id, id: nodeId,childKey:nested.id}) }}" title="{{ nested.label.plural }}">Show</a>
+                        </td>
+                        {% endfor %}
+                        <td class="data-table-cell actions" align="right">
+                            {% if quickDelete|default(false) %}
+                            <form class="inline-form" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
+                                {% if then is defined %}
+                                <input type="hidden" name="_then" value="{{then}}">
+                                {% endif %}
+                                <button class="inline-button">X</button>
+                            </form>
+                            {% else %}
+                            <form class="inline-form quickform-inline" action="{{ path('delete_node', {key: key.id, id: nodeId}) }}" method="post" accept-charset="utf-8">
+                                {% if then is defined %}
+                                <input type="hidden" name="_then" value="{{then}}">
+                                {% endif %}
+                                <button class="inline-button">X</button>
+                            </form>
+                            <a href="{{ path('ask_delete_node', {key: key.id, id: nodeId}) }}" title="">Delete</a>
+                            {% endif %}
+                            <a href="{{ path('edit_node', {key: key.id, id: nodeId}) }}" title="">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
 
-    	</tbody>
-    {% else %}
-		<tbody>
-            <tr class="data-table-empty-row">
+            </tbody>
+        {% else %}
+            <tbody>
+                <tr class="data-table-empty-row">
+                    {% if parent is defined %}
+                    <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">Empty<br><a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">Add first {{key.label.singular}}</a>
+                    </td>
+                    {% else %}
+                    <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">Empty<br><a href="{{ path('new_root_node', {key: key.id}) }}" title="">Add first {{key.label.singular}}</a>
+                    </td>
+                    {% endif %}
+                </tr>
+            </tbody>
+        {% endif %}
+        <tfoot class="data-table-foot">
+            <tr class="data-table-foot-row">
                 {% if parent is defined %}
-                <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">Empty<br><a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">Add first {{key.label.singular}}</a>
-				</td>
+                    <td class="data-table-foot-cell" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
+                    {% if listLink|default(false) %}
+                        <a href="{{ path('list_child_nodes', parent|merge({childKey: key.id})) }}" title="">Show {{key.label.singular}}s</a>
+                    {% endif %}
+                    </td>
+                    <td class="data-table-foot-cell" align="right" colspan="{{key.nestedKeys|length + 2 }}"  style="position: sticky; right: 0;padding-right: 0.5em;">
+                        <a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">New {{key.label.singular}}</a>
+                    </td>
                 {% else %}
-                <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">Empty<br><a href="{{ path('new_root_node', {key: key.id}) }}" title="">Add first {{key.label.singular}}</a>
-                </td>
+                    <td class="data-table-foot-cell" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
+                    {% if listLink|default(false) %}
+                        <a href="{{ path('list_root_nodes', {key: key.id}) }}" title="">Show {{key.label.singular}}s</a>
+                    {% endif %} 
+                    </td>
+                    <td class="data-table-foot-cell" colspan="{{key.nestedKeys|length + 2 }}"  style="position: sticky; right: 0;padding-right: 0.5em;" align="right">
+                        <a href="{{ path('new_root_node', {key: key.id}) }}" title="">New {{key.label.singular}}</a>
+                    </td>
                 {% endif %}
             </tr>
-		</tbody>
-    {% endif %}
-    <tfoot class="data-table-foot">
-    	<tr class="data-table-foot-row">
-        	{% if parent is defined %}
-                <td class="data-table-foot-cell" colspan="{{ key.fields|length + 2 + (key.ordered?1:0) }}">
-                {% if listLink|default(false) %}
-                    <a href="{{ path('list_child_nodes', parent|merge({childKey: key.id})) }}" title="">Show {{key.label.singular}}s</a>
-                {% endif %}
-                </td>
-                <td class="data-table-foot-cell" align="right" colspan="{{key.nestedKeys|length + 1 }}">
-                    <a href="{{ path('new_child_node', parent|merge({childKey: key.id})) }}" title="">New {{key.label.singular}}</a>
-                </td>
-            {% else %}
-                <td class="data-table-foot-cell" colspan="{{ key.fields|length + 2 + (key.ordered?1:0) }}">
-                {% if listLink|default(false) %}
-                    <a href="{{ path('list_root_nodes', {key: key.id}) }}" title="">Show {{key.label.singular}}s</a>
-                {% endif %} 
-                </td>
-                <td class="data-table-foot-cell" colspan="{{key.nestedKeys|length + 1 }}" align="right">
-                    <a href="{{ path('new_root_node', {key: key.id}) }}" title="">New {{key.label.singular}}</a>
-                </td>
-            {% endif %}
-        </tr>
-    </tfoot>
-</table>
+        </tfoot>
+    </table>
+</div>
