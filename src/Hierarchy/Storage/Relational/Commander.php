@@ -389,6 +389,16 @@ class Commander {
 			// DROP all transitive edges pointing higher than nodeId AND
 			// CREATE transitive edges for all combinations of
 			// edges pointing TO nodeId x edges pointing FROM targetParentId
+
+			// SELECT bad.child_id, bad.parent_id, bad.depth FROM site_closure ok 
+			// LEFT JOIN site_closure bad ON bad.child_id=ok.child_id
+			// WHERE ok.parent_id=3 and ok.depth < bad.depth
+
+			// SELECT low.child_id,
+			//  high.parent_id, 
+			//  low.depth + high.depth + 1
+			// FROM site_closure low, site_closure high
+			// WHERE low.parent_id = 1 AND high.child_id=2
 			$this->repairKeyInternal($keyId, 100);
 		}
 
