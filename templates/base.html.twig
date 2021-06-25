@@ -35,7 +35,7 @@
                 el.placeholder = 'loading...';
                 window.fetch(el.dataset.referenceUrl).then((response) => {
                     response.json().then((json) => {
-                        if(el.dataset.style === 'expanded' && json['nodes'].length < 10) {
+                        if(el.dataset.style === 'expanded' && json['nodes'].length < el.dataset.expandLimit) {
                             const options = document.createDocumentFragment();
 
                             if(el.dataset.explicit !== false || !el.required) {

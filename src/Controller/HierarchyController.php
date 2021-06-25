@@ -228,7 +228,6 @@ class HierarchyController {
     	$key = $this->schema->getKey($key);
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
-        dump($request->request->get('field', []));
     	$newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
 		$then = $request->request->get('_then', null);

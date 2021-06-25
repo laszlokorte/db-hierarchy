@@ -513,8 +513,6 @@ class Sqlite implements DialectInterface {
 			$this->outdent();
 		}
 
-		dump($update);
-
 		return $query;
 	}
 

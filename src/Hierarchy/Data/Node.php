@@ -40,7 +40,6 @@ class Node {
 	}
 
 	public function joinedColumnValues() {
-		dump(array_filter($this->columns, fn($k) => str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY));
 		return implode(', ', array_filter(array_filter($this->columns, fn($k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY)));
 	}
 

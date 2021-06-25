@@ -38,8 +38,6 @@ class FileType implements FieldTypeInterface {
 			return null;
 		}
 
-		dump($columnData);
-
 		return array_combine([
 			'size',
 			'path',

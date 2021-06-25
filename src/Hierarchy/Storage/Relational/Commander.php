@@ -353,7 +353,6 @@ class Commander {
 		$orderParam = new Parameter('_order');
 
 		if(empty($targetPosition)) {
-			dump($targetPosition);
 			throw new \Exception("target position must not be empty");
 		}
 

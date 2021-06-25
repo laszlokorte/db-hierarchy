@@ -14,7 +14,7 @@
 
 .data-table {
     min-width: 100%;
-    border-collapse: collapse;
+    border-spacing: 0;
 }
 
 .data-table-caption {
@@ -29,7 +29,7 @@
     padding: 3px;
 }
 
-.data-table-cell.type-id::before {
+.type-id::before {
     content: '#';
     font-size: 0.8em;
     color: #aaa;
@@ -267,14 +267,24 @@
 
 .prompt-box {
     border: 1px solid #eee;
-    padding: 2em 2em 1em;
+    padding: 2em 2em 1.5em;
     background: #fff;
     box-shadow: 0em 1em 4em -0.5em #0004;
 }
 
 .prompt-titel {
-    margin: 0 0 1em;
+    margin: 0 auto 1em;
     text-align: center;
+
+    background-image: url("/favicon.svg");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: 0 50%;
+    padding-left: 1.5em;
+    padding-top: 1em;
+    width: min-content;
+    color:  #012;
+    white-space: nowrap;
 }
 
 .prompt-container {
@@ -621,6 +631,7 @@ details>.details-summary ~ * {
     font-size: 1.4em;
     background-image: url("/favicon.svg");
     background-repeat: no-repeat;
+    background-size: contain;
     padding-left: 3em;
 }
 
@@ -641,10 +652,11 @@ details>.details-summary ~ * {
 
 .form-choice-list {
     display: flex;
+    flex-wrap: wrap;
     list-style: none;
     padding: 0;
     margin: 0;
-    gap:  0.5em;
+    gap: 0.1em 0.5em;
 }
 
 .form-choice-label {
