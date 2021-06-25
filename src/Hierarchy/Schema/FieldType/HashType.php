@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class HashType implements FieldTypeInterface {
 
@@ -11,7 +12,9 @@ class HashType implements FieldTypeInterface {
 	}
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
-		return [];
+		return [
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::BINARY), !$required, null)
+		];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {

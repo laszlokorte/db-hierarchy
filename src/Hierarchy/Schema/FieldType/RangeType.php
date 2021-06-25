@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class RangeType implements FieldTypeInterface {
 

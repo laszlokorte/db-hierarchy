@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class StringType implements FieldTypeInterface {
 
@@ -13,7 +14,9 @@ class StringType implements FieldTypeInterface {
 	}
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
-		return [new ColumnDefinition($fieldId, 'VARCHAR', true, null)];
+		return [
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::TEXT), !$required, null)
+		];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {

@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class DateTimeType implements FieldTypeInterface {
 
@@ -15,7 +16,9 @@ class DateTimeType implements FieldTypeInterface {
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [];
+		return [
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::DATETIME), !$required, null)
+		];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {

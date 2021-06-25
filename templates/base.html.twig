@@ -121,10 +121,11 @@
 
                 .form-container-label {
                     display: flex;
-                    align-items: center;
+                    align-items: start;
+                    padding-top: 0.5em;
                     justify-content: end;
                     grid-column: 1;
-                    margin-right: 2em;
+                    margin-right: 1em;
                 }
 
                 .form-container-label.dense {
@@ -489,11 +490,19 @@
                     min-width: 15em;
                 }
 
+                .form-field.compact {
+                    width: min-content;
+                }
+
                 .form-select {
                     padding:  0.7em;
                     display: block;
                     width: 100%;
                     box-sizing: border-box;
+                }
+
+                .form-select.compact {
+                    width: min-content;
                 }
 
                 .inline-list {

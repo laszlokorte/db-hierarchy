@@ -5,8 +5,8 @@
     <dt class="keyvalue-container-label">
     <span class="keyvalue-label" for="field_{{field.id}}">{{field.label.singular}}</span>
     </dt>
-    <dd class="{{ html_classes('keyvalue-container-field', {'empty': field.readValueOf(node) is empty}) }}">
-    {{field.readValueOf(node)}}
+    <dd class="{{ html_classes('keyvalue-container-field', {'empty': not field.hasValue(node)}) }}">
+    {{ block('display', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
 	</dd><dd class="keyvalue-container-field">
     <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
 	</dd>

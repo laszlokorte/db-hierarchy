@@ -1,0 +1,28 @@
+{% block field %}
+    {% if field.option('style') == 'compact' %}
+    <select class="form-field compact">
+        {% if field.option('explicit') or not field.isRequired %}
+        <option value="">---</option>
+        {% endif %}
+        <option value="">A</option>
+        <option value="">B</option>
+        <option value="">C</option>
+    </select>
+    {% else %}
+    <label><input type="radio" name="" value="">A</label>
+    <label><input type="radio" name="" value="">B</label>
+    <label><input type="radio" name="" value="">C</label>
+    {% if field.option('explicit') or not field.isRequired %}
+    <label><input type="radio" name="" value="">None</label>
+    {% endif %}
+    {% endif %}
+{% endblock %}
+
+
+{% block cell %}
+    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+{% endblock %}
+
+{% block display %}
+    {{field.readValueOf(node)}}
+{% endblock %}

@@ -106,4 +106,8 @@ class KeyDefinition {
 	public function getFieldOptions($fieldId) {
 		return $this->fields[$fieldId]->getOptions();
 	}
+
+	public function getFieldOption($fieldId, $optionId) {
+		return $this->fields[$fieldId]->getOption($optionId);
+	}
 }

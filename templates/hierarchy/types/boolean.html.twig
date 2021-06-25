@@ -1,0 +1,29 @@
+{% block field %}
+    {% if field.option('style') == 'compact' %}
+        <select name="" class="form-field compact">
+            {% if field.option('explicit') or not field.isRequired %}
+            <option value="">not set</option>
+            {% endif %}
+            <option value="">YES</option>
+            <option value="">NO</option>
+        </select>
+    {% elseif field.option('style') == 'check' and not field.option('explicit') %}
+        <input type="checkbox" name=""> YES
+    {% else %}
+        <label><input class="form-radio" type="radio" id="field_{{field.id}}" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == false %} checked{%endif%}> NO</label>
+        <label><input class="form-radio" type="radio" id="field_{{field.id}}" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == true %} checked{%endif%}> YES</label>
+
+        {% if field.option('explicit') or not field.isRequired %}
+        <label><input class="form-radio" type="radio" id="field_{{field.id}}" name="field[{{field.id}}]" {% if node is not defined or field.readValueOf(node) is null %} checked{%endif%}> Not set</label>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+
+{% block cell %}
+    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+{% endblock %}
+
+{% block display %}
+    {{field.readValueOf(node)}}
+{% endblock %}

@@ -10,6 +10,11 @@ class StorageCoding {
 	public const FLOAT = 'FLOAT';
 	public const DECIMAL = 'DECIMAL';
 	public const BOOL = 'BOOL';
+	public const TIME = 'TIME';
+	public const DATETIME = 'DATETIME';
+	public const DATE = 'DATE';
+	public const BINARY = 'BINARY';
+	public const ENUM = 'ENUM';
 
 	public function __construct(
 		private string $type, 

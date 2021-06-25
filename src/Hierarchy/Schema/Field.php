@@ -35,6 +35,10 @@ class Field {
 		return $this->def->isKeyFieldUnique($this->keyId, $this->fieldId);
 	}
 
+	public function getOption($name) {
+		return $this->def->getKeyFieldOption($this->keyId, $this->fieldId, $name);
+	}
+
 	public function readValueOf(Node $node) {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);

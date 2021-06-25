@@ -1,8 +1,12 @@
 {% block field %}
-    <input class="form-field" type="file" id="field_{{field.id}}" name="field[{{field.id}}]">
+    <input class="form-field compact" type="file" id="field_{{field.id}}" name="field[{{field.id}}]">
 {% endblock %}
 
 
 {% block cell %}
     {{field.readValueOf(nodeCollection.getNode(nodeId)).name|default('')}}
+{% endblock %}
+
+{% block display %}
+    {{field.readValueOf(node).name|default('')}}
 {% endblock %}

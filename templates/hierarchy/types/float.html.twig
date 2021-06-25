@@ -1,5 +1,5 @@
 {% block field %}
-    <textarea class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]">{{node is defined ? field.readValueOf(node) : ''}}</textarea>
+    <input class="form-field compact" type="number" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{node is defined ? field.readValueOf(node) : ''}}">
 {% endblock %}
 
 
