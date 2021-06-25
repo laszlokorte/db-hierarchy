@@ -20,6 +20,6 @@ class StorageDefinition {
 	}
 
 	public function getIdColumn() {
-		return new ColumnDefinition($this->pkColumn, 'INTEGER', false, null);
+		return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::INTEGER), false, null);
 	}
 }

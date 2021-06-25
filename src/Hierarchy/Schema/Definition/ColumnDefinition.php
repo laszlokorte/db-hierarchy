@@ -5,7 +5,7 @@ namespace App\Hierarchy\Schema\Definition;
 class ColumnDefinition {
 	public function __construct(
 		private string $name, 
-		private string $storageCoding,
+		private StorageCoding $storageCoding,
 		private ?bool $nullable = false,
 		private ?string $default = null
 	) {

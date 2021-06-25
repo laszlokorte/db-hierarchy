@@ -134,7 +134,7 @@ class Loader {
 				new StorageDefinition('upload'),
 				new LabelDefinition('Upload'),
 				null, null, null, [
-					'file' => new FieldDefinition(new LabelDefinition('File'), 'file', true, false),
+					'file' => new FieldDefinition(new LabelDefinition('File'), 'file', false, false),
 				]
 			),
 			'grid' => new KeyDefinition(
@@ -158,10 +158,38 @@ class Loader {
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'text', true, false),
 				]
 			),
+			'link' => new KeyDefinition(
+				new StorageDefinition('link'),
+				new LabelDefinition('Link'),
+				null, null, null, [
+					'site' => new FieldDefinition(new LabelDefinition('Site'), 'reference', true, false, ['target' => 'site']),
+				]
+			),
 		],
 		[
 			'text' => new FieldType\TextType(),
 			'file' => new FieldType\FileType(),
+			'reference' => new FieldType\ReferenceType(),
+
+			'bool' => new FieldType\BooleanType(),
+			'date' => new FieldType\DateType(),
+			'dateTime' => new FieldType\DateTimeType(),
+			'decimal' => new FieldType\DecimalType(),
+			'enum' => new FieldType\EnumType(),
+			'float' => new FieldType\FloatType(),
+			'hash' => new FieldType\HashType(),
+			'integer' => new FieldType\IntegerType(),
+			'json' => new FieldType\JsonType(),
+			'string' => new FieldType\StringType(),
+			'time' => new FieldType\TimeType(),
+
+
+			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
+			'dateRange' => new FieldType\RangeType(new FieldType\DateType()),
+			'dateTimeRange' => new FieldType\RangeType(new FieldType\DateTimeType()),
+			'integerRange' => new FieldType\RangeType(new FieldType\IntegerType()),
+			'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
+			'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
 		]);
 	}
 }

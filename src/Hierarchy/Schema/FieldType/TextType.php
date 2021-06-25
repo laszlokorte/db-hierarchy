@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class TextType implements FieldTypeInterface {
 
@@ -12,8 +13,10 @@ class TextType implements FieldTypeInterface {
 		$this->config = $config;
 	}
 
-	public function getColumns(string $fieldId, array $fieldOptions) {
-		return [new ColumnDefinition($fieldId, 'TEXT', true, null)];
+	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
+		return [
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::TEXT), !$required, null)
+		];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
@@ -30,6 +33,10 @@ class TextType implements FieldTypeInterface {
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
 
+	}
+
+	public function getTemplateName(string $fieldId, array $fieldOptions) {
+		return 'text';
 	}
 
 }

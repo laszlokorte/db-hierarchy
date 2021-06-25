@@ -81,7 +81,8 @@ class QueryBuilder {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$columns = $type->getColumns($fieldId, $options);
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $required, $options);
 
 			foreach ($columns AS $column) {
 				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
@@ -125,7 +126,8 @@ class QueryBuilder {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$columns = $type->getColumns($fieldId, $options);
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $required, $options);
 
 			foreach ($columns AS $column) {
 				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
@@ -186,7 +188,8 @@ class QueryBuilder {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$columns = $type->getColumns($fieldId, $options);
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $required, $options);
 
 			foreach ($columns AS $column) {
 				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
@@ -222,7 +225,8 @@ class QueryBuilder {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$columns = $type->getColumns($fieldId, $options);
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+			$columns = $type->getColumns($fieldId, $required, $options);
 
 			foreach ($columns AS $column) {
 				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
@@ -245,7 +249,8 @@ class QueryBuilder {
 
 		$type = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 		$options  = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-		$columns = $type->getColumns($fieldId, $options);
+		$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+		$columns = $type->getColumns($fieldId, $required, $options);
 
 		foreach ($columns AS $column) {
 			$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));

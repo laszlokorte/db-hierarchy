@@ -597,7 +597,7 @@ class Sqlite implements DialectInterface {
 		return 'FOREIGN KEY('. implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getOwnColumns()
-		)) .')' . 'REFERENCES ' . $this->escapeIdentifier($fk->getForeignTable()) . 
+		)) .')' . ' REFERENCES ' . $this->escapeIdentifier($fk->getForeignTable()) . 
 		'(' . implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getTargetColumns()

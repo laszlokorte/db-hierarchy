@@ -92,7 +92,9 @@ class CommandBuilder  {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $column) {
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+
+			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $column) {
 				$columns[] = $this->naming->fieldColumnToName($column);
 				$values[] = new Parameter($column->getName());
 			}
@@ -187,7 +189,8 @@ class CommandBuilder  {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $column) {
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $column) {
 				$setters[] = new Setter(
 					new ColumnReference($table, $this->naming->fieldColumnToName($column)),
 					new Parameter($column->getName())

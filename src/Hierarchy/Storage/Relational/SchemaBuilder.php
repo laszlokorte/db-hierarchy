@@ -100,6 +100,7 @@ class SchemaBuilder {
 
 		
 		$uniques = [];
+		$foreignKeys = [];
 
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$columns[] = $this->fieldColumnToTableColumn($this->schemaDef->getKeyOrderColumn($keyId));
@@ -118,6 +119,20 @@ class SchemaBuilder {
 
 		foreach ($this->fieldsColumns($keyId) as $fieldColumn) {
 			$columns[] = $this->fieldColumnToTableColumn($fieldColumn);
+			
+			if($fieldColumn->getStorageCoding()->isReference()) {
+				$targetKeyName = $fieldColumn->getStorageCoding()->getParameter();
+				$ownColumnName = $this->fieldColumnToname($fieldColumn);
+				$targetColumnName = $this->nodeTablePKName($keyId);
+
+				$targetTableName = $this->nodeTableName($targetKeyName);
+
+				$foreignKeys[] = new ForeignKey(
+					[$ownColumnName], 
+					$targetTableName, 
+					[$targetColumnName]
+				);
+			}
 		}	
 
 		$uniqueFieldsIds = array_filter(
@@ -129,7 +144,6 @@ class SchemaBuilder {
 			$uniques[] = $this->getFieldColumns($ufid);
 		}
 
-		$foreignKeys = [];
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$ownColumnName = $this->nodeOwnScopeColumnName($keyId);
@@ -156,8 +170,9 @@ class SchemaBuilder {
 	private function getFieldColumns($keyId, $fieldId) {
 		$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 		$options = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+		$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
 
-		return $fieldType->getColumns($fieldId, $options);
+		return $fieldType->getColumns($fieldId, $required, $options);
 	}
 
 	private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition) {
@@ -165,12 +180,19 @@ class SchemaBuilder {
 			$this->fieldColumnToname($columnDefinition),
 			$this->storageCodingToSqlType($columnDefinition->getStorageCoding()),
 			$columnDefinition->isNullable(),
-			new Constant($columnDefinition->getDefault())
+			$columnDefinition->getDefault() !== null ?
+			new Constant($columnDefinition->getDefault()) : null
 		);
 	}
 
 	private function storageCodingToSqlType($storageCoding) {
-		return $storageCoding;
+		if($storageCoding->isReference()) {
+			$targetKey = $storageCoding->getParameter();
+
+			return $this->storageCodingToSqlType($this->schemaDef->getKeyIdentityColumn($targetKey)->getStorageCoding());
+		} else {
+			return $storageCoding->getType();
+		}
 	}
 
 	private function fieldColumnToName(ColumnDefinition $columnDefinition) {

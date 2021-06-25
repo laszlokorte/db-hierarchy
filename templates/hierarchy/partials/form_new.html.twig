@@ -18,7 +18,7 @@
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
         </dt>
         <dd class="form-container-field">
-        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]">
+        {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
     	</dd>
     	{% endfor %}
 

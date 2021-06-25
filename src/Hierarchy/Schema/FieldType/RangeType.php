@@ -7,10 +7,10 @@ use App\Hierarchy\Schema\Definition\ColumnDefinition;
 class RangeType implements FieldTypeInterface {
 
 
-	public function __construct() {
+	public function __construct(private FieldTypeInterface $baseType) {
 	}
 
-	public function getColumns(string $fieldId, array $fieldOptions) {
+	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [];
 	}
 
@@ -28,6 +28,10 @@ class RangeType implements FieldTypeInterface {
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
 
+	}
+
+	public function getTemplateName(string $fieldId, array $fieldOptions) {
+		return 'range';
 	}
 
 }

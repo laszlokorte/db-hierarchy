@@ -10,7 +10,7 @@ class BooleanType implements FieldTypeInterface {
 	public function __construct() {
 	}
 
-	public function getColumns(string $fieldId, array $fieldOptions) {
+	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [];
 	}
 
@@ -26,6 +26,10 @@ class BooleanType implements FieldTypeInterface {
 	}
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
+	}
+
+	public function getTemplateName(string $fieldId, array $fieldOptions) {
+		return 'boolean';
 	}
 
 }

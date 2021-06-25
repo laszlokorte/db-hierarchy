@@ -106,7 +106,8 @@ class NodeTable {
 	public function getFieldColumns($fieldId) {
 		$fieldType = $this->def->getKeyFieldType($this->keyId, $fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $fieldId);
+		$required = $this->def->isKeyFieldRequired($this->keyId, $fieldId);
 
-		return $fieldType->getColumns($fieldId, $options);
+		return $fieldType->getColumns($fieldId, $required, $options);
 	}
 }

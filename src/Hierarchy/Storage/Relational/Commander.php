@@ -53,9 +53,10 @@ class Commander {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
 			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
 
-			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $ci => $column) {
+			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
 				$stmt->bindValue(
 					$this->dialect->parameterToString(new Parameter($column->getName())),
 					$columnData[$ci]
@@ -125,9 +126,10 @@ class Commander {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
 			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
 			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId]);
 
-			foreach($fieldType->getColumns($fieldId, $fieldOptions) AS $ci => $column) {
+			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
 				$stmt->bindValue(
 					$this->dialect->parameterToString(new Parameter($column->getName())),
 					$columnData[$ci]

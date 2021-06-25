@@ -36,7 +36,14 @@ class Field {
 	}
 
 	public function readValueOf(Node $node) {
-		return implode(';', array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
+		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
+		
+		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+	}
+
+	public function hasValue(Node $node) {
+		return !empty($this->readValueOf($node));
 	}
 
 	public function readObjectOf(NodeField $nodeField) {
@@ -52,7 +59,15 @@ class Field {
 	private function getColumns() {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
+		$required = $this->def->isKeyFieldRequired($this->keyId, $this->fieldId);
 
-		return $type->getColumns($this->fieldId, $options);
+		return $type->getColumns($this->fieldId, $required, $options);
+	}
+
+	public function getTemplateName() {
+		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
+		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
+
+		return $type->getTemplateName($this->fieldId, $options);
 	}
 }

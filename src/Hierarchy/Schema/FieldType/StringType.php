@@ -12,7 +12,7 @@ class StringType implements FieldTypeInterface {
 		$this->config = $config;
 	}
 
-	public function getColumns(string $fieldId, array $fieldOptions) {
+	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [new ColumnDefinition($fieldId, 'VARCHAR', true, null)];
 	}
 
@@ -30,6 +30,10 @@ class StringType implements FieldTypeInterface {
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
 
+	}
+
+	public function getTemplateName(string $fieldId, array $fieldOptions) {
+		return 'string';
 	}
 
 }

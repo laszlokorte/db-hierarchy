@@ -9,7 +9,7 @@
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
         </dt>
         <dd class="form-container-field">
-        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{field.readValueOf(node)}}">
+        {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
     	</dd>
     	<dd class="form-container-info">
         <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>

@@ -1,0 +1,10 @@
+{% block field %}
+    <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{node is defined ? field.readValueOf(node) : ''}}">
+{% endblock %}
+
+{% block cell %}
+    {% set val = field.readValueOf(nodeCollection.getNode(nodeId)) %}
+    {% if val %}
+        #<a href="{{ path('show_node', {key: val.key, id:val.id}) }}">{{val.id}}</a>
+    {% endif %}
+{% endblock %}
