@@ -5,7 +5,7 @@
                 
             {% set down = false %}
             {% set prevId = 'Top' %}
-            <select class="form-select" name="target_order">
+            <select class="form-select" name="target_order" required="">
                 {% for id in orderTargets.ids %}
                     {% if id==node.id %}
                         {% set down = true %}
@@ -17,8 +17,6 @@
                             Below {{ orderTargets.key }}-{{prevId}}
                         {% endif %}
                          (current position)</option>
-                            }
-                        }
                         </optgroup>
                     {% elseif down %}
                         <optgroup label="{{ orderTargets.key }}-{{id}}">

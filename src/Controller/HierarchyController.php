@@ -315,9 +315,12 @@ class HierarchyController {
         }
         
         $target = $request->request->get('target_order');
-        $storageConnection->getCommander()->orderNode($key, $id, $target);
 
-        $session->getFlashBag()->add('success', 'Node Reordered');
+        if(!empty($target)) {
+            $storageConnection->getCommander()->orderNode($key, $id, $target);
+
+            $session->getFlashBag()->add('success', 'Node Reordered');
+        }
 
         $then = $request->request->get('_then', null);
 

@@ -1,29 +1,18 @@
 {% extends 'base.html.twig' %}
 {% block html_body %}
 
-    <div style="display: grid; grid-template-columns: 2fr 7fr; grid-template-rows: minmax(5em, min-content) auto; max-width: 80em; margin: 0 auto 5em">
-        {% for label, messages in app.flashes(['error','success']) %}
-            {% if messages %}
-            <div class="{{ html_classes('flash-message', label) }}" style="grid-column: 1 / -1; align-self: flex-start;">
-                <ul class="plain-list">
-                    {% for msg in messages %}
-                        <li>{{ msg }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-        {% endfor %}
+    <div style="display: grid; gap: 3em; grid-template-columns: 2fr 7fr; max-width: 80em; margin: 5em auto 5em">
 
-        <nav style="grid-row: 2;">
-            <h1><a href="{{ path('hierarchy_root') }}" title="">Hierarchy Manager</a></h1>
-            <ul>
+        <nav class="site-nav">
+            <h1 class="site-title"><a class="stealth-link" href="{{ path('hierarchy_root') }}" title="">Hierarchy Manager</a></h1>
+            <ul class="block-list">
                 {% for rootKey in rootKeys %}
                 <li><a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a></li>
                 {% endfor %}
             </ul>
 
-            <h3>System</h3>
-            <ul>
+            <h2 class="site-section-title">System</h2>
+            <ul class="block-list">
                 <li><a href="{{ path('hierarchy_setup') }}">Show Schema</a></li>
                 <li><a href="{{ path('show_diagnosis') }}">Diagnosis</a></li>
                 <li><a href="{{ path('hierarchy_tree') }}">Full Hierarchy</a></li>
@@ -36,13 +25,25 @@
                 }
             </script>
 
-            <h3>Account</h3>
-            <ul>
+            <h2 class="site-section-title">Account</h2>
+            <ul class="block-list">
                 <li><a href="{{ path('security_logout') }}" title="">Log out</a></li>
             </ul>
         </nav>
 
-        <section style="grid-row: 2;">
+        <section>
+
+            {% for label, messages in app.flashes(['error','success']) %}
+                {% if messages %}
+                <div class="{{ html_classes('flash-message', label) }}" style="grid-column: 1 / -1; align-self: flex-start;">
+                    <ul class="plain-list">
+                        {% for msg in messages %}
+                            <li>{{ msg }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            {% endfor %}
             {% block area_main %}
         
             {% endblock %}
