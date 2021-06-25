@@ -47,7 +47,8 @@ class Field {
 	}
 
 	public function hasValue(Node $node) {
-		return !empty($this->readValueOf($node));
+		$v = $this->readValueOf($node);
+		return $v !== '' && $v !== null;
 	}
 
 	public function readObjectOf(NodeField $nodeField) {

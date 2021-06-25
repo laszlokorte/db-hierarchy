@@ -136,6 +136,10 @@ class Fetcher {
     	$this->commitTransaction();
 		$result = $stmt->fetch();
 
+		if($result === false) {
+			throw new \Exception("not found");
+		}
+
 		return new Data\NodeField($keyId, $nodeId, $fieldId, $result);
 	}
 

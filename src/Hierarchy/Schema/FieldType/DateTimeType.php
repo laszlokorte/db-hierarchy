@@ -12,17 +12,17 @@ class DateTimeType implements FieldTypeInterface {
 	}
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
-		return [];
-	}
-
-	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
 		return [
 			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::DATETIME), !$required, null)
 		];
 	}
 
+	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
+		return [$fieldData];
+	}
+
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return null;
+		return $columnData[0];
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {

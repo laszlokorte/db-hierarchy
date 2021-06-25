@@ -11,18 +11,20 @@
 		<li class="tab-list-item"><a class="{{html_classes('tab-link', {'state-active': active=='delete'})}}" href="{{ path('ask_delete_node', {key:key.id, id:node.id}) }}" title="">Delete</a></li>
 
 
-		<li class="tab-list-item" style="margin-left: auto;">
-			<span class="tab-label">Children:</span>
-		</li>
-		{% for ck in key.nestedKeys %}
-			<li class="tab-list-item"><a class="{{html_classes('tab-link', {'state-active': childKey is defined and ck.id == childKey.id})}}" href="{{ path('list_child_nodes', {key:key.id, id:node.id, childKey: ck.id}) }}" title="">
-			{% if childKey is defined and ck.id == childKey.id and active == 'new' %}
-			{{ck.label.plural}} / New
-			{% else %}
-			{{ck.label.plural}}
-			{% endif %}
-			</a></li>
-		{% endfor %}
+		{% if key.nestedKeys %}
+			<li class="tab-list-item" style="margin-left: auto;">
+				<span class="tab-label">Children:</span>
+			</li>
+			{% for ck in key.nestedKeys %}
+				<li class="tab-list-item"><a class="{{html_classes('tab-link', {'state-active': childKey is defined and ck.id == childKey.id})}}" href="{{ path('list_child_nodes', {key:key.id, id:node.id, childKey: ck.id}) }}" title="">
+				{% if childKey is defined and ck.id == childKey.id and active == 'new' %}
+				{{ck.label.plural}} / New
+				{% else %}
+				{{ck.label.plural}}
+				{% endif %}
+				</a></li>
+			{% endfor %}
+		{% endif %}
 	</ul>
 
 </nav>

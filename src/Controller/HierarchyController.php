@@ -111,7 +111,7 @@ class HierarchyController {
             'key' => $key,
             'nodes' => array_map(fn($id) => [
                 'id' => $id,
-                'slug' => $all->getNode($id)->getColumnValue('slug'),
+                'label' => $all->getNode($id)->joinedColumnValues(),
             ], $all->getIds()),
         ]);
     }

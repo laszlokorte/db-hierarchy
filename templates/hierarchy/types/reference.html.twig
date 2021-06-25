@@ -1,6 +1,6 @@
 {% block field %}
     <input type="hidden" name="field[{{field.id}}][key]" value="{{field.getOption('target')}}">
-    <input data-reference-url="{{ path('list_all_nodes', {key: field.getOption('target')}) }}" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][id]" value="{{node is defined ? field.readValueOf(node).id : ''}}">
+    <input {% if field.isRequired()%} required="required"{%endif%} data-explicit="{{ field.getOption('explicit') }}" data-reference-url="{{ path('list_all_nodes', {key: field.getOption('target')}) }}" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][id]" value="{{node is defined ? field.readValueOf(node).id : ''}}" placeholder="{{field.getOption('target')}} ID" data-style="{{field.getOption('style')}}">
 
 {% endblock %}
 

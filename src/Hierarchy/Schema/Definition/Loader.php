@@ -163,6 +163,7 @@ class Loader {
 				new LabelDefinition('Link'),
 				null, null, null, [
 					'site' => new FieldDefinition(new LabelDefinition('Site'), 'reference', true, false, ['target' => 'site']),
+					'essen' => new FieldDefinition(new LabelDefinition('Essen'), 'reference', true, false, ['target' => 'essen', 'style' => 'expanded',]),
 					'public' => new FieldDefinition(new LabelDefinition('Public'), 'bool', true, false),
 					'description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
 

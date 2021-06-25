@@ -1,6 +1,6 @@
 {% block field %}
     {% if field.option('style') == 'compact' %}
-    <select class="form-field compact">
+    <select class="form-field compact" name="field[{{field.id}}]">
         {% if field.option('explicit') or not field.isRequired %}
         <option value="">---</option>
         {% endif %}
@@ -11,10 +11,10 @@
     {% else %}
     <ul class="form-choice-list">
         {% for value in field.option('values') %}
-        <li class="form-choice-item"><label class="form-choice-label"><input type="radio"  name="field[{{field.id}}]" value="{{value}}">{{value}}<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input type="radio" name="field[{{field.id}}]" value="{{value}}">{{value}}<i class="marker"></i></label></li>
         {% endfor %}
         {% if field.option('explicit') or not field.isRequired %}
-        <li class="form-choice-item"><label class="form-choice-label"><input type="radio"  name="field[{{field.id}}]" value="">None<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input type="radio" name="field[{{field.id}}]" value="">None<i class="marker"></i></label></li>
         {% endif %}
     </ul>
     {% endif %}

@@ -1,11 +1,11 @@
 {% block field %}
     {% if field.option('style') == 'compact' %}
-        <select name="" class="form-field compact">
+        <select {% if field.isRequired()%} required="required"{%endif%} name="field[{{field.id}}]" class="form-field compact">
             {% if field.option('explicit') or not field.isRequired %}
             <option value="">not set</option>
             {% endif %}
-            <option value="">YES</option>
-            <option value="">NO</option>
+            <option value="true">YES</option>
+            <option value="false">NO</option>
         </select>
     {% elseif field.option('style') == 'check' and not field.option('explicit') %}
         <ul class="form-choice-list">
@@ -19,11 +19,11 @@
         </ul>
     {% else %}
         <ul class="form-choice-list">
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" id="field_{{field.id}}_true" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == false %} checked{%endif%}> NO<i class="marker"></i></label></li>
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" id="field_{{field.id}}_false" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == true %} checked{%endif%}> YES<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="false" id="field_{{field.id}}_true" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == false %} checked{%endif%}> NO<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="true" id="field_{{field.id}}_false" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == true %} checked{%endif%}> YES<i class="marker"></i></label></li>
 
         {% if field.option('explicit') or not field.isRequired %}
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" id="field_{{field.id}}_null" name="field[{{field.id}}]" {% if node is not defined or field.readValueOf(node) is null %} checked{%endif%}> Not set<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="" id="field_{{field.id}}_null" name="field[{{field.id}}]" {% if node is not defined or field.readValueOf(node) is null %} checked{%endif%}> Not set<i class="marker"></i></label></li>
         {% endif %}
         </ul>
     {% endif %}
@@ -31,9 +31,15 @@
 
 
 {% block cell %}
-    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+    {{ {
+        1: '🟩',
+        0: '🔺',
+    }[field.readValueOf(nodeCollection.getNode(nodeId))]|default('') }}
 {% endblock %}
 
 {% block display %}
-    {{field.readValueOf(node)}}
+    {{ {
+        1: '🟩',
+        0: '🔺',
+    }[field.readValueOf(node)]|default('') }}
 {% endblock %}

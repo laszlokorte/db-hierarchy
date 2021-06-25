@@ -29,22 +29,92 @@
 
         <script defer>
             Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), (el) => {
+                el.disabled = true
+                const oldValue = el.value
+                el.value = ''
+                el.placeholder = 'loading...';
                 window.fetch(el.dataset.referenceUrl).then((response) => {
                     response.json().then((json) => {
-                        const options = document.createDocumentFragment();
-                        json['nodes'].forEach(node => {
-                            const opt = document.createElement('option')
-                            opt.setAttribute('value', node.id);
-                            opt.appendChild(document.createTextNode(`${node.slug} [${json['key']}-${node.id}]`))
-                            options.appendChild(opt)
-                        })
+                        if(el.dataset.style === 'expanded' && json['nodes'].length < 10) {
+                            const options = document.createDocumentFragment();
 
-                        const select = document.createElement('select')
-                        select.setAttribute('name', el.getAttribute('name'))
-                        select.classList.add(...el.classList)
-                        select.appendChild(options)
+                            if(el.dataset.explicit !== false || !el.required) {
+                                const input = document.createElement('input')
+                                input.setAttribute('value', '');
+                                input.setAttribute('type', 'radio');
+                                input.setAttribute('name', el.getAttribute('name'))
+                                if(oldValue == '') {
+                                    input.checked = true
+                                }
+                                const li = document.createElement('li')
+                                li.classList.add('form-choice-item')
+                                const label = document.createElement('label')
+                                label.classList.add('form-choice-label')
+                                const marker = document.createElement('i')
+                                marker.classList.add('marker')
 
-                        el.parentNode.replaceChild(select, el)
+                                label.appendChild(input)
+                                label.appendChild(document.createTextNode(`None`))
+                                label.appendChild(marker)
+
+                                li.appendChild(label)
+                                options.appendChild(li)
+                            }
+
+                            json['nodes'].forEach(node => {
+                                const input = document.createElement('input')
+                                input.setAttribute('value', node.id);
+                                input.setAttribute('type', 'radio');
+                                input.setAttribute('name', el.getAttribute('name'))
+                                if(oldValue == node.id) {
+                                    input.checked = true
+                                }
+                                const li = document.createElement('li')
+                                li.classList.add('form-choice-item')
+                                const label = document.createElement('label')
+                                label.classList.add('form-choice-label')
+                                const marker = document.createElement('i')
+                                marker.classList.add('marker')
+
+                                label.appendChild(input)
+                                label.appendChild(document.createTextNode(`${node.label} [${json['key']}-${node.id}]`))
+                                label.appendChild(marker)
+
+                                li.appendChild(label)
+                                options.appendChild(li)
+                            })
+
+                            const list = document.createElement('ul')
+                            list.classList.add('form-choice-list')
+                            list.appendChild(options)
+
+                            el.parentNode.replaceChild(list, el)
+                        } else {
+                            const options = document.createDocumentFragment();
+                        
+                            if(el.dataset.explicit !== false || !el.required) {
+                                const nullOpt = document.createElement('option')
+                                nullOpt.setAttribute('value', '');
+                                nullOpt.appendChild(document.createTextNode(`---`))
+                                options.appendChild(nullOpt)
+                            }
+
+                            json['nodes'].forEach(node => {
+                                const opt = document.createElement('option')
+                                opt.setAttribute('value', node.id);
+                                opt.appendChild(document.createTextNode(`${node.label} [${json['key']}-${node.id}]`))
+                                options.appendChild(opt)
+                            })
+
+                            const select = document.createElement('select')
+                            select.setAttribute('name', el.getAttribute('name'))
+                            select.classList.add(...el.classList)
+                            select.required = el.required;
+                            select.appendChild(options)
+                            select.value = oldValue;
+
+                            el.parentNode.replaceChild(select, el)
+                        }
                     })
                 })
             })       
