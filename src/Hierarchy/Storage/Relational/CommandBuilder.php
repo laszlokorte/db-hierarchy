@@ -357,7 +357,6 @@ class CommandBuilder  {
 	public function getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
-		// UPDATE %s SET %s_id = :parentId WHERE id = :id
 		return new Update(
 			$closureTable, [
 				new Setter(
@@ -381,45 +380,95 @@ class CommandBuilder  {
 	}
 
 	public function getDeleteForMoveClosureOldParents($keyId, $idParam) {
+		
+		// IDEA:
+		// DROP all transitive edges pointing higher than nodeId AND
+		// CREATE transitive edges for all combinations of
+		// edges pointing TO nodeId x edges pointing FROM targetParentId
+
+		// DELETE FROM site_closure WHERE id IN (
+		// SELECT bad.id FROM site_closure ok 
+		// LEFT JOIN site_closure bad ON bad.child_id=ok.child_id
+		// WHERE ok.parent_id=3 and ok.depth < bad.depth
+		// );
+
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
-		// DELETE FROM %s_closure WHERE child_id = :id AND depth > 0
-		return new Delete($closureTable, new BinaryOperation(
-			new Conjunction(),
-			new BinaryOperation(
+		$closureTableOk = new TableReference($this->naming->closureTableName($keyId), new Identifier('ok'));
+		$closureTableBad = new TableReference($this->naming->closureTableName($keyId), new Identifier('bad'));
+
+		return new Delete($closureTable, new ElementOf(
+			new ColumnReference($closureTable, $this->naming->closureTablePkName($keyId)),
+			new Select([new Projection(
+				new ColumnReference($closureTableBad, $this->naming->closureTablePkName($keyId))
+			)], [$closureTableOk], [new Join($closureTableBad, new BinaryOperation(
 				new Equal(),
-				new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
-				$idParam
-			),
-			new BinaryOperation(
-				new GreaterThan(),
-				new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)),
-				new Constant(0)
-			)
+				new ColumnReference($closureTableOk, $this->naming->closureChildColumnName($keyId)),
+				new ColumnReference($closureTableBad, $this->naming->closureChildColumnName($keyId))
+			), 'LEFT')], new BinaryOperation(
+				new Conjunction(),
+				new BinaryOperation(
+					new Equal(), 
+					new ColumnReference($closureTableOk, $this->naming->closureParentColumnName($keyId)),
+					$idParam,
+				),
+				new BinaryOperation(
+					new LessThan(),
+					new ColumnReference($closureTableOk, $this->naming->closureTableDepthName($keyId)),
+					new ColumnReference($closureTableBad, $this->naming->closureTableDepthName($keyId)),
+				)
+			))
 		));
 	}
 
 	public function getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam) {
-		$closureTable = $this->naming->closureTableName($keyId);
 
-		// INSERT INTO %s_closure (%s_id, parent_id, child_id, depth) VALUES(:scope, :parent, :id, :depth)
+		// INSERT INTO site_closure(child_id, parent_id, depth)
+		// SELECT low.child_id,
+		// high.parent_id, 
+		// low.depth + high.depth + 1
+		// FROM site_closure low, site_closure high
+		//  WHERE low.parent_id = 3 AND high.child_id=5;
+		$closureTableName = $this->naming->closureTableName($keyId);
+		$closureTableLow = new TableReference($this->naming->closureTableName($keyId), new Identifier('low'));
+		$closureTableHigh = new TableReference($this->naming->closureTableName($keyId), new Identifier('high'));
 
 		$columns = [
 			$this->naming->closureParentColumnName($keyId),
 			$this->naming->closureChildColumnName($keyId),
 			$this->naming->closureTableDepthName($keyId)
 		];
-		$values = [
-			$parentParam,
-			$idParam,
-			new Constant(1),
+
+		$projections = [
+			new Projection(new ColumnReference($closureTableHigh, $this->naming->closureParentColumnName($keyId))),
+			new Projection(new ColumnReference($closureTableLow, $this->naming->closureChildColumnName($keyId))),
+			new Projection(new AssociativeOperation(
+				new Addition(),[
+				new ColumnReference($closureTableHigh, $this->naming->closureTableDepthName($keyId)),
+				new ColumnReference($closureTableLow, $this->naming->closureTableDepthName($keyId)),
+				new Constant(1)
+			])),
 		];
+		
+		$condition = new BinaryOperation(
+			new Equal(),
+			new Tuple([
+				new ColumnReference($closureTableLow, $this->naming->closureParentColumnName($keyId)),
+				new ColumnReference($closureTableHigh, $this->naming->closureChildColumnName($keyId)),
+			]),
+			new Tuple([
+				$idParam,
+				$parentParam,
+			]),
+		);
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$values[] = $scopeParam;
+			$projections[] = new Projection($scopeParam);
 		}
+
+		$select = new Select($projections, [$closureTableLow, $closureTableHigh], [], $condition);
 	
-		return new Insert($closureTable, $columns, [$values]);
+		return new Insert($closureTableName, $columns, $select);
 	}
 
 	public function getUpdateforReorderNode($keyId, $idParam, $orderParam) {

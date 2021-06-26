@@ -297,7 +297,6 @@ class Commander {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam);
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
-			// echo $this->dialect->selectToString($selectMoveTargetExists);
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
@@ -312,7 +311,6 @@ class Commander {
 			$selectMoveTargetValid = $this->commandBuilder->getSelectForMoveTargetValid($keyId, $idParam, $parentParam);
 
 			$checkCycleStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetValid));
-			// echo $this->dialect->selectToString($selectMoveTargetValid);
 
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
@@ -333,7 +331,6 @@ class Commander {
 			$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
 
 			$updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
-			// echo $this->dialect->updateToString($updateOwnScope);
 
 			$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 			$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
@@ -343,7 +340,6 @@ class Commander {
 				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam);
 
 				$updateClosureScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureScope));
-				// echo $this->dialect->updateToString($updateClosureScope);
 
 				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
@@ -352,7 +348,6 @@ class Commander {
 				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam);
 
 				$updateClosureParentsStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureParents));
-				// echo $this->dialect->updateToString($updateClosureParents);
 
 				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
@@ -364,7 +359,6 @@ class Commander {
 			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
 
 			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
-			// echo $this->dialect->deleteToString($deleteClosureParents);
 
 			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 			$deleteClosureParentsStmt->execute();
@@ -374,7 +368,6 @@ class Commander {
 				$insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam);
 
 				$insertClosureParentsStmt = $this->connection->prepare($this->dialect->insertToString($insertClosureParents));
-				// echo $this->dialect->insertToString($insertClosureParents);
 
 				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
@@ -385,21 +378,6 @@ class Commander {
 				$insertClosureParentsStmt->execute();
 			}
 
-			// IMPROVE: instead of auto repair the transitive closure
-			// DROP all transitive edges pointing higher than nodeId AND
-			// CREATE transitive edges for all combinations of
-			// edges pointing TO nodeId x edges pointing FROM targetParentId
-
-			// SELECT bad.child_id, bad.parent_id, bad.depth FROM site_closure ok 
-			// LEFT JOIN site_closure bad ON bad.child_id=ok.child_id
-			// WHERE ok.parent_id=3 and ok.depth < bad.depth
-
-			// SELECT low.child_id,
-			//  high.parent_id, 
-			//  low.depth + high.depth + 1
-			// FROM site_closure low, site_closure high
-			// WHERE low.parent_id = 1 AND high.child_id=2
-			$this->repairKeyInternal($keyId, 100);
 		}
 
 		$this->connection->commit();
@@ -440,12 +418,12 @@ class Commander {
     	return $result;
 	}
 
-	private function repairKeyInternal(string $keyId, $maxRetries = self::MAX_REPAIR_RETRIES) {
+	private function repairKeyInternal(string $keyId) {
 		$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
 		
 
 		foreach ($commands as $label => $command) {
-			$retriesLeft = $maxRetries;
+			$retriesLeft = self::MAX_REPAIR_RETRIES;
 
 			while($retriesLeft-- > 0) {
 				echo $retriesLeft;
