@@ -52,7 +52,17 @@
                     <tr class="data-table-row">
                         {% if key.ordered %}
                             <td class="data-table-cell">
-                                <div data-order="{{nodeCollection.order(nodeId)}}" data-url="{{url('order_node',{key:key.id, id:nodeId})}}" class="dragger" draggable="true" ondragstart="event.dataTransfer.setData('myurl', this.dataset.url);this.classList.add('state-dragging')" ondragend="this.classList.remove('state-dragging')" ondragover="this.classList.add('state-over');event.preventDefault()" ondragleave="this.classList.remove('state-over')" ondrop="this.classList.remove('state-over');
+                                <div 
+                                class="dragger" 
+                                draggable="true" 
+                                data-nest-id="{{ nodeCollection.getNodeNestId(nodeId) }}" 
+                                data-order="{{nodeCollection.order(nodeId)}}" 
+                                data-url="{{url('order_node',{key:key.id, id:nodeId})}}" 
+                                ondragstart="event.dataTransfer.setData('myurl', this.dataset.url);event.dataTransfer.setData('nestId', this.dataset.nestId);this.classList.add('state-dragging');document.querySelectorAll('[data-nest-id=\''+this.dataset.nestId+'\']').forEach(e=>e.classList.add('drag-target'))" 
+                                ondragend="this.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))" 
+                                ondragover="if(event.dataTransfer.getData('nestId')==this.dataset.nestId) {this.classList.add('state-over');event.preventDefault()}" 
+                                ondragleave="this.classList.remove('state-over')" 
+                                ondrop="this.classList.remove('state-over');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))
                                     let fd = new FormData();
                                     fd.append('target_order', this.dataset.order);
                                     fd.append('_then', '{{then}}');
@@ -73,8 +83,7 @@
                         {% endif %}
                         <td class="data-table-cell type-id"><a href="{{ path('show_node', {key: key.id, id: nodeId}) }}">{{ nodeId }}</a></td>
                         {% if not nodeCollection.isScoped and key.isScoped %}
-                        <td class="data-table-cell type-id">
-                        <a href="{{ path('show_node', {key: key.scopeKey.id, id: nodeCollection.nodeScope(nodeId)}) }}">{{ nodeCollection.nodeScope(nodeId) }}</a>
+                        <td class="data-table-cell type-id"><a href="{{ path('show_node', {key: key.scopeKey.id, id: nodeCollection.nodeScope(nodeId)}) }}">{{ nodeCollection.nodeScope(nodeId) }}</a>
                         </td>
                         {% endif %}
                         {% for field in key.fields %}

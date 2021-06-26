@@ -39,6 +39,10 @@ class NodeCollection implements \Countable {
 		return $this->rows[$nodeId]['_scope'] ?? null;
 	}
 
+	public function getNodeNestId($nodeId) {
+		return ($this->rows[$nodeId]['_scope']?:'-').'/'.($this->rows[$nodeId]['_parent']?:'-');
+	}
+
 	public function getNode($nodeId) {
 		return new Node($this->keyId, $nodeId, $this->rows[$nodeId], $this->scopeId, $this->parentId);
 	}

@@ -361,6 +361,10 @@ span[onclick]:not([class]) {
 }
 
 .dragger:not(.state-dragging).state-over {
+    background: #ffcc88;
+}
+
+.drag-target:not(.state-dragging) {
     background: #ffff88;
 }
 
@@ -652,6 +656,17 @@ details>.details-summary ~ * {
 
 .block-list .block-list {
     margin: 0.4em 0 0 2em;
+}
+
+.block-list.small {
+    font-size: 0.9rem;
+    margin-left: 1em;
+}
+
+.block-list.small a {
+    filter: brightness(0.7);
+    opacity: 0.5;
+    text-decoration-color: #fff6;
 }
 
 .site-nav {

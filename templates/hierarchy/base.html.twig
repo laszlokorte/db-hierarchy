@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 {% macro walkSubKeys(key) %}
     {% if key.scopeChildKeys %}
-    <ul class="block-list">
+    <ul class="block-list small">
         {% for childKey in key.scopeChildKeys %}
         <li>
         <a href="{{ path('list_root_nodes', {key: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
