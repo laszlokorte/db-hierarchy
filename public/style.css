@@ -463,17 +463,10 @@ body.show-quickform .quickform-inline {
 
 .form-button.primary {
     background-color: var(--accent-primary, #034);
-    filter: brightness(1.4);
+    filter: saturate(30%);
     color: #fff;
 }
 
-.form-button.primary:hover {
-    filter: brightness(1.5);
-}
-
-.form-button.primary:active {
-    filter: brightness(1.3);
-}
 
 .form-button:hover {
     filter: brightness(1.03);
@@ -677,6 +670,10 @@ details>.details-summary ~ * {
     display: block;
     cursor: pointer;
     position: relative;
+}
+
+.marker {
+    border-radius: 0.1em;
 }
 
 .form-choice-label > input:hover + .marker {
