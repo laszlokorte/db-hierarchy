@@ -58,11 +58,11 @@
                                 data-nest-id="{{ nodeCollection.getNodeNestId(nodeId) }}" 
                                 data-order="{{nodeCollection.order(nodeId)}}" 
                                 data-url="{{url('order_node',{key:key.id, id:nodeId})}}" 
-                                ondragstart="event.dataTransfer.setData('myurl', this.dataset.url);event.dataTransfer.setData('nestId', this.dataset.nestId);this.classList.add('state-dragging');document.querySelectorAll('[data-nest-id=\''+this.dataset.nestId+'\']').forEach(e=>e.classList.add('drag-target'))" 
-                                ondragend="this.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))" 
+                                ondragstart="event.dataTransfer.setData('myurl', this.dataset.url);event.dataTransfer.setData('nestId', this.dataset.nestId);this.classList.add('state-dragging');document.querySelectorAll('[data-nest-id=\''+this.dataset.nestId+'\']').forEach(e=>e.classList.add('drag-target'));document.body.classList.add('state-dragging')" 
+                                ondragend="this.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'));document.body.classList.remove('state-dragging')" 
                                 ondragover="if(event.dataTransfer.getData('nestId')==this.dataset.nestId) {this.classList.add('state-over');event.preventDefault()}" 
                                 ondragleave="this.classList.remove('state-over')" 
-                                ondrop="this.classList.remove('state-over');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))
+                                ondrop="this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))
                                     let fd = new FormData();
                                     fd.append('target_order', this.dataset.order);
                                     fd.append('_then', '{{then}}');

@@ -371,6 +371,10 @@ span[onclick]:not([class]) {
     opacity: 0.5;
 }
 
+body.state-dragging .dragger:not(.drag-target) {
+    opacity: 0;
+}
+
 .tab-list {
     display: flex;
     list-style: none;
