@@ -112,7 +112,7 @@ class HierarchyController {
             'key' => $key->getId(),
             'nodes' => array_map(fn($id) => [
                 'id' => $id,
-                'label' => $key->summarize($all->getNode($id)),
+                'label' => $key->summarize($all->getNode($id), true),
             ], $all->getIds()),
         ]);
     }

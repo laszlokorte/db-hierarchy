@@ -103,7 +103,7 @@ class Loader {
 			),
 			'example_child' => new KeyDefinition(
 				new StorageDefinition('example_child'),
-				new LabelDefinition('Exmp Parent'),
+				new LabelDefinition('Exmp Child'),
 				new ScopeDefinition('example_parent'), null, null, [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
 				], new SummaryDefinition(['%slug'])
