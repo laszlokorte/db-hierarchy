@@ -5,6 +5,7 @@ namespace App\Hierarchy\Storage\Relational;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
+use App\Hierarchy\Storage\Relational\Dialect\MySql;
 
 use Doctrine\DBAL\Connection;
 
@@ -13,7 +14,11 @@ class StorageConnection {
 		$this->schemaDef = $schemaDef;
 		$this->connection = $connection;
 		$this->naming = new Naming($schemaDef);
-		$this->dialect = new Sqlite();
+		switch($connection->getDriver()->getName()) {
+			case 'pdo_mysql': $this->dialect = new MySql(); break;
+			case 'pdo_sqlite': $this->dialect = new Sqlite(); break;
+			default: throw new \Exception(sprintf('database "%s" not supported', $connection->getDriver()->getName()));
+		}
 	}
 
 	public function getCommander() {

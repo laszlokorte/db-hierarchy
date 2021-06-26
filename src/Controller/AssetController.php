@@ -16,12 +16,18 @@ use Twig\Environment;
 class AssetController {
 
 	#[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000)]
-	public function favicon(Environment $twig, SchemaRoot $schema) {
-		return new Response($twig->render('asset/favicon.svg.twig', [
+	public function favicon(Request $request, Environment $twig, SchemaRoot $schema) {
+		$response = new Response($twig->render('asset/favicon.svg.twig', [
 			'color' => $schema->getLabel()->getColor(),
 		]), 200, [
 			'Content-Type' => 'image/svg+xml',
 		]);
+
+		$response->setEtag(md5($response->getContent()));
+        $response->setPublic(); // make sure the response is public/cacheable
+        $response->isNotModified($request);
+
+        return $response;
 	}
 
 	#[Route('/favicon.ico', name: 'favicon_ico', methods: 'GET', priority: 1000)]

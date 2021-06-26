@@ -209,7 +209,7 @@ class SchemaBuilder {
 
 			return $this->columnCodingToSqlType($this->schemaDef->getKeyIdentityColumn($targetKey)->getCoding());
 		} else {
-			return $storageCoding->getType();
+			return $storageCoding->getType() == 'INTEGER' ? $storageCoding->getType() : 'VARCHAR(120)';
 		}
 	}
 

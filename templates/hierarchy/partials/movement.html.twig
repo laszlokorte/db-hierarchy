@@ -1,7 +1,5 @@
 <form action="{{ path('move_node', {key: node.key, id: node.id}) }}" method="post" accept-charset="utf-8">
     
-
-
     <dl class="form-container">
         <dt class="form-container-label"><label class="form-label" for="target_scope-parent">Move To</label></dt>
         <dd class="form-container-field">
@@ -35,16 +33,16 @@
 {% macro walkTree(keyId, node, currentKey, h, scope, parent, depth = 0) %}
     {% for n in h.getNodes(currentKey, scope, parent) %}
         {% if keyId == currentKey %}
-            {% set selected = (scope==node.scope and n._id==node.parent) %}
+            {% set selected = (scope==node.scope and n.id==node.parent) %}
         {% else %}
-            {% set selected = (n._id==node.scope and null==node.parent) %}
+            {% set selected = (n.id==node.scope and null==node.parent) %}
         {% endif %}
         <option {%- if selected %} selected="selected"{% endif %} value="
-            {%- if keyId == currentKey %}{{scope}}/{{n._id}}{% else %}{{n._id}}/{% endif -%}
+            {%- if keyId == currentKey %}{{scope}}/{{n.id}}{% else %}{{n.id}}/{% endif -%}
         ">
         {%- for _ in range(0, depth) -%}
             {{ '&nbsp;&nbsp;&nbsp;'|raw }}
-        {%- endfor -%}{{currentKey}}-{{n._id}}
+        {%- endfor -%}{{currentKey}}-{{n.id}}
         {% if selected %}
             (current)
         {% endif %}
@@ -56,9 +54,9 @@
         {% endif %}
         {% for childKey in h.getRootKeys %}
             {% if childKey == currentKey %}
-                {{ _self.walkTree(keyId, node, childKey, h, n._scope, n._id, depth+1) }}
+                {{ _self.walkTree(keyId, node, childKey, h, n.scope, n.id, depth+1) }}
             {% else %}
-                {{ _self.walkTree(keyId, node, childKey, h, n._id, null, depth+1) }}
+                {{ _self.walkTree(keyId, node, childKey, h, n.id, null, depth+1) }}
             {% endif %}
         {% endfor %}
     {% endfor %}

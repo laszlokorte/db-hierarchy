@@ -40,7 +40,7 @@ class HierarchyController {
     #[Route('/_full-tree', name: 'hierarchy_tree', methods: 'GET')]
 	#[Template()]
     public function tree(StorageConnection $storageConnection)
-    {
+    {       
     	return [
     		'rootKeys' => $this->schema->getRootKeys(),
     		'hierarchy' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
