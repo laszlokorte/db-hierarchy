@@ -1,0 +1,21 @@
+{% if childKey is defined %}
+<ul class="quicktab-list">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='list'}) }}" href="{{ path('list_child_nodes', {key: key.id, id: node.id, childKey: childKey.id}) }}" title="">
+    List
+    </a></li>
+
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='new'}) }}" href="{{ path('new_child_node', {key: key.id, id: node.id, childKey: childKey.id}) }}" title="">
+    New
+    </a></li>
+</ul>
+{% else %}
+<ul class="quicktab-list">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='list'}) }}" href="{{ path('list_root_nodes', {key: key.id}) }}" title="">
+    List
+    </a></li>
+
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='new'}) }}" href="{{ path('new_root_node', {key: key.id}) }}" title="">
+    New
+    </a></li>
+</ul>
+{% endif %}

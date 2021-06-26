@@ -376,6 +376,7 @@ span[onclick]:not([class]) {
     border-color: gray;
     padding: 0 0.2em;
     background-image: linear-gradient(transparent 50%, #aaa1);
+    margin-bottom: 2em;
 }
 
 .tab-list-item {
@@ -432,6 +433,29 @@ span[onclick]:not([class]) {
     font-size: small;
     color: #999;
     align-items: baseline;
+}
+
+.quicktab-list {
+    display: flex;
+    list-style: none;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+    gap:  0.5em;
+    margin-bottom: 2em;
+}
+
+.quicktab-link {
+    padding: 0.5em 1em;
+    color: var(--accent-primary);
+    filter: saturate(30%);
+}
+
+.quicktab-link.state-active {
+    color: #fff;
+    background-color: var(--accent-primary);
+    text-decoration: none;
+    border-radius: 0.2em;
 }
 
 .quickform {
@@ -678,6 +702,11 @@ details>.details-summary ~ * {
     display: block;
     cursor: pointer;
     position: relative;
+}
+
+.form-choice-info {
+    padding: 0.5em 0.7em 0.5em 0.3em;
+    display: block;
 }
 
 .marker {

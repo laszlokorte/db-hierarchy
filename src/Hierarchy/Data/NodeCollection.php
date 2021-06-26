@@ -18,6 +18,10 @@ class NodeCollection implements \Countable {
 		return $this->scopeId;
 	}
 
+	public function isScoped() {
+		return $this->scopeId !== null;
+	}
+
 	public function getParent() {
 		return $this->parentId;
 	}
@@ -28,6 +32,11 @@ class NodeCollection implements \Countable {
 
 	public function getOrder($nodeId) {
 		return $this->rows[$nodeId]['_order'] ?? null;
+	}
+
+
+	public function getNodeScope($nodeId) {
+		return $this->rows[$nodeId]['_scope'] ?? null;
 	}
 
 	public function getNode($nodeId) {

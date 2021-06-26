@@ -10,12 +10,13 @@
 {% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'New', nodeParents, childKey} only %}
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
-
-
 {% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'new', childKey} only %}
 
-<h2>New {{ childKey.label.singular }}</h2>
 
+<h2>{{ childKey.label.plural }}</h2>
+
+
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {active: 'new', key, node, childKey} only %}
 
 {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'form'} only %}
 

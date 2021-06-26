@@ -44,7 +44,8 @@
                         if(el.dataset.style === 'expanded' && json['nodes'].length < el.dataset.expandLimit) {
                             const options = document.createDocumentFragment();
 
-                            if(el.dataset.explicit !== false || !el.required) {
+                            if(el.dataset.explicit == 'true' || !el.required) {
+                                console.log(el.dataset.explicit)
                                 const input = document.createElement('input')
                                 input.setAttribute('value', '');
                                 input.setAttribute('type', 'radio');
@@ -83,7 +84,7 @@
                                 marker.classList.add('marker')
 
                                 label.appendChild(input)
-                                label.appendChild(document.createTextNode(`${node.label} [${json['key']}-${node.id}]`))
+                                label.appendChild(document.createTextNode(node.label))
                                 label.appendChild(marker)
 
                                 li.appendChild(label)
@@ -94,11 +95,19 @@
                             list.classList.add('form-choice-list')
                             list.appendChild(options)
 
+                            if(!json['nodes'].length) {
+                                const empty = document.createElement('li')
+                                empty.appendChild(document.createTextNode(`No ${json['key']}s yet`))
+                                empty.classList.add('form-choice-info')
+
+                                list.appendChild(empty)
+                            }
+                            
                             el.parentNode.replaceChild(list, el)
                         } else {
                             const options = document.createDocumentFragment();
                         
-                            if(el.dataset.explicit !== false || !el.required) {
+                            if(el.dataset.explicit == 'true' || !el.required) {
                                 const nullOpt = document.createElement('option')
                                 nullOpt.setAttribute('value', '');
                                 nullOpt.appendChild(document.createTextNode(`---`))
@@ -108,7 +117,7 @@
                             json['nodes'].forEach(node => {
                                 const opt = document.createElement('option')
                                 opt.setAttribute('value', node.id);
-                                opt.appendChild(document.createTextNode(`${node.label} [${json['key']}-${node.id}]`))
+                                opt.appendChild(document.createTextNode(node.label))
                                 options.appendChild(opt)
                             })
 

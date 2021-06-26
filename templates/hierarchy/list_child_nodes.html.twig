@@ -13,9 +13,10 @@
 
 {% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'list', childKey} only %}
 
-
 <h2>{{ childKey.label.plural }}</h2>
 
+
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {active: 'list', key, node, childKey} only %}
 
 {% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key: childKey, parent: {key:key.id,id: node.id}, then: 'list'} only %}
 

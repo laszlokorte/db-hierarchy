@@ -33,7 +33,7 @@
 <h1>Tree</h1>
 
 {% for key in rootKeys %}
-    <h3>{{ key.label.plural }}</h3>
+    <h3><a href="{{ path('list_root_nodes', {key: key.id}) }}" title="">{{ key.label.plural }}</a></h3>
     
     {% if not hierarchy.hasNodes(key.id) %}
         <p>

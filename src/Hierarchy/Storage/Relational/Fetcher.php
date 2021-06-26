@@ -18,7 +18,7 @@ class Fetcher {
 	}
 
 	public function findRootNodes(string $keyId) : Data\NodeCollection {
-		$select = $this->queryBuilder->getSelectForFindNodes($keyId, new Constant(null), new Constant(null));
+		$select = $this->queryBuilder->getSelectForFindNodes($keyId, null, new Constant(null));
 
 		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));

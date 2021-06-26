@@ -1,4 +1,17 @@
 {% extends 'base.html.twig' %}
+{% macro walkSubKeys(key) %}
+    {% if key.scopeChildKeys %}
+    <ul class="block-list">
+        {% for childKey in key.scopeChildKeys %}
+        <li>
+        <a href="{{ path('list_root_nodes', {key: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
+        {{ _self.walkSubKeys(childKey) }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endmacro %}
+
 {% block html_body %}
 
     <div style="display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center; padding: 0 1em">
@@ -21,7 +34,10 @@
             </a>
             <ul class="block-list">
                 {% for rootKey in rootKeys %}
-                <li><a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a></li>
+                <li>
+                <a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a>
+                {{ _self.walkSubKeys(rootKey) }}
+                </li>
                 {% endfor %}
             </ul>
 

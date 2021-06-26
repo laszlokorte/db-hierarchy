@@ -244,10 +244,12 @@ class HierarchyController {
             } else {
                 return new RedirectResponse($urlGen->generate('new_root_node', ['key' => $key->getId()]));
             }
+        } elseif($then === 'root_form') {
+            return new RedirectResponse($urlGen->generate('new_root_node', ['key' => $key->getId()]));
         } elseif($then === 'new') {
             return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $newId]));
         } elseif($then === 'list') {
-			if($parent) {
+            if($parent) {
                 return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
             } elseif ($scope) {
                 $parentKey = $key->getScopeKey()->getId();
@@ -255,7 +257,9 @@ class HierarchyController {
             } else {
                 return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
             }
-		} else {
+        } elseif($then === 'root_list') {
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
+        } else {
             if($parent) {
                 return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $parent]));
             } elseif ($scope) {
@@ -348,6 +352,8 @@ class HierarchyController {
             } else {
                 return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
             }
+        } elseif($then === 'root_list') {
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
         } elseif($then === 'parent') {
             $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
 

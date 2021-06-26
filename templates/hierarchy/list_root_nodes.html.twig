@@ -11,22 +11,12 @@
 
 <h1>{{key.label.plural}}</h1>
 
-<ul class="tab-list">
-    <li class="tab-list-item"><a class="tab-link state-active" href="{{ path('list_root_nodes', {key: key.id}) }}" title="">
-        List
-        </a></li>
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {active: 'list', key} only %}
 
-        <li class="tab-list-item"><a class="tab-link" href="{{ path('new_root_node', {key: key.id}) }}" title="">
-        New
-        </a></li>
-</ul>
-
-<h2>List</h2>
-
-{% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key, then:'list'} only %}
+{% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key, then:'root_list'} only %}
 
 <div class="quickform">
 <h3>New</h3>
-{% include 'hierarchy/partials/form_new.html.twig' with {key, then:'list'} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {key, then:'root_list'} only %}
 </div>
 {% endblock %}

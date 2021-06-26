@@ -11,8 +11,19 @@
         <input type="hidden" name="scope" value="{{ parent.id }}">
     {% endif %}
 	{% endif %}
+
 	
 	<dl class="form-container">
+
+		{% if parent is not defined and key.isScoped %}
+		<dt class="form-container-label">
+        <label class="form-label" for="scope">{{key.scopeKey.label.singular}}</label>
+        </dt>
+        <dd class="form-container-field">
+        <input type="hidden" name="scope" value="">
+    	<input  required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {key: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+    	</dd>
+		{% endif %}
 		{% for field in key.fields %}
         <dt class="form-container-label">
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
