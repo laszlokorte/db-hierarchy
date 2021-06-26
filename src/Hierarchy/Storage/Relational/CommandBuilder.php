@@ -56,19 +56,30 @@ class CommandBuilder  {
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
 
-			$orderCondition = new BinaryOperation(
-				new Conjunction(),
-				new BinaryOperation(
+			$orderConditions = [];
+
+			if($this->schemaDef->isKeyScoped($keyId)) {
+				$orderConditions[] = new BinaryOperation(
 					new Equal(true),
 					new ColumnReference($orderView, $this->naming->normalizedOrderScopeColumnName($keyId)),
 					$scopeParam
-				),
-				new BinaryOperation(
+				);
+			}
+
+			if($this->schemaDef->isKeyReflexive($keyId)) {
+				$orderConditions[] = new BinaryOperation(
 					new Equal(true),
 					new ColumnReference($orderView, $this->naming->normalizedOrderParentColumnName($keyId)),
 					$parentParam
-				)
-			);
+				);
+			}
+			
+
+			if(empty($orderConditions)) {
+				$orderCondition = new Constant(1);
+			} else {
+				$orderCondition = new AssociativeOperation(new Conjunction(), $orderConditions);
+			}
 
 			$columns[] = $this->naming->orderColumnName($keyId);
 			$values[] = new BinaryOperation(
