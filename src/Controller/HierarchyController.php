@@ -32,7 +32,6 @@ class HierarchyController {
     public function root(StorageConnection $storageConnection)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'rootKeys' => $this->schema->getRootKeys(),
     		'rootNodes' => $storageConnection->getFetcher()->findAllRootNodes(),
     	];
@@ -43,7 +42,6 @@ class HierarchyController {
     public function tree(StorageConnection $storageConnection)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'rootKeys' => $this->schema->getRootKeys(),
     		'hierarchy' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
     	];
@@ -60,7 +58,6 @@ class HierarchyController {
         }
 
     	return [
-            'schemaRoot' => $this->schema,
     		'installer' => $storageConnection->getInstaller(),
     		'adapter' => new Sqlite(),
     		'rootKeys' => $rootKeys,
@@ -82,7 +79,6 @@ class HierarchyController {
     	$diagnosis = $storageConnection->getFetcher()->findAllDefects();
 
     	return [
-            'schemaRoot' => $this->schema,
     		'rootKeys' => $this->schema->getRootKeys(),
     		'diagnosis' => $diagnosis,
     	];
@@ -111,11 +107,12 @@ class HierarchyController {
     public function listAllNodes(StorageConnection $storageConnection, $key)
     {
         $all = $storageConnection->getFetcher()->findAllNodes($key);
+        $key = $this->schema->getKey($key);
         return new JsonResponse([
-            'key' => $key,
+            'key' => $key->getId(),
             'nodes' => array_map(fn($id) => [
                 'id' => $id,
-                'label' => $all->getNode($id)->joinedColumnValues(),
+                'label' => $key->summarize($all->getNode($id)),
             ], $all->getIds()),
         ]);
     }
@@ -139,7 +136,6 @@ class HierarchyController {
     public function newRootNode(Request $request, $key)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
             'nodeParents' => new MultiPath([new NodePath($key, [])]),
     		'rootKeys' => $this->schema->getRootKeys(),
@@ -151,7 +147,6 @@ class HierarchyController {
     public function newChildNode(StorageConnection $storageConnection, $key, $id, $childKey)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
     		'childKey' => $this->schema->getKey($childKey),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
@@ -165,7 +160,6 @@ class HierarchyController {
     public function showNode(StorageConnection $storageConnection, $key, $id)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
@@ -179,7 +173,6 @@ class HierarchyController {
     public function editNode(StorageConnection $storageConnection, $key, $id)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
@@ -222,7 +215,6 @@ class HierarchyController {
         $deletionPlan = $storageConnection->getCommander()->getDeletionPlan($key, $id);
 
 		return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'nodeParents' => $storageConnection->getFetcher()->findNodeParents($key, $id),
@@ -285,7 +277,6 @@ class HierarchyController {
         }
 
         return [
-            'schemaRoot' => $this->schema,
             'key' => $k,
             'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
@@ -321,7 +312,6 @@ class HierarchyController {
         }
 
         return [
-            'schemaRoot' => $this->schema,
             'key' => $this->schema->getKey($key),
             'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
@@ -393,7 +383,6 @@ class HierarchyController {
     public function listRootNodes(StorageConnection $storageConnection, $key)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
     		'nodeCollection' => $storageConnection->getFetcher()->findRootNodes($key),
             'nodeParents' => new MultiPath([new NodePath($key, [])]),
@@ -406,7 +395,6 @@ class HierarchyController {
     public function listChildNodes(StorageConnection $storageConnection, $key, $id, $childKey)
     {
     	return [
-            'schemaRoot' => $this->schema,
     		'key' => $this->schema->getKey($key),
     		'childKey' => $this->schema->getKey($childKey),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),

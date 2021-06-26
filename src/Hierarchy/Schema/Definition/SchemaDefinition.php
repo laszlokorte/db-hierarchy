@@ -42,15 +42,22 @@ class SchemaDefinition {
 		$roots = [null];
 
 		while(!empty($roots)) {
-			$r = array_pop($roots);
-			$keys[] = $r;
+            $r = array_pop($roots);
+            $keys[] = $r;
+            $newRoots = [];
 
-			foreach($this->keys AS $key => $definition) {
-				if($definition->getScopeKeyId() === $r) {
-					$roots[] = $key;
-				}
-			}
-		}
+            foreach($this->keys AS $key => $definition) {
+                if($definition->getScopeKeyId() === $r) {
+                        $newRoots[] = $key;
+                }
+            }
+            usort($newRoots, 
+            	fn($keyA, $keyB) => 
+            		count($this->getReferencingKeys($keyA)) - 
+            		count($this->getReferencingKeys($keyB))
+            );
+            $roots = array_merge($roots, $newRoots);
+        }
 
 		if(count($keys) < count($this->keys)) {
 			throw new Exception("cyclic hierarchy");

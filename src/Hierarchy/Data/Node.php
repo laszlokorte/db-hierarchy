@@ -39,10 +39,6 @@ class Node {
 		return $this->columns[$columnName];
 	}
 
-	public function joinedColumnValues() {
-		return implode(', ', array_filter(array_filter($this->columns, fn($k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY)));
-	}
-
 	public function pathArgs() {
 		return ['key' => $this->keyId, 'id' => $this->nodeId];
 	}

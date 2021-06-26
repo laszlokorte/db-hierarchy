@@ -367,6 +367,7 @@ span[onclick]:not([class]) {
 .tab-list {
     display: flex;
     list-style: none;
+    align-items: stretch;
     padding: 0;
     margin: 0;
     gap:  0.5em;
@@ -374,45 +375,50 @@ span[onclick]:not([class]) {
     border-style: solid;
     border-color: gray;
     padding: 0 0.2em;
-    background-image: linear-gradient(transparent 50%,var( --accent-primary)1);
+    background-image: linear-gradient(transparent 50%, #aaa1);
 }
 
 .tab-list-item {
-    display: block;
+    display: flex;
+    align-items: stretch;
 }
 
 .tab-link {
+    display: flex;
+    align-items: center;
     font-size: 0.9em;
-    display: block;
     border-style: solid;
-    border-width: 1px 1px 0 1px;
-    border-color: gray;
+    border-width: 1px;
+    border-color: transparent;
     padding: 0.5em 1em;
     border-radius: 0.1em 0.1em 0 0;
-    background: white;
     margin-bottom: -1px;
     border-bottom: 1px solid gray;
-    background: #eee;
     color: var(--accent-primary, #034);
+}
+
+.tab-link-oldschool {
+    border-color: gray;
+    background: #eee;
     background-image: linear-gradient(transparent 50%, #0001);
 }
 
 .tab-link:hover {
-    background-color: #f4f4f4;
+    border-color: #ccc #ccc gray #ccc;
 }
 
 .tab-link:focus {
-    background-color: #fff;
+    border-color: #ccc #ccc gray #ccc;
     color: var(--accent-primary, #034);
 }
 
 .tab-link:active {
-    background-color: #e4e4e4;
+    background-color: #f0f0f0;
 }
 
 .tab-link.state-active {
     background: #fff;
-    border-bottom-color: white;
+    border-color: gray gray white gray;
     text-decoration: none;
     color: #000;
     box-shadow: 0 -5px 5px -3px -var(-accent-primary)2;
@@ -420,10 +426,12 @@ span[onclick]:not([class]) {
 }
 
 .tab-label {
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 0.6em 1em 0;
     font-size: small;
     color: #999;
+    align-items: baseline;
 }
 
 .quickform {

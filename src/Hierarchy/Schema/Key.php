@@ -81,7 +81,7 @@ class Key {
 		return $this->def->getKeySummary($this->keyId);
 	}
 
-	public function summarize(Node $node) {
+	public function summarize(Node $node, $appendId = null) {
 		$summDef = $this->def->getKeySummary($this->keyId);
 		$constants = $summDef->getConstants();
 		$fieldIds = $summDef->getFieldIds();
@@ -95,6 +95,10 @@ class Key {
 			$result .= $constants[$i];
 		}
 
-		return $result . ' ['.$node->getKey().'-'.$node->getID().']';
+		if($appendId === true || $appendId === null && empty($result)) {
+			$result .= ' ['.$node->getKey().'-'.$node->getID().']';
+		}
+
+		return $result;
 	}
 }
