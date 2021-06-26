@@ -261,4 +261,19 @@ class SchemaDefinition {
 
 		return $result;
 	}
+
+	public function getKeySummary($keyId) {
+		return $this->keys[$keyId]->getSummary();
+	}
+
+	public function getKeySummaryFieldIds($keyId) {
+		return $this->getKeySummary($keyId)->getFieldIds();
+	}
+
+	public function getKeySummaryColumns($keyId) {
+		return array_merge([], ...array_map(
+			fn($fieldId) => $this->getKeyFieldColumns($keyId, $fieldId), 
+			$this->getKeySummary($keyId)->getFieldIds())
+		);
+	}
 }

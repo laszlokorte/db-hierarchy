@@ -10,7 +10,14 @@ class MultiTree {
 	}
 
 	public function getNodes($keyId, $scopeId = null, $parentId = null) {
-		return $this->groupedRows[$keyId][($scopeId?:'-').'/'.($parentId?:'-')] ?? [];
+		return array_map(fn($data) => 
+			new Node($keyId, $data['_id'], $data, $scopeId, $parentId),
+			$this->groupedRows[$keyId][($scopeId?:'-').'/'.($parentId?:'-')] ?? []
+		);
+	}
+
+	public function hasNodes($keyId, $scopeId = null, $parentId = null) {
+		return !empty($this->groupedRows[$keyId][($scopeId?:'-').'/'.($parentId?:'-')]);
 	}
 
 	public function getRootKeys() {

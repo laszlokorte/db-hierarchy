@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Data\Node;
 
 class Key {
 	public function __construct(
@@ -74,5 +75,26 @@ class Key {
 			fn($k) => new Key($this->def, $k),
 			$this->def->getReferencingKeys($this->keyId)
 		);
+	}
+
+	public function getSummary() {
+		return $this->def->getKeySummary($this->keyId);
+	}
+
+	public function summarize(Node $node) {
+		$summDef = $this->def->getKeySummary($this->keyId);
+		$constants = $summDef->getConstants();
+		$fieldIds = $summDef->getFieldIds();
+
+		$result = '';
+
+		for ($i=0; $i < count($constants); $i++) {
+			if($i>0) {
+				$result .= $this->getField($fieldIds[$i-1])->readValueOf($node);
+			}
+			$result .= $constants[$i];
+		}
+
+		return $result . ' ['.$node->getKey().'-'.$node->getID().']';
 	}
 }

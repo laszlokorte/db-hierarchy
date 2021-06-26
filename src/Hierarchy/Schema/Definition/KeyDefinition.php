@@ -8,11 +8,15 @@ class KeyDefinition {
 	public function __construct(
 		private StorageDefinition $storage,
 		private LabelDefinition $label, 
-		private ?ScopeDefinition $scope = NULL, 
-		private ?ReflexivityDefinition $reflexivity = NULL, 
-		private ?OrderDefinition $order = NULL, 
-		private array $fields = []
+		private ?ScopeDefinition $scope, 
+		private ?ReflexivityDefinition $reflexivity, 
+		private ?OrderDefinition $order, 
+		private array $fields,
+		private SummaryDefinition $summary
 	) {
+		if(array_diff($summary->getFieldIds(), array_keys($fields))) {
+			throw new \Exception(sprintf('unknown fields in key summary: %s', implode(', ', array_diff($summary->getFieldIds(), array_keys($fields)))));
+		}
 	}
 
 	public function fieldExists($fieldId) {
@@ -109,5 +113,9 @@ class KeyDefinition {
 
 	public function getFieldOption($fieldId, $optionId) {
 		return $this->fields[$fieldId]->getOption($optionId);
+	}
+
+	public function getSummary() {
+		return $this->summary ?? new SummaryDefinition();
 	}
 }

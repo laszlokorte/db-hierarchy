@@ -8,12 +8,12 @@
             {% if key.isNested %}
             <span class="dragger" draggable="true" ondragstart="this.classList.add('state-dragging')" ondragend="this.classList.remove('state-dragging')" ondragover="this.classList.add('state-over');event.preventDefault()" ondragleave="this.classList.remove('state-over')" ondrop="this.classList.remove('state-over');"></span>
             {% endif %}
-            <a href="{{ path('show_node', {key:key.id, id: node._id}) }}" title="">{{key.label.singular}}-{{node._id}}</a>
+            <a href="{{ path('show_node', {key:key.id, id: node.id}) }}" title="">{{key.summarize(node)}}</a>
             {% for childKey in key.getNestedKeys %}
                 {% if childKey.id == key.id %}
-                    {{ _self.walkTree(childKey, h, node._scope, node._id) }}
+                    {{ _self.walkTree(childKey, h, node.scope, node.id) }}
                 {% else %}
-                    {{ _self.walkTree(childKey, h, node._id) }}
+                    {{ _self.walkTree(childKey, h, node.id) }}
                 {% endif %}
             {% endfor %}
             </li>
@@ -35,7 +35,13 @@
 {% for key in rootKeys %}
     <h3>{{ key.label.plural }}</h3>
     
-    {{ _self.walkTree(key, hierarchy) }}
+    {% if not hierarchy.hasNodes(key.id) %}
+        <p>
+            None
+        </p>
+    {% else %}
+        {{ _self.walkTree(key, hierarchy) }}
+    {% endif %}
 {% endfor %}
 
 {% endblock %}
