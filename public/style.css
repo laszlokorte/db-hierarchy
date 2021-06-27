@@ -534,9 +534,19 @@ body.state-dragging .dragger:not(.drag-target) {
 }
 
 .quicktab-link {
-    padding: 0.5em 1em;
+    padding: 0.3em 0.8em;
     color: var(--accent-primary);
-    filter: saturate(30%);
+    filter: saturate(10%);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.quicktab-link:hover {
+    background-color: #f0f0f0;
+}
+
+.quicktab-link:active {
+    background-color: #eaeaea;
 }
 
 .quicktab-link.state-active {
@@ -544,6 +554,8 @@ body.state-dragging .dragger:not(.drag-target) {
     background-color: var(--accent-primary);
     text-decoration: none;
     border-radius: 0.2em;
+    filter: saturate(20%);
+    cursor: default;
 }
 
 .quickform {
@@ -831,4 +843,33 @@ details>.details-summary ~ * {
     position: absolute;
     inset: 0;
     z-index: -1;
+}
+
+.tab-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    padding-bottom: 2em;
+}
+
+.tab-container-radio {
+    display: none;
+}
+
+.tab-container-content {
+    display:  none;
+    grid-column: 1 / span 1;
+    grid-row: 1 / span 1;
+}
+
+.tab-container-content:last-child {
+    display: block;
+}
+
+.tab-container-radio:checked ~ .tab-container-content:last-child {
+    display:  none;
+}
+
+.tab-container-radio:checked + .tab-container-content {
+    display: block !important;
 }

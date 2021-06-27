@@ -13,17 +13,40 @@
 {% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'show'} only %}
 
 
-<div class="quickform">
-    <h2>Edit</h2>
+<div class="tab-container">
+    <input type="radio" class="tab-container-radio" id="feid_tab_edit" name="field_tab" value="new">
+    <div class="tab-container-content">
+
+    <ul class="quicktab-list">
+        <li class="quicktab-list-item"><label for="feid_tab_view" class="quicktab-link">
+        Fields
+        </label></li>
+
+        <li class="quicktab-list-item"><label for="feid_tab_edit" class="quicktab-link state-active">
+        Edit
+        </label></li>
+    </ul>
         
-    {% include 'hierarchy/partials/form_edit.html.twig' with {key, node} only %}
+     {% include 'hierarchy/partials/form_edit.html.twig' with {key, node} only %}
+    </div>
 
+    <input type="radio" class="tab-container-radio" id="feid_tab_view" name="field_tab" value="list">
+    <div class="tab-container-content">
+        
+        <ul class="quicktab-list">
+            <li class="quicktab-list-item"><label for="feid_tab_view" class="quicktab-link state-active">
+            Fields
+            </label></li>
+
+            <li class="quicktab-list-item"><label for="feid_tab_edit" class="quicktab-link">
+            Edit
+            </label></li>
+        </ul>
+
+        {% include 'hierarchy/partials/fields.html.twig' with {key, node} only %}
+
+    </div>
 </div>
-
-
-<h2>Fields</h2>
-
-{% include 'hierarchy/partials/fields.html.twig' with {key, node} only %}
 
 
 {% if key.nestedKeys|length %}
@@ -33,11 +56,39 @@
 {% for childKey in key.nestedKeys %}
 <h3>{{ childKey.label.plural }}</h3>
 
-{% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
+<div class="tab-container">
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab" value="new">
+    <div class="tab-container-content">
 
-<div class="quickform">
-<h4>New</h4>
+    <ul class="quicktab-list">
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
+        List
+        </label></li>
+
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
+        New
+        </label></li>
+    </ul>
+        
     {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
+    </div>
+
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab" value="list">
+    <div class="tab-container-content">
+        
+        <ul class="quicktab-list">
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
+            List
+            </label></li>
+
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            New
+            </label></li>
+        </ul>
+
+        {% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
+    </div>
 </div>
+
 {% endfor %}
 {% endblock %}

@@ -10,11 +10,39 @@
     <section>
         <h2>{{ rootKey.label.plural }}</h2>
 
-        {% include 'hierarchy/partials/table.html.twig' with {key: rootKey, nodeCollection: rootNodes.nodesFor(rootKey.id), then: 'parent', listLink: true} only %}
+        <div class="tab-container">
+            <input type="radio" class="tab-container-radio" id="root_tab_{{rootKey.id}}_new" name="root_tab" value="new">
+            <div class="tab-container-content">
 
-         <div class="quickform">
-        <h3>New</h3>
+            <ul class="quicktab-list">
+                <li class="quicktab-list-item"><label for="root_tab_{{rootKey.id}}_list" class="quicktab-link">
+                List
+                </label></li>
+
+                <li class="quicktab-list-item"><label for="root_tab_{{rootKey.id}}_new" class="quicktab-link state-active">
+                New
+                </label></li>
+            </ul>
+                
             {% include 'hierarchy/partials/form_new.html.twig' with {key: rootKey, then: 'parent'} only %}
+            </div>
+
+            <input type="radio" class="tab-container-radio" id="root_tab_{{rootKey.id}}_list" name="root_tab" value="list">
+            <div class="tab-container-content">
+                
+                <ul class="quicktab-list">
+                    <li class="quicktab-list-item"><label for="root_tab_{{rootKey.id}}_list" class="quicktab-link state-active">
+                    List
+                    </label></li>
+
+                    <li class="quicktab-list-item"><label for="root_tab_{{rootKey.id}}_new" class="quicktab-link">
+                    New
+                    </label></li>
+                </ul>
+
+                {% include 'hierarchy/partials/table.html.twig' with {key: rootKey, nodeCollection: rootNodes.nodesFor(rootKey.id), then: 'parent', listLink: true} only %}
+            </div>
+
         </div>
     </section>
 {% endfor %}
