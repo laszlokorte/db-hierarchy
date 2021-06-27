@@ -11,7 +11,7 @@ class MultiTree {
 
 	public function getNodes($keyId, $scopeId = null, $parentId = null) {
 		return array_map(fn($data) => 
-			new Node($keyId, $data['_id'], $data, $scopeId, $parentId),
+			new Node($keyId, $data['_id'], $data, $scopeId, $parentId, $data['_order']),
 			$this->groupedRows[$keyId][($scopeId?:'-').'/'.($parentId?:'-')] ?? []
 		);
 	}

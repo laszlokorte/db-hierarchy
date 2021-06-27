@@ -39,4 +39,8 @@ class MultiCollection {
 			);
 		}
 	}
+
+	public function hasNodesFor($keyId) {
+		return !empty($this->groupedRows[$keyId]);
+	}
 }

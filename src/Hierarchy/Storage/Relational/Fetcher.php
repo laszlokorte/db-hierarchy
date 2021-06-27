@@ -218,40 +218,30 @@ class Fetcher {
 		}
 	}
 
-	public function findNodeReflexiveParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\NodePath {
-		if(!$this->schemaDef->isKeyReflexive($keyId)) {
-			return new Data\NodePath($keyId, [$nodeId]);
-		}
-
+	public function findParentNodes(string $keyId, string $nodeId, ?int $limit = NULL) : Data\MultiCollection {
 		$this->beginTransaction();
-
+		$groupedNodes = [];
 		$idParam = new Parameter('_id');
-		$select = $this->queryBuilder->getSelectForFindNodeReflexiveParents($keyId, $idParam);
-		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-		$stmt->execute();
-		$ids = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-		$this->commitTransaction();
-
-		return new Data\NodePath($keyId, $ids);
-	}
-
-	public function findNodeParents(string $keyId, string $nodeId, ?int $limit = NULL) : Data\MultiPath {
-		$this->beginTransaction();
-		$nodePaths = [];
 
 		$currentKey = $keyId;
 		$currentId = $nodeId;
 		while($currentKey && $currentId && $currentNode = $this->findNode($currentKey, $currentId)) {
-			$nodePaths[] = $this->findNodeReflexiveParents($currentKey, $currentId);
+			if(!$this->schemaDef->isKeyReflexive($keyId)) {
+				$groupedNodes[$keyId] = $currentNode;
+			} else {
+				$select = $this->queryBuilder->getSelectForFindReflexiveParentNodes($currentKey, $idParam);
+				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
+				$stmt->execute();
+				$groupedNodes[$currentKey] = $stmt->fetchAllAssociativeIndexed();
+			}
+			
 			$currentKey = $this->schemaDef->getKeyScopeId($currentKey);
 			$currentId = $currentNode->getScope();
 		}
 
-		$this->commitTransaction();
-
-		return new Data\MultiPath($nodePaths);
+		return new Data\MultiCollection(null,null,$groupedNodes,null,null);
 	}
 
 	public function findNodeMoveTargets(string $keyId, string $nodeId) {

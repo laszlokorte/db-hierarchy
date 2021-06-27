@@ -273,6 +273,41 @@ class QueryBuilder {
 		], [$closureTable], [], $condition, $orders);
 	}
 
+	public function getSelectForFindReflexiveParentNodes(string $keyId, ValueInterface $id) {
+		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+		$tableC = new TableReference($this->naming->closureTableName($keyId));
+
+		$projections = [];
+		$projections[] = new Projection(new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection(new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
+
+		$joins = [];
+		$joins[] = new Join($tableC, new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+		));
+
+		$condition = new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableC, $this->naming->closureChildColumnName($keyId)),
+			$id
+		);
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
+				$projections[] = new Projection(new ColumnReference($tableN, new Identifier($column->getName())), new Identifier($column->getName()));
+			}
+		}
+
+		$orders = [
+			new Order(new ColumnReference($tableC, $this->naming->closureTableDepthName($keyId)), false)
+		];
+
+		return new Select($projections, [$tableN], $joins, $condition, $orders);
+	}
+
 	public function getDiagnosableKeys() {
 		return array_filter($this->schemaDef->getAllKeyIdsTopological(), 
 			fn($keyId) => $this->schemaDef->isKeyReflexive($keyId) || $this->schemaDef->isKeyOrdered($keyId)

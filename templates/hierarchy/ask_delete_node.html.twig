@@ -7,7 +7,7 @@
 {% block area_main %}
 
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {nodeParents} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
 
 <h1>{{ key.label.singular }} {{node.id}}</h1>
 
@@ -40,7 +40,7 @@
         {% else %}
             <div class="approve-box">This node does not have any child nodes.</div>
         {% endif %}
-    
+
     {% if deletionPlan.blockers|length %}
         <div class="warning-box">
             <h3 style="margin: 0">Node can not be deleted.</h3>

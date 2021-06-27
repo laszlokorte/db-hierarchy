@@ -66,6 +66,13 @@ class Key {
 		);
 	}
 
+	public function getNestingPath() {
+		return array_map(
+			fn($k) => new Key($this->def, $k),
+			$this->def->getKeyScopePath($this->keyId, true)
+		);
+	}
+
 	public function isNested() {
 		return $this->def->isKeyNested($this->keyId);
 	}
