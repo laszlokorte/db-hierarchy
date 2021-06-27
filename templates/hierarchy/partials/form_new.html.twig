@@ -21,7 +21,12 @@
         </dt>
         <dd class="form-container-field">
         <input type="hidden" name="scope" value="">
-    	<input  required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {key: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+    	<input 
+    data-label-singular="{{ key.scopeKey.label.singular }}" 
+    data-label-plural="{{ key.scopeKey.label.plural }}" 
+    data-new-url="{{ path('new_root_node', {key: key.scopeKey.id}) }}" 
+
+    required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {key: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
     	</dd>
 		{% endif %}
 		{% for field in key.fields %}

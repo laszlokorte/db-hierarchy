@@ -323,7 +323,7 @@ span[onclick]:not([class]) {
     padding: 0;
     display: flex;
     flex-flow: wrap;
-    gap:  0.3em;
+    gap: 0.3em;
     align-items: flex-end;
 }
 
@@ -331,6 +331,7 @@ span[onclick]:not([class]) {
     padding: 2em 0 2em;
     margin-top: -2em;
     margin-bottom: -2em;
+    min-height: 2.1em;
 }
 
 .breadcrump-item {
@@ -349,7 +350,6 @@ span[onclick]:not([class]) {
 }
 
 .breadcrump-segment-title {
-    margin-top: -1.2em;
     font-size: small;
     color: var(--accent-primary);
 }
