@@ -227,9 +227,9 @@ class Fetcher {
 		$currentId = $nodeId;
 		while($currentKey && $currentId) {
 			if(!$this->schemaDef->isKeyReflexive($currentKey)) {
-				$select = $this->queryBuilder->getSelectForFindNode($keyId, $idParam);
+				$select = $this->queryBuilder->getSelectForFindNode($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-				$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
 				$stmt->execute();
 				$groupedNodes[$currentKey] = $stmt->fetchAllAssociativeIndexed();
 			} else {
