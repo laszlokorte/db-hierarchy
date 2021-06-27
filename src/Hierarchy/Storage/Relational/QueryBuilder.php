@@ -142,7 +142,12 @@ class QueryBuilder {
 			}
 		}
 
-		return new Select($projections, [$tableN], $joins, $condition);
+		$orders = [
+			new Order(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), true),
+			new Order(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), false)
+		];
+
+		return new Select($projections, [$tableN], $joins, $condition, $orders);
 	}
 
 	public function getSelectForFindHierarchyCousins(string $keyId, ValueInterface $idParam) {
