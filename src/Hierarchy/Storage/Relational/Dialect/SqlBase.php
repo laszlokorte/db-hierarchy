@@ -89,8 +89,8 @@ abstract class SqlBase implements DialectInterface {
 		}
 
 		if($select->getUnions()) {
-			$query .= PHP_EOL . $this->i() . 'UNION' . PHP_EOL;
 			foreach ($select->getUnions() as $u) {
+				$query .= PHP_EOL . $this->i() . 'UNION' . PHP_EOL;
 				$query .= $this->selectToStringInternal($u, false);
 			}
 		}

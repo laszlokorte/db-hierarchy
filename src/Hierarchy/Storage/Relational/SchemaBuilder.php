@@ -42,7 +42,7 @@ class SchemaBuilder {
 	private const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
 	private const CLOSURE_TABLE_DEPTH_TYPE = 'INTEGER';
 
-	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
+	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private Quirks $quirks) {
 	}
 
 	public function getTablesFor(string $keyId) {
@@ -116,7 +116,10 @@ class SchemaBuilder {
 				$uniques[] = [$this->nodeOwnScopeColumnName($keyId)];
 			}
 
-			$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
+			if(!$this->quirks->noDeferredFK()) {
+				$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
+			}
+
 		}
 
 		foreach ($this->fieldsColumns($keyId) as $fieldColumn) {
@@ -172,7 +175,7 @@ class SchemaBuilder {
 				[$ownColumnName], 
 				$targetTableName, 
 				[$targetColumnName],
-				ForeignKey::CASCADE
+				ForeignKey::RESTRICT
 			);
 		}
 
@@ -297,16 +300,20 @@ class SchemaBuilder {
 
 		$foreignKeys = [
 			new ForeignKey(
+				$this->quirks->noDeferredFK() ? [$childColumnName] :
 				array_merge($scopeColumnNames, [$childColumnName]), 
 				$targetTableName, 
+				$this->quirks->noDeferredFK() ? [$targetColumnName] :
 				array_merge($scopeColumnNames, [$targetColumnName]),
-				ForeignKey::CASCADE
+				ForeignKey::RESTRICT
 			),
 			new ForeignKey(
+				$this->quirks->noDeferredFK() ? [$parentColumnName] :
 				array_merge($scopeColumnNames, [$parentColumnName]), 
 				$targetTableName, 
+				$this->quirks->noDeferredFK() ? [$targetColumnName] :
 				array_merge($scopeColumnNames, [$targetColumnName]),
-				ForeignKey::CASCADE
+				ForeignKey::RESTRICT
 			)
 		];
 		
@@ -592,14 +599,86 @@ class SchemaBuilder {
 			))
 		);
 
+		$tableX = new TableReference($this->nodeTableName($keyId), new Identifier('x'));
+		$tableY = new TableReference($this->nodeTableName($keyId), new Identifier('y'));
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$joins = [
+				new Join($tableX, 
+					new BinaryOperation(
+						new Equal(), 
+						new Tuple([
+							new ColumnReference($tableX, $this->naming->nodeOwnScopeColumnName($keyId)), 
+							new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)), 
+						]),
+						new Tuple([
+							$scopeRef,
+							$parentRef,
+						])
+					), 
+					'LEFT'
+				),
+				new Join($tableY, 
+					new BinaryOperation(
+						new Equal(), 
+						new Tuple([
+							new ColumnReference($tableY, $this->naming->nodeOwnScopeColumnName($keyId)), 
+							new ColumnReference($tableY, $this->naming->nodeTablePKName($keyId)), 
+						]),
+						new Tuple([
+							$scopeRef,
+							$childRef,
+						])
+					), 
+					'LEFT'
+				)
+			];
+		} else {
+			$joins = [
+				new Join($tableX, 
+					new BinaryOperation(
+						new Equal(), 
+						new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)), 
+						$parentRef,
+					), 
+					'LEFT'
+				),
+				new Join($tableY, 
+					new BinaryOperation(
+						new Equal(), 
+						new ColumnReference($tableY, $this->naming->nodeTablePKName($keyId)), 
+						$childRef,
+					), 
+					'LEFT'
+				)
+			];
+		}
+
+
+		$conditionE = new BinaryOperation(
+			new Disjunction(),
+			new BinaryOperation(
+				new Equal(true),
+				new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)),
+				new Constant(null)
+			),
+			new BinaryOperation(
+				new Equal(true),
+				new ColumnReference($tableY, $this->naming->nodeTablePKName($keyId)),
+				new Constant(null)
+			),
+		);
+
+
+		$conditions = [$conditionA, $conditionB, $conditionC, $conditionD, $conditionE];
 		$condition = new AssociativeOperation(
 			new Disjunction(),
-			[$conditionA, $conditionB, $conditionC, $conditionD]
+			$conditions
 		);
 
 		$select = new Select($projections, [
 			$table
-		], [], $condition);
+		], $joins, $condition);
 
 		return new CreateView($this->closureInvalidViewName($keyId), $select);
 	}
@@ -690,40 +769,6 @@ class SchemaBuilder {
 			]
 		);
 
-		$tableM = new TableReference($this->nodeTableName($keyId), new Identifier('m'));
-		$tableR = new TableReference($this->closureTableName($keyId), new Identifier('r'));
-
-		$idRefM = new ColumnReference($tableM, $idColumnName);
-
-		$idRefR = new ColumnReference($tableR, $idColumnName);
-		$parentRefR = new ColumnReference($tableR, $parentId);
-		$childRefR = new ColumnReference($tableR, $childId);
-		$depthRefR = new ColumnReference($tableR, $depthId);
-
-		$unionProjects = [];
-		$unionProjects[] = new Projection(new Constant(null), $idColumnName);
-
-		if($this->schemaDef->isKeyScoped($keyId)) {
-			$scopeRefM = new ColumnReference($tableM, $this->nodeOwnScopeColumnName($keyId));
-			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
-			$unionProjects[] = new Projection($scopeRefM, $this->nodeOwnScopeColumnName($keyId));
-		}
-
-		$unionProjects[] = new Projection($idRefM, $parentId);
-		$unionProjects[] = new Projection($idRefM, $childId);
-		$unionProjects[] = new Projection(new Constant(0), $depthId);
-		$unionProjects[] = new Projection(new Constant("reflexivity"), new Identifier('reason'));
-		$union = new Select($unionProjects, [$tableM], [
-
-		], new UnaryOperation(
-			new Negation(),
-			new Existence(new Select([new Projection($idRefR)], [$tableR], [], new BinaryOperation(
-				new Equal(true),
-				new Tuple([$parentRefR,$childRefR,$depthRefR]),
-				new Tuple([$idRefM, $idRefM, new Constant(0)]),
-			)))
-		));
-
 
 			// SELECT
 			// 	NULL AS id,
@@ -740,6 +785,46 @@ class SchemaBuilder {
 			// 		WHERE (r.{{closure_parent}}, r.{{closure_child}}, r.{{closure_depth}})
 			// 		IS (m.{{closure_id}}, m.{{closure_id}}, 0)
 			// 	)
+
+		$tableX = new TableReference($this->nodeTableName($keyId), new Identifier('x'));
+		$tableY = new TableReference($this->closureTableName($keyId), new Identifier('y'));
+
+		$unionProjects = [];
+		$unionProjects[] = new Projection(new Constant(null), $idColumnName);
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$scopeRefX = new ColumnReference($tableX, $this->nodeOwnScopeColumnName($keyId));
+			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
+			$unionProjects[] = new Projection($scopeRefX, $this->nodeOwnScopeColumnName($keyId));
+		}
+
+		$unionProjects[] = new Projection(new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)), $parentId);
+		$unionProjects[] = new Projection(new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)), $childId);
+		$unionProjects[] = new Projection(new Constant(0), $depthId);
+		$unionProjects[] = new Projection(new Constant("existence"), new Identifier('reason'));
+
+		$union = new Select($unionProjects, [$tableX], [
+			new Join($tableY, 
+				new BinaryOperation(
+					new Equal(), 
+					new Tuple([
+						new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)),
+						new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)),
+						new Constant(0),
+					]), 
+					new Tuple([
+						new ColumnReference($tableY, $this->naming->closureParentColumnName($keyId)),
+						new ColumnReference($tableY, $this->naming->closureChildColumnName($keyId)),
+						new ColumnReference($tableY, $this->naming->closureTableDepthName($keyId)),
+					]),
+				), 
+				'LEFT'
+			)
+		], new BinaryOperation(
+			new Equal(true), 
+			new Constant(null), 
+			new ColumnReference($tableY, $this->naming->closureTablePkName($keyId))
+		));
 
 		$select = new Select(
 			$projections, [$tableA, $tableB], [], $condition,

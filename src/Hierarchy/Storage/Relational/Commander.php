@@ -16,6 +16,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 class Commander {
 	private const MAX_REPAIR_RETRIES = 5;
 
+	private $noFk = false;
+
 	public function __construct(private SchemaDefinition $schemaDef, private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
@@ -31,6 +33,22 @@ class Commander {
 
 		$scopeParam = new Parameter('_scope');
 		$parentParam = new Parameter('_parent');
+
+
+		if(!empty($scopeId) && !empty($parentId)) {
+			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
+			
+			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
+
+			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, \PDO::PARAM_INT);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, \PDO::PARAM_INT);
+			$validPositionStmt->execute();
+
+			if(!$validPositionStmt->fetchColumn()) {
+				throw new \Exception("invalid position");
+			}
+		}
+
 		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $scopeParam, $parentParam);
 
 		$this->beginTransaction();
@@ -39,7 +57,7 @@ class Commander {
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($scopeParam),
-				$scopeId
+				$scopeId, \PDO::PARAM_INT
 			);
 		}
 
@@ -47,7 +65,7 @@ class Commander {
     	if($this->schemaDef->isKeyReflexive($keyId) && $this->schemaDef->isKeyOrdered($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($parentParam),
-				$parentId
+				$parentId, \PDO::PARAM_INT
 			);
 		}
 
@@ -74,14 +92,14 @@ class Commander {
 			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId, $scopeParam, $parentParam, $childParam, $depthParam);
 			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
 
-			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId);
-			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId);
-			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0);
+			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId, \PDO::PARAM_INT);
+			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, \PDO::PARAM_INT);
+			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0, \PDO::PARAM_INT);
 
 			if($this->schemaDef->isKeyScoped($keyId)) {
 				$closureStmt->bindValue(
 					$this->dialect->parameterToString($scopeParam),
-					$scopeId
+					$scopeId, \PDO::PARAM_INT
 				);
 			}
 
@@ -91,13 +109,13 @@ class Commander {
     			$closureInsertParent = $this->commandBuilder->getCommandForClosureParentInsert($keyId, $scopeParam, $childParam, $parentParam);
 				$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsertParent));
 
-    			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId);
-				$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId);
+    			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, \PDO::PARAM_INT);
+				$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, \PDO::PARAM_INT);
 
 				if($this->schemaDef->isKeyScoped($keyId)) {
 					$closureStmt->bindValue(
 						$this->dialect->parameterToString($scopeParam),
-						$scopeId
+						$scopeId, \PDO::PARAM_INT
 					);
 				}
 
@@ -137,7 +155,7 @@ class Commander {
 
 		$stmt->bindValue(
 			$this->dialect->parameterToString($idParam),
-			$nodeId
+			$nodeId, \PDO::PARAM_INT
 		);
 		$stmt->execute();
 
@@ -159,6 +177,18 @@ class Commander {
 					continue;
 				}
 				$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
+
+				if($this->schemaDef->isKeyReflexive($key)) {
+					$deleteClosure = $this->commandBuilder->getCommandForDeleteMultipleNodesClosure($key, $nodeIdParams);
+
+					$stmtCLosure = $this->connection->prepare($this->dialect->deleteToString($deleteClosure));
+
+					foreach($nodeIdParams AS $i => $p) {
+						$stmtCLosure->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+					}
+					$stmtCLosure->execute();
+				}
+
 				$delete = $this->commandBuilder->getCommandForDeleteMultipleNodes($key, $nodeIdParams);
 
 				$stmt = $this->connection->prepare($this->dialect->deleteToString($delete));
@@ -201,7 +231,7 @@ class Commander {
 			$select = $this->commandBuilder->getSelectForCollectChildByIdReflexive($keyId, $nodeIdParams);
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			foreach($nodeIdParams AS $i => $p) {
-				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], \PDO::PARAM_INT);
 			}
 			$stmt->execute();
 			$rows = $stmt->fetchAllAssociativeIndexed();
@@ -210,7 +240,7 @@ class Commander {
 			$select = $this->commandBuilder->getSelectForCollectSelfById($keyId, $nodeIdParams);
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			foreach($nodeIdParams AS $i => $p) {
-				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], \PDO::PARAM_INT);
 			}
 			$stmt->execute();
 			$rows = $stmt->fetchAllAssociativeIndexed();
@@ -246,7 +276,7 @@ class Commander {
 
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		foreach($nodeIdParams AS $i => $p) {
-			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i]);
+			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i], \PDO::PARAM_INT);
 		}
 		$stmt->execute();
 		$rows = $stmt->fetchAllAssociativeIndexed();
@@ -286,7 +316,7 @@ class Commander {
 
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			foreach($nodeIdParams AS $i => $p) {
-				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], \PDO::PARAM_INT);
 			}
 			$stmt->execute();
 			$result[$refKey] = $stmt->fetchAllAssociativeIndexed();
@@ -308,13 +338,13 @@ class Commander {
 			throw new \Exception($targetParentId);
 		}
 
-		if(!empty($scopeId) && !empty($targetParentId)) {
-			$selectMoveTargetExists = $this->commandBuilder->getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam);
+		if(!empty($targetScopeId) && !empty($targetParentId)) {
+			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
-			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
-			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, \PDO::PARAM_INT);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, \PDO::PARAM_INT);
 			$validPositionStmt->execute();
 
 			if(!$validPositionStmt->fetchColumn()) {
@@ -327,8 +357,8 @@ class Commander {
 
 			$checkCycleStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetValid));
 
-			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
+			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
+			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, \PDO::PARAM_INT);
 			$checkCycleStmt->execute();
 
 			if($checkCycleStmt->fetchColumn()) {
@@ -337,33 +367,44 @@ class Commander {
 		}
 
 
-		$this->beginTransaction();
+		$this->beginTransaction(true);
+
+		if($this->schemaDef->isKeyReflexive($keyId)) {
+			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
+
+			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
+
+			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
+			$deleteClosureParentsStmt->execute();
+		}
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
-
-			$updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
-
-			$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
-			$updateOwnScopeStmt->execute();
+			
 
 			if($this->schemaDef->isKeyReflexive($keyId)) {
 				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam);
 
 				$updateClosureScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureScope));
 
-				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
+				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, \PDO::PARAM_INT);
 				$updateClosureScopeStmt->execute();
 
 				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam);
 
 				$updateClosureParentsStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureParents));
 
-				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
+				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, \PDO::PARAM_INT);
 				$updateClosureParentsStmt->execute();
+			} else {
+				$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
+
+				$updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
+
+				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
+				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, \PDO::PARAM_INT);
+				$updateOwnScopeStmt->execute();
 			}
 		}
 
@@ -372,7 +413,7 @@ class Commander {
 
 			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
 
-			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
 			$deleteClosureParentsStmt->execute();
 
 
@@ -381,10 +422,10 @@ class Commander {
 
 				$insertClosureParentsStmt = $this->connection->prepare($this->dialect->insertToString($insertClosureParents));
 
-				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId);
+				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
+				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, \PDO::PARAM_INT);
 				if($this->schemaDef->isKeyScoped($keyId)) {
-					$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId);
+					$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, \PDO::PARAM_INT);
 				}
 
 				$insertClosureParentsStmt->execute();
@@ -407,7 +448,7 @@ class Commander {
 
 		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
-		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::PARAM_INT);
 		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, \PDO::PARAM_INT);
 
 		$stmt->execute();
@@ -467,13 +508,19 @@ class Commander {
 		}
 	}
 
-	private function beginTransaction() {
+	private function beginTransaction($noFk = false) {
+		if($noFk) {
+			$this->noFk = true;		
+			//$this->connection->executeStatement('SET foreign_key_checks = 0;');
+		}
 		$this->connection->beginTransaction();
-		$this->connection->executeStatement('SET foreign_key_checks = 0;');
 	}
 
 	private function commitTransaction() {
-		$this->connection->executeStatement('SET foreign_key_checks = 1;');
+		if($this->noFk) {		
+			//$this->connection->executeStatement('SET foreign_key_checks = 1;');
+			$this->noFk = false;
+		}
 		$this->connection->commit();
 	}
 }

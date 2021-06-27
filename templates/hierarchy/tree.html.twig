@@ -90,7 +90,27 @@
     {% else %}
         <span data-key="{{key.id}}"
     ondragover="if(event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
-    ondragleave="this.classList.remove('state-over')">Root</span>
+    ondragleave="this.classList.remove('state-over')"
+    ondrop="
+    if(event.dataTransfer.getData('move-url') && (event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key)) {
+        event.stopPropagation()
+        this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));
+            event.stopPropagation();
+            let fd = new FormData();
+            fd.append('target_scope-parent', '/');
+            fd.append('_then', 'tree');
+            fetch(event.dataTransfer.getData('move-url'), {
+              method: 'POST',
+              body: fd
+            }).then((r) => {
+                if(r.url != window.location.href) {
+                window.location.href = r.url
+            } else {
+                window.location.reload()
+            }})
+        }
+        "
+    >Root</span>
         {{ _self.walkTree(key, hierarchy) }}
     {% endif %}
 {% endfor %}

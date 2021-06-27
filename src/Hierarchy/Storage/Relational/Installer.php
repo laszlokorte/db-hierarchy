@@ -23,20 +23,21 @@ class Installer {
 		return $schema;
 	}
 
-	public function createSchema($dropOld) {
+	public function createSchema($dropOld, $onlyViews) {
 		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
-		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
-			$this->connection->executeStatement($this->dialect->dropTableToString($t));
-		}
-		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
-			$this->connection->executeStatement($this->dialect->dropTableToString($t));
+
+		if(!$onlyViews) {
+			foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
+				$this->connection->executeStatement($this->dialect->dropTableToString($t));
+			}
+
+			foreach ($this->schmaBuilder->getAllTables() as $t) {
+				$this->connection->executeStatement($this->dialect->createTableToString($t));
+			}
 		}
 
-		foreach ($this->schmaBuilder->getAllTables() as $t) {
-			$this->connection->executeStatement($this->dialect->createTableToString($t));
-		}
 		foreach ($this->schmaBuilder->getAllViews() as $v) {
 			$this->connection->executeStatement($this->dialect->createViewToString($v));
 		}

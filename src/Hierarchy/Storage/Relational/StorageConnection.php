@@ -11,6 +11,10 @@ use Doctrine\DBAL\Connection;
 
 class StorageConnection {
 	public function __construct(SchemaDefinition $schemaDef, Connection $connection) {
+		$this->quirks = new Quirks(
+			$connection->getDriver()->getName() == 'pdo_mysql'
+		);
+
 		$this->schemaDef = $schemaDef;
 		$this->connection = $connection;
 		$this->naming = new Naming($schemaDef);
@@ -30,6 +34,6 @@ class StorageConnection {
 	}
 
 	public function getInstaller() {
-		return new Installer(new SchemaBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
+		return new Installer(new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), $this->connection, $this->dialect);
 	}
 }

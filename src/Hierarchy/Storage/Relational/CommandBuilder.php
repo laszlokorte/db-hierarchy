@@ -231,6 +231,27 @@ class CommandBuilder  {
 		);
 	}
 
+	public function getCommandForDeleteMultipleNodesClosure(string $keyId, $idParams) {
+		$table = new TableReference($this->naming->closureTableName($keyId));
+
+		$condition = new BinaryOperation(
+			new Disjunction(),
+			new ElementOf(
+				new ColumnReference($table, $this->naming->closureParentColumnName($keyId)),
+				$idParams
+			),
+			new ElementOf(
+				new ColumnReference($table, $this->naming->closureChildColumnName($keyId)),
+				$idParams
+			)
+		);
+
+		return new Delete(
+			$table,
+			$condition
+		);
+	}
+
 	public function getSelectForCollectChildByIdReflexive(string $keyId, $idParams) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
@@ -374,7 +395,7 @@ class CommandBuilder  {
 	}
 
 
-	public function getSelectForMoveTargetExists($keyId, $scopeParam, $parentParam) {
+	public function getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		// SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id
 		return new Select(

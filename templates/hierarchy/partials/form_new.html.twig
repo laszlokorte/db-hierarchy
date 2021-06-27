@@ -29,6 +29,20 @@
     required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {key: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
     	</dd>
 		{% endif %}
+		{% if parent is not defined and key.isReflexive %}
+		<dt class="form-container-label">
+        <label class="form-label" for="parent">Parent {{key.label.singular}}</label>
+        </dt>
+        <dd class="form-container-field">
+        <input type="hidden" name="parent" value="">
+    	<input 
+    data-label-singular="{{ key.label.singular }}" 
+    data-label-plural="{{ key.label.plural }}" 
+    data-new-url="{{ path('new_root_node', {key: key.id}) }}" 
+
+     data-explicit="false" data-reference-url="{{ path('list_all_nodes', {key: key.id}) }}" class="form-field" type="text" id="parent" name="parent" value="" placeholder="{{key.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+    	</dd>
+		{% endif %}
 		{% for field in key.fields %}
         <dt class="form-container-label">
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>

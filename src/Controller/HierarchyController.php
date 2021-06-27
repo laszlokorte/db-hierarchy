@@ -65,11 +65,13 @@ class HierarchyController {
     }
 
     #[Route('/_setup', name: 'hierarchy_setup', methods: 'POST')]
-    public function setup(UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
+    public function setup(Request $request, Session $session, UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
     {
-    	$storageConnection->getInstaller()->createSchema(true);
+    	$storageConnection->getInstaller()->createSchema(true, $request->request->get('only_views', false));
 
-    	return new RedirectResponse($urlGen->generate('hierarchy_root'));
+        $session->getFlashBag()->add('success', 'Schema has been updated.');
+
+    	return new RedirectResponse($urlGen->generate('show_hierarchy_setup'));
     }
 
     #[Route('/_diagnosis', name: 'show_diagnosis', methods: 'GET')]
