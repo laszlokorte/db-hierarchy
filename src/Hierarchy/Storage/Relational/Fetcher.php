@@ -226,7 +226,7 @@ class Fetcher {
 		$currentKey = $keyId;
 		$currentId = $nodeId;
 		while($currentKey && $currentId) {
-			if(!$this->schemaDef->isKeyReflexive($keyId)) {
+			if(!$this->schemaDef->isKeyReflexive($currentKey)) {
 				$select = $this->queryBuilder->getSelectForFindNode($keyId, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
