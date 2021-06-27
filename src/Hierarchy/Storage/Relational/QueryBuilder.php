@@ -274,13 +274,18 @@ class QueryBuilder {
 	}
 
 	public function getSelectForFindReflexiveParentNodes(string $keyId, ValueInterface $id) {
-		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 		$tableC = new TableReference($this->naming->closureTableName($keyId));
 
 		$projections = [];
 		$projections[] = new Projection(new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)), $this->naming->hierarchyIdColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$projections[] = new Projection(new ColumnReference($tableN, $this->naming->nodeOwnScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
+		} else {
+			$projections[] = new Projection(new Constant(null), $this->naming->hierarchyScopeColumnName($keyId));
+		}
 
 		$joins = [];
 		$joins[] = new Join($tableC, new BinaryOperation(

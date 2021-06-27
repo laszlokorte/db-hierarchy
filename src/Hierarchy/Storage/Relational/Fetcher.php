@@ -223,12 +223,15 @@ class Fetcher {
 		$groupedNodes = [];
 		$idParam = new Parameter('_id');
 
-
 		$currentKey = $keyId;
 		$currentId = $nodeId;
-		while($currentKey && $currentId && $currentNode = $this->findNode($currentKey, $currentId)) {
+		while($currentKey && $currentId) {
 			if(!$this->schemaDef->isKeyReflexive($keyId)) {
-				$groupedNodes[$keyId] = $currentNode;
+				$select = $this->queryBuilder->getSelectForFindNode($keyId, $idParam);
+				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+				$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+				$stmt->execute();
+				$groupedNodes[$keyId] = $stmt->fetchAllAssociativeIndexed();
 			} else {
 				$select = $this->queryBuilder->getSelectForFindReflexiveParentNodes($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
@@ -237,8 +240,9 @@ class Fetcher {
 				$groupedNodes[$currentKey] = $stmt->fetchAllAssociativeIndexed();
 			}
 			
+			$currentNode = end($groupedNodes[$currentKey]);
 			$currentKey = $this->schemaDef->getKeyScopeId($currentKey);
-			$currentId = $currentNode->getScope();
+			$currentId = $currentNode['_scope'];
 		}
 
 		return new Data\MultiCollection(null,null,$groupedNodes,null,null);
