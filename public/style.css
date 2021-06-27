@@ -402,6 +402,56 @@ body.state-dragging .dragger:not(.drag-target) {
     opacity: 0;
 }
 
+.drag-target-large:not(.state-dragging) {
+    outline: 1px solid var(--accent-primary);
+    background: #fff;
+}
+
+
+.drag-target-large > .block-list li {
+    background: #fff;
+}
+
+.drag-target-large.state-dragging, .drag-target-large.state-dragging .drag-target-large {
+    background: #eee !important;
+    color: #0001;
+    outline: none;
+    pointer-events: none;
+}
+
+.drag-target-large.state-dragging li, .drag-target-large.state-dragging .drag-target-large li {
+    background: #eee;
+}
+
+.drag-target-large.state-dragging a {
+    color: #0004;
+}
+
+
+
+.drag-target-large.state-over a {
+    color: #fff;
+}
+
+
+.drag-target-large.state-over * * * a {
+    color: var(--accent-primary);
+}
+
+
+.drag-target-large.state-over {
+    background-color: var(--accent-primary) !important;
+    color: #fff !important;
+}
+
+.state-over .drag-target-large.state-dragging a {
+    color: #0004;
+}
+
+.drag-target-large.disabled {
+    pointer-events: none;
+}
+
 .tab-list {
     display: flex;
     list-style: none;

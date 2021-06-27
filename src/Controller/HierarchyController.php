@@ -311,7 +311,14 @@ class HierarchyController {
 
         $session->getFlashBag()->add('success', 'Node Moved');
 
-        return new RedirectResponse($urlGen->generate('ask_move_node', ['key' => $key, 'id' => $id]));
+
+        $then = $request->request->get('_then', null);
+
+        if($then === 'tree') {
+            return new RedirectResponse($urlGen->generate('hierarchy_tree'));
+        } else {
+            return new RedirectResponse($urlGen->generate('ask_move_node', ['key' => $key, 'id' => $id]));
+        }
     }
 
     #[Route('/{key}/{id}/_order', name: 'ask_order_node', methods: 'GET')]

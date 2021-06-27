@@ -33,7 +33,7 @@ class Commander {
 		$parentParam = new Parameter('_parent');
 		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $scopeParam, $parentParam);
 
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
 
     	if($this->schemaDef->isKeyScoped($keyId)) {
@@ -109,7 +109,7 @@ class Commander {
     		));
 		}
 
-    	$this->connection->commit();
+    	$this->commitTransaction();
 
     	return $newNodeId;
 	}
@@ -118,7 +118,7 @@ class Commander {
 		$idParam = new Parameter('_id');
 		$update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
 
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
@@ -141,7 +141,7 @@ class Commander {
 		);
 		$stmt->execute();
 
-    	$this->connection->commit();
+    	$this->commitTransaction();
 	}
 
 	public function deleteNode(string $keyId, $nodeId) {
@@ -152,7 +152,7 @@ class Commander {
 		}
 
 		try {
-			$this->connection->beginTransaction();
+			$this->beginTransaction();
 			foreach ($deletionPlan['willDelete']->getKeys() as $key) {
 				$nodeIds = $deletionPlan['willDelete']->getNodeIdsFor($key);
 				if(empty($nodeIds)) {
@@ -168,7 +168,7 @@ class Commander {
 				}
 				$stmt->execute();
 			}
-			$this->connection->commit();
+			$this->commitTransaction();
 		} catch(\Exception $e) {
 			$this->connection->rollback();
 			throw $e;
@@ -332,15 +332,12 @@ class Commander {
 			$checkCycleStmt->execute();
 
 			if($checkCycleStmt->fetchColumn()) {
-				throw new ConsistencyException("invalid position");
+				throw new \Exception("invalid position");
 			}
 		}
 
-		if($this->schemaDef->isKeyReflexive($keyId) && empty($targetParentId)) {
-			$targetParentId = $nodeId;
-		}
 
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
@@ -395,7 +392,7 @@ class Commander {
 
 		}
 
-		$this->connection->commit();
+		$this->commitTransaction();
 	}
 
 	public function orderNode(string $keyId, $nodeId, $targetPosition) {
@@ -408,27 +405,27 @@ class Commander {
 
 		$update = $this->commandBuilder->getUpdateforReorderNode($keyId, $idParam, $orderParam);
 
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, \PDO::PARAM_INT);
 
 		$stmt->execute();
-		$this->connection->commit();
+		$this->commitTransaction();
 	}
 
 	public function repairAll() {
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		foreach ($this->commandBuilder->getRepairableKeys() as $key) {
 			$this->repairKeyInternal($key);
 		}
-    	$this->connection->commit();
+    	$this->commitTransaction();
 	}
 
 	public function repairKey(string $keyId) {
-		$this->connection->beginTransaction();
+		$this->beginTransaction();
 		$result = $this->repairKeyInternal($keyId);
-    	$this->connection->commit();
+    	$this->commitTransaction();
 
     	return $result;
 	}
@@ -468,5 +465,15 @@ class Commander {
 				throw new \Exception('repair timed out');
 			}
 		}
+	}
+
+	private function beginTransaction() {
+		$this->connection->beginTransaction();
+		$this->connection->executeStatement('SET foreign_key_checks = 0;');
+	}
+
+	private function commitTransaction() {
+		$this->connection->executeStatement('SET foreign_key_checks = 1;');
+		$this->connection->commit();
 	}
 }

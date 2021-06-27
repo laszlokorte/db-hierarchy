@@ -17,10 +17,15 @@
                     {{ '&nbsp;&nbsp;&nbsp;'|raw }}
                 {%- endfor -%}{{key.summarize(node)}} (self)</option>
                 {% endif %}
-            {% endif %}
-                {% for rootKey in moveTargets.getRootKeys %}
-                    {{ _self.walkTree(key.id, node, rootKey, moveTargets, null, null) }}
+
+                {% for scope in moveTargets.getScopes(key.id) %}
+                    {{ _self.walkTree(key.id, node, key.id, moveTargets, null, null) }}
                 {% endfor %}
+            {% else %}
+                {% for scope in moveTargets.getScopes(key.scopeKey.id) %}
+                    {{ _self.walkTree(key.id, node, key.scopeKey.id, moveTargets, scope, null) }}
+                {% endfor %}
+            {% endif %}
             </select>
         </dd>
         <dt class="form-container-label form-container-spacer"></dt>
@@ -54,7 +59,7 @@
         {% endif %}
         {% for childKey in h.getRootKeys %}
             {% if childKey == currentKey %}
-                {{ _self.walkTree(keyId, node, childKey, h, n.scope, n.id, depth+1) }}
+                {{ _self.walkTree(keyId, node, childKey, h, n.scope, n.id, depth + 1) }}
             {% else %}
                 {{ _self.walkTree(keyId, node, childKey, h, n.id, null, depth+1) }}
             {% endif %}

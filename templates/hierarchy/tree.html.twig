@@ -2,10 +2,55 @@
 
 {% macro walkTree(key, h, scope, parent) %}
     {% if h.getNodes(key.id, scope, parent) %}
-    <ul class="block-list">
+    <ul class="block-list"
+    >
         {% for node in h.getNodes(key.id, scope, parent) %}
-            <li>
+            <li data-key="{{key.id}}" data-parent="{{node.id}}" data-scope="{{scope}}"
+    ondragover="if((event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key)) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
+    ondragleave="this.classList.remove('state-over')" 
+    ondrop="
+    if(event.dataTransfer.getData('move-url') && (event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key)) {
+        event.stopPropagation()
+        this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));
+            event.stopPropagation();
+            let fd = new FormData();
+            if(event.dataTransfer.getData('key')==this.dataset.key) {
+                fd.append('target_scope-parent', this.dataset.scope+'/'+this.dataset.parent);
+            } else {
+                fd.append('target_scope-parent', this.dataset.parent+'/');
+            }
+            fd.append('_then', 'tree');
+            fetch(event.dataTransfer.getData('move-url'), {
+              method: 'POST',
+              body: fd
+            }).then((r) => {
+                if(r.url != window.location.href) {
+                window.location.href = r.url
+            } else {
+                window.location.reload()
+            }})
+        }
+        ">
             <div style="display: flex;">
+                {% if key.isNested %}
+                <span class="dragger" 
+                data-url="{{ path('move_node', {key:key.id, id: node.id}) }}"
+                {% if key.isScoped %}
+                data-scope="{{key.scopeKey.id}}"
+                {% endif %}
+                {% if key.isReflexive %}
+                data-key="{{key.id}}"
+                {% endif %}
+                draggable="true" 
+                ondragstart="
+                this.parentNode.parentNode.classList.add('state-dragging');
+                event.dataTransfer.setData('move-url', this.dataset.url);event.dataTransfer.setData('scope', this.dataset.scope);event.dataTransfer.setData('key', this.dataset.key);this.classList.add('state-dragging');document.querySelectorAll('[data-key=\''+this.dataset.scope+'\'], [data-key=\''+this.dataset.key+'\']').forEach(e=>e.classList.add('drag-target-large'));document.body.classList.add('state-dragging')" 
+                ondragend="
+                this.parentNode.parentNode.classList.remove('state-dragging');
+                this.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));document.body.classList.remove('state-dragging')
+                "
+                ></span>&nbsp;
+                {% endif %}
                 {% if key.isOrdered %}
                 {% include 'hierarchy/partials/dragger.html.twig' with {then:'tree',key:key.id, nestId: (scope??'-')~"*"~(parent??'-'), id: node.id, order:node.order} %}
                 {% endif %}
@@ -43,6 +88,9 @@
             None
         </p>
     {% else %}
+        <span data-key="{{key.id}}"
+    ondragover="if(event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
+    ondragleave="this.classList.remove('state-over')">Root</span>
         {{ _self.walkTree(key, hierarchy) }}
     {% endif %}
 {% endfor %}

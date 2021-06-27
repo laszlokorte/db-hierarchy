@@ -27,4 +27,9 @@ class MultiTree {
 	public function isEmpty() {
 		return empty($this->rootKeyIds) || empty($this->groupedRows);
 	}
+
+	public function getScopes($keyId) {
+		dump($this->groupedRows);
+		return array_unique(array_map(fn($k) => explode('/',$k,2)[0], array_keys($this->groupedRows[$keyId])));
+	}
 }
