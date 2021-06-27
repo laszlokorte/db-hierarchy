@@ -231,7 +231,7 @@ class Fetcher {
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 				$stmt->execute();
-				$groupedNodes[$keyId] = $stmt->fetchAllAssociativeIndexed();
+				$groupedNodes[$currentKey] = $stmt->fetchAllAssociativeIndexed();
 			} else {
 				$select = $this->queryBuilder->getSelectForFindReflexiveParentNodes($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
