@@ -1,29 +1,39 @@
-<ul class="breadcrump">
+<ul class="breadcrump outer">
     <li class="breadcrump-item"><a href="{{ path('hierarchy_root') }}">Root</a></li>
     {%- if key is defined -%}
         {%- for k in key.getNestingPath -%}
-            <li class="breadcrump-item">{#--#}
-            {% if loop.last and not parentNodes.hasNodesFor(k.id) %}
-                {{ k.label.plural }}
-            {% elseif k.isScoped %}
-                {% if parentNodes.hasNodesFor(k.scopeKey.id) %}
-                    <a href="{{ path('list_child_nodes', {key: k.scopeKey.id, id: parentNodes.nodesFor(k.scopeKey.id).ids|last, childKey:k.id}) }}" title="">{{ k.label.plural }}</a>
+            {% if parentNodes.hasNodesFor(k.id) %}
+            <li class="{{html_classes('breadcrump-segment')}}">
+                {% if k.isScoped %}
+                    <a class="breadcrump-segment-title" href="{{ path('list_child_nodes', {key: k.scopeKey.id, id: parentNodes.nodesFor(k.scopeKey.id).ids|last, childKey:k.id}) }}" title="">{{ k.label.plural }}</a>
                 {% else %}
-                    <a href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
+                    <a class="breadcrump-segment-title" href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
                 {% endif %}
-            {% else %}
-            <a href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
-            {% endif %}
+                <ul class="breadcrump">
+                    {% for nodeId in parentNodes.nodesFor(k.id).ids|default([]) %}
+                        <li class="breadcrump-item">{#--#}
+                        {% if loop.last and loop.parent.loop.last and trailing is not defined %}
+                            {{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}
+                        {% elseif key.reflexive %}
+                            <a href="{{ path('list_child_nodes', {key:k.id, id:nodeId, childKey: k.id}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
+                        {% else %}
+                            <a href="{{ path('show_node', {key:k.id, id:nodeId}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
+                        {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
             </li>
-            {% for nodeId in parentNodes.nodesFor(k.id).ids|default([]) %}
-                <li class="breadcrump-item">{#--#}
-                {% if loop.last and loop.parent.loop.last and trailing is not defined %}
-                    {{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}
-                {% else %}
-                    <a href="{{ path('show_node', {key:k.id, id:nodeId}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
-                {% endif %}
+            {% else %}
+                <li class="{{html_classes('breadcrump-item')}}">{#--#}
+                    {% if loop.last %}
+                        {{ k.label.plural }}
+                    {% elseif k.isScoped %}
+                        <a href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
+                    {% else %}
+                    <a href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
+                    {% endif %}
                 </li>
-            {% endfor %}
+            {% endif %}
         {%- endfor -%}
     {%- endif -%}
 

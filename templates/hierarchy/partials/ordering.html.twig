@@ -1,4 +1,4 @@
-<form action="{{ path('order_node', {key: node.key, id: node.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('order_node', {key: key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
      <dl class="form-container">
         <dt class="form-container-label"><label class="target_order" for="target_scope-parent">New Position</label></dt>
         <dd class="form-container-field">
@@ -9,28 +9,19 @@
                 {% for id in orderTargets.ids %}
                     {% if id==node.id %}
                         {% set down = true %}
-                        <optgroup label="{{ orderTargets.key ~' '~ prevId }}">
-                        <option value="" selected="selected" disabled="disabled">
-                        {% if loop.first %}
-                            At the top
-                        {%else%}
-                            Below {{ orderTargets.key }}-{{prevId}}
-                        {% endif %}
+                        <option disabled="" value="">{{ prevId }}</option>
+                        <option value="{{orderTargets.order(id)}}" selected="selected">
                          (current position)</option>
-                        </optgroup>
                     {% elseif down %}
-                        <optgroup label="{{ orderTargets.key }}-{{id}}">
-                            <option value="{{orderTargets.order(id)}}">below {{ orderTargets.key }}-{{id}}</option>
-                        </optgroup>
+                        <option disabled="" value="">{{key.summarize(orderTargets.node(id), true)}}</option>
+                        <option value="{{orderTargets.order(id)}}">put here</option>
                     {% else %}
-                        <optgroup label="{{ orderTargets.key ~' '~ prevId }}">
-                            <option value="{{orderTargets.order(id)}}">above {{ orderTargets.key }}-{{id}}</option>
-                        </optgroup>
+                        <option disabled="" value="">{{ prevId }}</option>
+                        <option value="{{orderTargets.order(id)}}">put here</option>
                     {% endif %}
-                    {% set prevId = id %}
+                    {% set prevId = key.summarize(orderTargets.node(id), true) %}
                 {% endfor %}
-                    <optgroup label="Bottom">
-                    </optgroup>
+                    <option disabled="" value="">Bottom</option>
             </select>
 
 

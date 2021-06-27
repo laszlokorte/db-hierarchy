@@ -28,6 +28,10 @@ class MultiCollection {
 		return $this->parentId;
 	}
 
+	public function getKeys() {
+		return array_keys($this->groupedRows);
+	}
+
 	public function getNodesFor($keyId) {
 		if($keyId === $this->keyId) {
 			return new NodeCollection(
@@ -40,7 +44,15 @@ class MultiCollection {
 		}
 	}
 
+	public function getNodeIdsFor($keyId) {
+		return array_keys($this->groupedRows[$keyId]??[]);
+	}
+
 	public function hasNodesFor($keyId) {
 		return !empty($this->groupedRows[$keyId]);
+	}
+
+	public function isEmpty() {
+		return empty($this->groupedRows);
 	}
 }

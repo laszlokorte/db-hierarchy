@@ -324,6 +324,13 @@ span[onclick]:not([class]) {
     display: flex;
     flex-flow: wrap;
     gap:  0.3em;
+    align-items: flex-end;
+}
+
+.breadcrump.outer {
+    padding: 2em 0 2em;
+    margin-top: -2em;
+    margin-bottom: -2em;
 }
 
 .breadcrump-item {
@@ -334,6 +341,26 @@ span[onclick]:not([class]) {
 
 .breadcrump-item::before {
     content: ' / ';
+}
+
+.breadcrump-segment {
+    display: flex;
+    flex-direction: column;
+}
+
+.breadcrump-segment-title {
+    margin-top: -1.2em;
+    font-size: small;
+    color: var(--accent-primary);
+}
+
+.breadcrump-segment-title {
+    opacity: 0;
+    transition: opacity 0.1s linear;
+}
+
+.breadcrump:hover .breadcrump-segment-title {
+    opacity: 1;
 }
 
 .color-valid {

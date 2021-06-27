@@ -4,6 +4,7 @@ namespace App\Hierarchy\Storage\Relational;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
+use App\Hierarchy\Data;
 
 use Doctrine\DBAL\Connection;
 
@@ -146,18 +147,19 @@ class Commander {
 	public function deleteNode(string $keyId, $nodeId) {
 		$deletionPlan = $this->getDeletionPlan($keyId, $nodeId);
 
-		if(!empty($deletionPlan['blockers'])) {
-			throw new \Exception("can not delete");
+		if(!$deletionPlan['blockers']->isEmpty()) {
+			throw new Exception\DeletionBlockedException("can not delete");
 		}
 
 		try {
 			$this->connection->beginTransaction();
-			foreach ($deletionPlan['willDelete'] as $key => $nodeIds) {
+			foreach ($deletionPlan['willDelete']->getKeys() as $key) {
+				$nodeIds = $deletionPlan['willDelete']->getNodeIdsFor($key);
 				if(empty($nodeIds)) {
 					continue;
 				}
 				$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
-				$delete = $this->commandBuilder->getCommandForDeleteMultipleNodes($keyId, $nodeIdParams);
+				$delete = $this->commandBuilder->getCommandForDeleteMultipleNodes($key, $nodeIdParams);
 
 				$stmt = $this->connection->prepare($this->dialect->deleteToString($delete));
 
@@ -178,13 +180,15 @@ class Commander {
 
         $blockers = $this->collectReferencedNodesByIds($keyId, [$nodeId]);
 
-        foreach ($willDelete as $willkey => $willIds) {
+        foreach ($willDelete as $willkey => $rows) {
+			$willIds = array_keys($rows);
+
             $blockers = array_merge($blockers, $this->collectReferencedNodesByIds($willkey, $willIds));
         }
 
         return [
-        	'willDelete' => array_reverse($willDelete),
-        	'blockers' => array_filter($blockers),
+        	'willDelete' => new Data\MultiCollection(null, null, array_reverse($willDelete), null, null),
+        	'blockers' => new Data\MultiCollection(null, null, array_filter($blockers), null, null),
         ];
 	}
 
@@ -200,18 +204,27 @@ class Commander {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
 			}
 			$stmt->execute();
-			$reflexiveIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+			$rows = $stmt->fetchAllAssociativeIndexed();
 		} else {
-			$reflexiveIds = $nodeIds;
+			$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
+			$select = $this->commandBuilder->getSelectForCollectSelfById($keyId, $nodeIdParams);
+			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+			foreach($nodeIdParams AS $i => $p) {
+				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
+			}
+			$stmt->execute();
+			$rows = $stmt->fetchAllAssociativeIndexed();
 		}
 
-		if(empty($reflexiveIds)) {
+		if(empty($rows)) {
 			return [];
 		}
 
 		$ids = [
-			$keyId => $reflexiveIds,
+			$keyId => $rows,
 		];
+
+		$reflexiveIds = array_keys($rows);
 
 		foreach ($this->schemaDef->getKeyIdsScopedInside($keyId) as $scopeId) {
 			$ids = array_merge($ids, $this->collectChildNodesByScopeIds($scopeId, $reflexiveIds));
@@ -236,15 +249,17 @@ class Commander {
 			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i]);
 		}
 		$stmt->execute();
-		$reflexiveIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		$rows = $stmt->fetchAllAssociativeIndexed();
 
-		if(empty($reflexiveIds)) {
+		if(empty($rows)) {
 			return [];
 		}
 
 		$ids = [
-			$keyId => $reflexiveIds
+			$keyId => $rows
 		];
+
+		$reflexiveIds = array_keys($rows);
 
 		foreach ($this->schemaDef->getKeyIdsScopedInside($keyId) as $scopeId) {
 			$ids = array_merge($ids, $this->collectChildNodesByScopeIds($scopeId, $reflexiveIds));
@@ -274,7 +289,7 @@ class Commander {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i]);
 			}
 			$stmt->execute();
-			$result[$refKey] = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+			$result[$refKey] = $stmt->fetchAllAssociativeIndexed();
 		}
 
 		return $result;

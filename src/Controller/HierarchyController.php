@@ -16,6 +16,7 @@ use Doctrine\DBAL\Connection;
 
 use App\Hierarchy\Schema\SchemaRoot;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
+use App\Hierarchy\Storage\Relational\Exception\DeletionBlockedException;
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Data\MultiCollection;
@@ -184,7 +185,11 @@ class HierarchyController {
     {
     	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
 
-		$storageConnection->getCommander()->deleteNode($key, $id);
+        try {
+            $storageConnection->getCommander()->deleteNode($key, $id);
+        } catch(DeletionBlockedException $e) {
+            return new RedirectResponse($urlGen->generate('ask_delete_node', ['key' => $key, 'id' => $id]));
+        }
 
 		$then = $request->request->get('_then', null);
 
@@ -193,18 +198,22 @@ class HierarchyController {
 
         if($then === 'list') {
             if($lastParent) {
-				$args = array_merge($lastParent->pathArgs(), ['childKey' => $key]);
-    			return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
-			} else {
+                $args = array_merge($lastParent->pathArgs(), ['childKey' => $key]);
+                return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
+            } else {
                 return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
-			}
-    	} else {
+            }
+        } elseif($then === 'root_list') {
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+        } elseif($then === 'parent') {
             if($lastParent) {
                 return new RedirectResponse($urlGen->generate('show_node', $lastParent->pathArgs()));
             } else {
                 return new RedirectResponse($urlGen->generate('hierarchy_root'));
             }
-    	}
+    	} else {
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+        } 
     }
 
     #[Route('/{key}/{id}/-', name: 'ask_delete_node', methods: 'GET')]
