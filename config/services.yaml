@@ -29,7 +29,7 @@ services:
 
 
     App\Hierarchy\Schema\Definition\SchemaDefinition:
-        factory: ['@App\Hierarchy\Schema\Definition\Loader', 'loadDefinition']
+        factory: ['@App\Hierarchy\Schema\Definition\RecursiveLoader', 'loadDefinition']
 
     App\Doctrine\SqliteForeignKeyActivationSubscriber:
         class: App\Doctrine\SqliteForeignKeyActivationSubscriber

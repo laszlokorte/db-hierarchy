@@ -276,7 +276,7 @@
     border: 1px solid #eee;
     padding: 2em 2em 1.5em;
     background: #fff;
-    box-shadow: 0em 1em 4em -0.5em #0004;
+    box-shadow: 0em 1em 4em -0.5em #000a;
 }
 
 .prompt-titel {
@@ -299,7 +299,10 @@
     display: grid;
     align-items: center;
     justify-content: center;
-    background: #333339;
+    background-size:cover; 
+    background-position: 50% 50%; 
+    background-image: url(/hero.svg);
+    background-color: var(--accent-primary);
 }
 
 .prompt-error {
