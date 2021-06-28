@@ -24,6 +24,7 @@ class Installer {
 	}
 
 	public function createSchema($dropOld, $onlyViews) {
+		$this->connection->beginTransaction();
 		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
@@ -41,6 +42,7 @@ class Installer {
 		foreach ($this->schmaBuilder->getAllViews() as $v) {
 			$this->connection->executeStatement($this->dialect->createViewToString($v));
 		}
+    	$this->connection->commit();
 	}
 
 	public function dropSchema() {

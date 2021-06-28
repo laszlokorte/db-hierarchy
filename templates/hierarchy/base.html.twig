@@ -1,16 +1,4 @@
 {% extends 'base.html.twig' %}
-{% macro walkSubKeys(key) %}
-    {% if key.scopeChildKeys %}
-    <ul class="block-list small">
-        {% for childKey in key.scopeChildKeys %}
-        <li>
-        <a href="{{ path('list_root_nodes', {key: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
-        {{ _self.walkSubKeys(childKey) }}
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-{% endmacro %}
 
 {% block html_body %}
 
@@ -28,38 +16,7 @@
             {% endif %}
         {% endfor %}
 
-        <nav class="site-nav">
-            <a class="stealth-link" href="{{ path('hierarchy_root') }}" title="">
-            <h1 class="site-title">Hierarchy Manager</h1>
-            </a>
-            <ul class="block-list">
-                {% for rootKey in rootKeys %}
-                <li>
-                <a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a>
-                {{ _self.walkSubKeys(rootKey) }}
-                </li>
-                {% endfor %}
-            </ul>
-
-            <h2 class="site-section-title">System</h2>
-            <ul class="block-list">
-                <li><a href="{{ path('hierarchy_setup') }}">Show Schema</a></li>
-                <li><a href="{{ path('show_diagnosis') }}">Diagnosis</a></li>
-                <li><a href="{{ path('hierarchy_tree') }}">Full Hierarchy</a></li>
-                <li><span onclick="document.body.classList.toggle('show-quickform');window.localStorage.setItem('quickform', 'true'!=window.localStorage.getItem('quickform'))">Toggle Quickform</span></li>
-            </ul>
-
-            <script>
-                if(window.localStorage.getItem('quickform') == 'true') {
-                    document.body.classList.toggle('show-quickform')
-                }
-            </script>
-
-            <h2 class="site-section-title">Account</h2>
-            <ul class="block-list">
-                <li><a href="{{ path('security_logout') }}" title="">Log out</a></li>
-            </ul>
-        </nav>
+        {% include 'hierarchy/navigation.html.twig' %}
 
         <section>
             {% block area_main %}

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,6 +17,7 @@ use Twig\Environment;
 class AssetController {
 
 	#[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000)]
+	#[Cache(expires: "tomorrow", public: true)]
 	public function favicon(Request $request, Environment $twig, SchemaRoot $schema) {
 		$response = new Response($twig->render('asset/favicon.svg.twig', [
 			'color' => $schema->getLabel()->getColor(),

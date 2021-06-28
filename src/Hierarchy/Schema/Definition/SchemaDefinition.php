@@ -68,12 +68,16 @@ class SchemaDefinition {
 		return $keys;
 	}
 
-	public function getKeyIdsScopedInside($keyId) {
-		return array_filter(array_keys($this->keys), fn($k) => $this->isKeyScopedInside($k, $keyId));
+	public function getKeyIdsScopedInside($keyId, $singletons = true) {
+		return array_filter(array_keys($this->keys), 
+			fn($k) => $this->isKeyScopedInside($k, $keyId) 
+			&& ($singletons || !$this->isKeyScopedUnique($k)));
 	}
 
-	public function getKeyIdsScopedInsideAndReflexiveSelf($keyId) {
-		return array_filter(array_keys($this->keys), fn($k) => $this->isKeyScopedInsideOrReflexiveSelf($k, $keyId));
+	public function getKeyIdsScopedInsideAndReflexiveSelf($keyId, $singletons = true) {
+		return array_filter(array_keys($this->keys), 
+			fn($k) => $this->isKeyScopedInsideOrReflexiveSelf($k, $keyId)
+			 && ($singletons || !$this->isKeyScopedUnique($k)));
 	}
 
 	public function getKeyScopePath($keyId, $includeSelf = false) {

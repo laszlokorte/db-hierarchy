@@ -65,13 +65,23 @@ class HierarchyController {
     }
 
     #[Route('/_setup', name: 'hierarchy_setup', methods: 'POST')]
-    public function setup(Request $request, Session $session, UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
+    public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
     {
-    	$storageConnection->getInstaller()->createSchema(true, $request->request->get('only_views', false));
+        $storageConnection->getInstaller()->createSchema(true, $request->request->get('only_views', false));
 
         $session->getFlashBag()->add('success', 'Schema has been updated.');
 
-    	return new RedirectResponse($urlGen->generate('show_hierarchy_setup'));
+        return new RedirectResponse($urlGen->generate('show_hierarchy_setup'));
+    }
+
+    #[Route('/_uninstall', name: 'hierarchy_uninstall', methods: 'POST')]
+    public function setup(Request $request, Session $session, UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
+    {
+        $storageConnection->getInstaller()->dropSchema();
+
+        $session->getFlashBag()->add('success', 'Schema has been removed.');
+
+        return new RedirectResponse($urlGen->generate('show_hierarchy_setup'));
     }
 
     #[Route('/_diagnosis', name: 'show_diagnosis', methods: 'GET')]

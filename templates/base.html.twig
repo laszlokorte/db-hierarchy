@@ -10,7 +10,7 @@
             {#{{ encore_entry_link_tags('app') }}#}
             <style>
                 :root {
-                    --favicon-url: url('{{path('favicon_svg')}}');
+                    --favicon-url: url(#app-logo), url('{{path('favicon_svg')}}');
                     --accent-primary: {{ schemaRoot.label.color  }};
                 }
             </style>
@@ -24,7 +24,7 @@
         <link rel="icon" href="/favicon.svg">
         {% endblock %}
     </head>
-    <body class="html-body">
+    <body class="html-body">  
         {% block html_body %}
 
             {% block area_main %}

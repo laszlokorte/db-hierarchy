@@ -14,17 +14,22 @@
 
 
 <details class="details">
-        <summary class="details-summary">
-        Schema
-        <form style="margin-left: auto;" action="{{ path('show_hierarchy_setup')}}" method="post" accept-charset="utf-8">
+    <summary class="details-summary">
+    Schema
+    <div style="margin-left: auto;">
+        <form style="display: contents;" action="{{ path('hierarchy_setup')}}" method="post" accept-charset="utf-8">
         <button name="only_views" value="1">Reinstall Views</button>
         <button>Reinstall Schema</button>
         </form>
-        </summary>
+        <form style="display: contents;" action="{{ path('hierarchy_uninstall')}}" method="post" accept-charset="utf-8">
+        <button>Uninstall</button>
+        </form>
+    </div>
+    </summary>
 
-<pre contenteditable="false" readonly style="margin: 0; color: #0a0; overflow: scroll;resize: vertical;box-sizing: border-box;height: 50vh;box-sizing: border-box;white-space: pre-wrap; padding: 2em">
-{{- installer.getSchemaDeclerations -}}
-</pre>
+    <pre contenteditable="false" readonly style="margin: 0; color: #0a0; overflow: scroll;resize: vertical;box-sizing: border-box;height: 50vh;box-sizing: border-box;white-space: pre-wrap; padding: 2em">
+    {{- installer.getSchemaDeclerations -}}
+    </pre>
 
 </details>
 

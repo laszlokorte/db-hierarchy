@@ -54,6 +54,93 @@
 {% endif %}
 
 {% for childKey in key.nestedKeys %}
+
+{% if childKey.isSingleton %}
+<h3>{{ childKey.label.singular }}</h3>
+
+{% for childId in childNodes.nodesFor(childKey.id).ids %}
+<div class="tab-container dense">
+
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list">
+    <div class="tab-container-content">
+        
+        <ul class="quicktab-list">
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
+            No
+            </label></li>
+
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            Yes
+            </label></li>
+        </ul>
+
+        <p>
+            Are you sure?
+        </p>
+
+        <form action="{{ path('delete_node',{key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
+        <dl class="form-container">
+            <dt class="form-container-spacer"></dt>
+            <dd class="form-container-buttons">
+                <button class="action-button danger">Yes, Delete!</button>
+                <label class="link-button" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            Cancel
+            </label>
+            </dd>
+        </dl>
+        </form>
+    </div>
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab_{{childKey.id}}" value="new" checked>
+    <div class="tab-container-content">
+
+    <ul class="quicktab-list">
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
+        No
+        </label></li>
+
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
+        Yes
+        </label></li>
+    </ul>
+
+    {% include 'hierarchy/partials/form_edit.html.twig' with {key: childKey, node: childNodes.nodesFor(childKey.id).getNode(childId)} only %}
+
+    </div>
+</div>
+{% else %}
+<div class="tab-container dense">
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab_{{childKey.id}}" value="new">
+    <div class="tab-container-content">
+
+    <ul class="quicktab-list">
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
+        No
+        </label></li>
+
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
+        Yes
+        </label></li>
+    </ul>
+        
+    {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
+    </div>
+
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list" checked>
+    <div class="tab-container-content">
+        
+        <ul class="quicktab-list">
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
+            No
+            </label></li>
+
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            Yes
+            </label></li>
+        </ul>
+    </div>
+</div>
+{% endfor %}
+{% else %}
 <h3>{{ childKey.label.plural }}</h3>
 
 <div class="tab-container">
@@ -89,6 +176,6 @@
         {% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
     </div>
 </div>
-
+{% endif %}
 {% endfor %}
 {% endblock %}

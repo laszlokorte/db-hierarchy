@@ -13,6 +13,7 @@ class RecursiveLoader {
 				new LabelDefinition('Hierarchy', 'Hierarchies'),
 				null, null, null, [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
+					'dsn' => new FieldDefinition(new LabelDefinition('DSN'), 'string', true, false),
 					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
 					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
 					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
@@ -23,10 +24,9 @@ class RecursiveLoader {
 			'collection' => new KeyDefinition(
 				new StorageDefinition('collection'),
 				new LabelDefinition('Collection'),
-				new ScopeDefinition('hierarchy'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+				new ScopeDefinition('hierarchy'), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
 					
-					'reflexive' => new FieldDefinition(new LabelDefinition('Reflexive'), 'bool', true, false),
 					'singleton' => new FieldDefinition(new LabelDefinition('Singleton'), 'bool', true, false),
 					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
 					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
@@ -36,12 +36,30 @@ class RecursiveLoader {
 					'summary' => new FieldDefinition(new LabelDefinition('Summary Template'), 'string', true, false),
 					'table_name' => new FieldDefinition(new LabelDefinition('Table Name'), 'string', true, false),
 					'pk_name' => new FieldDefinition(new LabelDefinition('Primary Key Column Name'), 'string', true, false),
-					'scope_column_name' => new FieldDefinition(new LabelDefinition('Scope Column'), 'string', true, false),
-					'scope_parent_name' => new FieldDefinition(new LabelDefinition('Scope Parent Column'), 'string', true, false),
-					'scope_child_name' => new FieldDefinition(new LabelDefinition('Scope Parent Column'), 'string', true, false),
-					'scope_depth_name' => new FieldDefinition(new LabelDefinition('Scope Depth Column'), 'string', true, false),
-					'order_column_name' => new FieldDefinition(new LabelDefinition('Order column Name'), 'string', true, false),
 				], new SummaryDefinition(['%slug'])
+			),
+			'scope_definition' => new KeyDefinition(
+				new StorageDefinition('scope'),
+				new LabelDefinition('Scope', 'Scopes'),
+				new ScopeDefinition('collection', null, true), null, null, [
+					'scope_column_name' => new FieldDefinition(new LabelDefinition('Scope Column'), 'string', true, false),
+				], new SummaryDefinition(['-'])
+			),
+			'order_definition' => new KeyDefinition(
+				new StorageDefinition('order'),
+				new LabelDefinition('Order', 'Order'),
+				new ScopeDefinition('collection', null, true), null, null, [
+					'order_column_name' => new FieldDefinition(new LabelDefinition('Order column Name'), 'string', true, false),
+				], new SummaryDefinition(['-'])
+			),
+			'reflexivity_definition' => new KeyDefinition(
+				new StorageDefinition('reflexivity'),
+				new LabelDefinition('Reflexivity', 'Reflexivity'),
+				new ScopeDefinition('collection', null, true), null, null, [
+					'parent_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
+					'child_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
+					'depth_name' => new FieldDefinition(new LabelDefinition('Depth Column'), 'string', true, false),
+				], new SummaryDefinition(['-'])
 			),
 			'field' => new KeyDefinition(
 				new StorageDefinition('field'),

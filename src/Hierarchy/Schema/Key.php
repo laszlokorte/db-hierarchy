@@ -52,10 +52,10 @@ class Key {
 		return new Key($this->def, $this->def->getKeyScopeId($this->keyId));
 	}
 
-	public function getScopeChildKeys() {
+	public function getScopeChildKeys($singletons = true) {
 		return array_map(
 			fn($k) => new Key($this->def, $k),
-			$this->def->getKeyIdsScopedInside($this->keyId)
+			$this->def->getKeyIdsScopedInside($this->keyId, $singletons)
 		);
 	}
 
@@ -75,6 +75,10 @@ class Key {
 
 	public function isNested() {
 		return $this->def->isKeyNested($this->keyId);
+	}
+
+	public function isSingleton() {
+		return $this->def->isKeyScopedUnique($this->keyId);
 	}
 
 	public function getReferencingKeys() {
