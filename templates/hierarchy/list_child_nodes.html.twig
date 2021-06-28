@@ -13,6 +13,73 @@
 
 {% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'list', childKey} only %}
 
+{% if childKey.isSingleton %}
+<h2>{{ childKey.label.singular }}</h2>
+
+{% for childId in nodeCollection.ids %}
+<div class="tab-container dense">
+
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list">
+    <div class="tab-container-content">
+        
+        <ul class="quicktab-list">
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
+            No
+            </label></li>
+
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            Yes
+            </label></li>
+        </ul>
+
+        <p>
+            Are you sure?
+        </p>
+
+        <form action="{{ path('delete_node',{key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
+        <dl class="form-container">
+            <dt class="form-container-spacer"></dt>
+            <dd class="form-container-buttons">
+                <button name="soft" class="action-button danger">Yes, Delete!</button>
+                <label class="link-button" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            Cancel
+            </label>
+            </dd>
+        </dl>
+        </form>
+    </div>
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab_{{childKey.id}}" value="new" checked>
+    <div class="tab-container-content">
+
+    <ul class="quicktab-list">
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
+        No
+        </label></li>
+
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
+        Yes
+        </label></li>
+    </ul>
+
+
+    {% include 'hierarchy/partials/form_edit.html.twig' with {key: childKey, node: nodeCollection.getNode(childId)} only %}
+
+    </div>
+</div>
+{% else %}
+ <ul class="quicktab-list">
+    <li class="quicktab-list-item"><span class="quicktab-link state-active">
+    No
+    </span></li>
+
+    <li class="quicktab-list-item"><a href="{{ path('new_child_node', {key: key.id, id: node.id, childKey: childKey.id}) }}" class="quicktab-link">
+    Yes
+    </a></li>
+</ul>
+{% endfor %}
+
+{% else %}
+
 <h2>{{ childKey.label.plural }}</h2>
 
 
@@ -24,5 +91,7 @@
 <h3>Add </h3>
     {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'list'} only %}
 </div>
+
+{% endif %}
 
 {% endblock %}
