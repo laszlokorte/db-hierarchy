@@ -985,3 +985,24 @@ details>.details-summary ~ * {
     font-weight: normal;
     line-height: 0.8;
 }
+.badge {
+    display: inline-block;
+    border-radius: 2px;
+    background: #333;
+    color: #fff;
+    padding:  2px 4px;
+    font-family: sans-serif;
+    font-size: 0.8em;
+}
+
+.badge:empty {
+    display: none;
+}
+
+.badge.true {
+    background: #0a0;
+}
+
+.badge.false {
+    background: #a00;
+}

@@ -162,7 +162,7 @@ class RecursiveLoader {
 		$keyRows = $keyStmt->fetchAll();
 
 		$fieldStmt = $this->baseConnection->prepare('
-			SELECT field.id AS id, 
+			SELECT collection.slug AS collection_slug, 
 				field.slug AS slug,
 				field.label_singular AS label_singular,
 				field.label_plural AS label_plural,
@@ -180,7 +180,7 @@ class RecursiveLoader {
 		');
 		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
 		$fieldStmt->execute();
-		$fieldRows = $fieldStmt->fetchAllAssociativeIndexed();
+		$fieldRows = $fieldStmt->fetchAll(\PDO::FETCH_GROUP);
 
 		$keys = [];
 
@@ -197,9 +197,9 @@ class RecursiveLoader {
 						$fieldRow['label_color']
 					), 
 					$fieldRow['type'], 
-					$fieldRow['required'], 
-					$fieldRow['unique'], 
-					json_decode($fieldRow['options'])
+					$fieldRow['is_required'], 
+					$fieldRow['is_unique'], 
+					json_decode($fieldRow['options'])??[]
 				);
 			}
 
@@ -229,10 +229,7 @@ class RecursiveLoader {
 					$keyRow['order_singleton']
 				) : null, 
 				$fields,
-				new SummaryDefinition(
-					[]
-					//$keyRow['summary']
-				)
+				SummaryDefinition::parseString($keyRow['summary'])
 			);
 		}
 
@@ -254,14 +251,14 @@ class RecursiveLoader {
 					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
 					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['values' => [], 'style' => 'compact']),
 					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
-				], new SummaryDefinition(['%label_singular'])
+				], SummaryDefinition::parseString('{label_singular}')
 			),
 			'blub' => new KeyDefinition(
 				new StorageDefinition('blub'),
 				new LabelDefinition('blub', 'blubs'),
 				null, null, new OrderDefinition(singleton: true), [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
-				], new SummaryDefinition(['%slug'])
+				], SummaryDefinition::parseString('{slug}')
 			),
 			'collection' => new KeyDefinition(
 				new StorageDefinition('collection'),
@@ -276,7 +273,7 @@ class RecursiveLoader {
 					'summary' => new FieldDefinition(new LabelDefinition('Summary Template'), 'string', true, false),
 					'table_name' => new FieldDefinition(new LabelDefinition('Table Name'), 'string', true, false),
 					'pk_name' => new FieldDefinition(new LabelDefinition('Primary Key Column Name'), 'string', true, false),
-				], new SummaryDefinition(['%label_singular'])
+				], SummaryDefinition::parseString('{label_singular}')
 			),
 			'scope_definition' => new KeyDefinition(
 				new StorageDefinition('scope'),
@@ -284,7 +281,7 @@ class RecursiveLoader {
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'scope_key' => new FieldDefinition(new LabelDefinition('Parent'), 'reference', true, false, ['target' => 'collection']),
 					'scope_column_name' => new FieldDefinition(new LabelDefinition('Scope Column'), 'string', true, false),
-				], new SummaryDefinition([])
+				], SummaryDefinition::parseString('')
 			),
 			'order_definition' => new KeyDefinition(
 				new StorageDefinition('order'),
@@ -293,7 +290,7 @@ class RecursiveLoader {
 
 					'is_singleton' => new FieldDefinition(new LabelDefinition('Singleton'), 'bool', true, false),
 					'order_column_name' => new FieldDefinition(new LabelDefinition('Order column Name'), 'string', true, false),
-				], new SummaryDefinition([])
+				], SummaryDefinition::parseString('')
 			),
 			'reflexivity_definition' => new KeyDefinition(
 				new StorageDefinition('reflexivity'),
@@ -302,7 +299,7 @@ class RecursiveLoader {
 					'parent_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
 					'child_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
 					'depth_name' => new FieldDefinition(new LabelDefinition('Depth Column'), 'string', true, false),
-				], new SummaryDefinition([])
+				], SummaryDefinition::parseString('')
 			),
 			'field' => new KeyDefinition(
 				new StorageDefinition('field'),
@@ -339,7 +336,7 @@ class RecursiveLoader {
 					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
 					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['style' => 'compact', 'values' => []]),
 					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
-				], new SummaryDefinition(['%label_singular'])
+				], SummaryDefinition::parseString('{label_singular}')
 			),
 		], $this->fieldTypes);
 	}

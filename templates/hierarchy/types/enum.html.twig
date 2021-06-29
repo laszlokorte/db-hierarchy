@@ -23,9 +23,9 @@
 
 
 {% block cell %}
-    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+    <span class="badge">{{field.readValueOf(nodeCollection.getNode(nodeId))}}</span>
 {% endblock %}
 
 {% block display %}
-    {{field.readValueOf(node)}}
+    <span class="badge">{{field.readValueOf(node)}}</span>
 {% endblock %}

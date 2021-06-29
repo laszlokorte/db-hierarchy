@@ -179,7 +179,7 @@ class SchemaBuilder {
 		);
 
 		foreach ($uniqueFieldsIds as $ufid) {
-			$uniques[] = $this->getFieldColumns($ufid);
+			$uniques[] = array_map(fn($c) => $this->fieldColumnToName($c), $this->getFieldColumns($keyId, $ufid));
 		}
 
 

@@ -41,7 +41,7 @@ class HierarchyParamConverter implements ParamConverterInterface {
 
 				$request->attributes->set($name, $object);
 			} 
-		} catch(\Exception $e) {
+		} catch(\Exxception $e) {
 			throw new NotFoundHttpException('Hierarchy not defined');
 		}
 	}

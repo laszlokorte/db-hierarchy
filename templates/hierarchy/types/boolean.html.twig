@@ -31,15 +31,27 @@
 
 
 {% block cell %}
-    {{ {
-        1: '🟩',
-        0: '🔺',
-    }[field.readValueOf(nodeCollection.getNode(nodeId))]|default('') }} {{ field.readValueOf(nodeCollection.getNode(nodeId)) }}
+    {% set v = field.readValueOf(nodeCollection.getNode(nodeId)) %}
+    {% if v is same as(true) %}
+        <span class="badge true">yes</span>
+    {% elseif v is same as(false) %}
+        <span class="badge false">no</span>
+    {% elseif v is same as(null) %}
+        <span class="badge null">null</span>
+    {% else %}
+        ???
+    {% endif %}
 {% endblock %}
 
 {% block display %}
-    {{ {
-        1: '🟩',
-        0: '🔺',
-    }[field.readValueOf(node)]|default('') }}
+    {% set v = field.readValueOf(node) %}
+    {% if v is same as(true) %}
+        <span class="badge true">yes</span>
+    {% elseif v is same as(false) %}
+        <span class="badge false">no</span>
+    {% elseif v is same as(null) %}
+        <span class="badge null">null</span>
+    {% else %}
+        ???
+    {% endif %}
 {% endblock %}
