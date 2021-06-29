@@ -1,0 +1,315 @@
+<?php
+
+namespace App\Hierarchy\Schema;
+
+use App\Hierarchy\Schema\FieldType;
+use Doctrine\DBAL\Connection;
+use App\Hierarchy\Storage\Relational\StorageConnection;
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\Definition\LabelDefinition;
+use App\Hierarchy\Schema\Definition\OrderDefinition;
+use App\Hierarchy\Schema\Definition\ReflexivityDefinition;
+use App\Hierarchy\Schema\Definition\KeyDefinition;
+use App\Hierarchy\Schema\Definition\StorageDefinition;
+use App\Hierarchy\Schema\Definition\FieldDefinition;
+use App\Hierarchy\Schema\Definition\SummaryDefinition;
+use App\Hierarchy\Schema\Definition\ScopeDefinition;
+
+class RecursiveLoader {
+	private array $fieldTypes;
+
+	public function __construct(Connection $baseConnection) {
+		$this->baseConnection = $baseConnection;
+
+		$this->fieldTypes = [
+			'string' => new FieldType\StringType(),
+			'text' => new FieldType\TextType(),
+			'file' => new FieldType\FileType(),
+			'reference' => new FieldType\ReferenceType(),
+
+			'bool' => new FieldType\BooleanType(),
+			'date' => new FieldType\DateType(),
+			'datetime' => new FieldType\DateTimeType(),
+			'decimal' => new FieldType\DecimalType(),
+			'enum' => new FieldType\EnumType(),
+			'float' => new FieldType\FloatType(),
+			'hash' => new FieldType\HashType(),
+			'integer' => new FieldType\IntegerType(),
+			'json' => new FieldType\JsonType(),
+			'time' => new FieldType\TimeType(),
+
+
+			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
+			'dateRange' => new FieldType\RangeType(new FieldType\DateType()),
+			'dateTimeRange' => new FieldType\RangeType(new FieldType\DateTimeType()),
+			'integerRange' => new FieldType\RangeType(new FieldType\IntegerType()),
+			'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
+			'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
+		];
+	}
+
+	public function loadSchema(string $hierarchyName = 'system') {
+		return new Hierarchy($this->loadDefinition($hierarchyName), $hierarchyName);
+	}
+
+	public function loadSubSchemas() {
+		$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
+		$stmt->execute();
+
+		return $stmt->fetchAll();
+	}
+
+	public function loadStorageConnection(string $hierarchyName = 'system') {
+		return new StorageConnection($this->loadDefinition($hierarchyName), $this->loadHierarchyConnection($hierarchyName));
+	}
+
+	public function loadDefinition(string $hierarchyName = 'system') {
+		if($hierarchyName === 'system') {
+			return $this->loadBaseDefinition();
+		} else {
+			return $this->loadDynamicDefinition($hierarchyName);
+		}
+	}
+
+	public function loadHierarchyConnection(string $hierarchyName = 'system') {
+		if($hierarchyName === 'system') {
+			return $this->baseConnection;
+		} else {
+			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
+			$stmt->bindValue('slug', $hierarchyName, \PDO::PARAM_STR);
+			$stmt->execute();
+			$dsn = $stmt->fetchColumn();
+
+			dump($dsn);
+
+			return $dsn ? \Doctrine\DBAL\DriverManager::getConnection(['pdo' => new \PDO($dsn)]) : $this->baseConnection;
+		}
+	}
+
+	private function loadDynamicDefinition($hierarchyName) {
+		$stmt = $this->baseConnection->prepare('SELECT id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
+		$stmt->execute();
+
+		$row = $stmt->fetch();
+		$hierarchyId = $row['id'];
+
+		$keyStmt = $this->baseConnection->prepare('
+			SELECT 
+				collection.slug AS slug,
+				collection.table_name AS table_name,
+				collection.pk_name AS pk_name,
+				collection.label_singular AS label_singular,
+				collection.label_plural AS label_plural,
+				collection.label_description AS label_description,
+				collection.label_icon AS label_icon,
+				collection.label_color AS label_color,
+				scope.id AS scope_id,
+				scope.collection_id AS scope_collection_id,
+				scope.scope_column_name AS scope_column_name,
+				scope_collection.slug AS scope_slug,
+				reflexivity.id AS reflexivity_id,
+				reflexivity.parent_name AS reflexivity_parent_column,
+				reflexivity.child_name AS reflexivity_child_column,
+				reflexivity.depth_name AS reflexivity_depth_column,
+				"order".id AS order_id,
+				"order".order_column_name AS order_column_name,
+				"order".is_singleton AS order_singleton,
+				collection.summary AS summary
+			FROM collection
+			LEFT JOIN reflexivity 
+			ON reflexivity.collection_id = collection.id
+			LEFT JOIN "order"
+			ON "order".collection_id = collection.id
+			LEFT JOIN scope 
+			ON scope.collection_id = collection.id
+			LEFT JOIN collection scope_collection
+			ON scope.scope_key_ref = scope_collection.id
+			WHERE collection.hierarchy_id = :hid
+			');
+		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
+		$keyStmt->execute();
+		$keyRows = $keyStmt->fetchAll();
+
+		$fieldStmt = $this->baseConnection->prepare('
+			SELECT field.id AS id, 
+				field.slug AS slug,
+				field.label_singular AS label_singular,
+				field.label_plural AS label_plural,
+				field.label_description AS label_description,
+				field.label_icon AS label_icon,
+				field.label_color AS label_color,
+				field.type AS type,
+				field.is_required AS is_required,
+				field.is_unique AS is_unique,
+				field.options AS options 
+			FROM field 
+			INNER JOIN collection 
+			ON collection.id = field.collection_id 
+			WHERE collection.hierarchy_id = :hid
+		');
+		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
+		$fieldStmt->execute();
+		$fieldRows = $fieldStmt->fetchAllAssociativeIndexed();
+
+		$keys = [];
+
+		foreach ($keyRows as $keyRow) {
+			$fields = [];
+
+			foreach($fieldRows[$keyRow['slug']]??[] AS $fieldRow) {
+				$fields[$fieldRow['slug']] = new FieldDefinition(
+					new LabelDefinition(
+						$fieldRow['label_singular'],
+						$fieldRow['label_plural'],
+						$fieldRow['label_description'],
+						$fieldRow['label_icon'],
+						$fieldRow['label_color']
+					), 
+					$fieldRow['type'], 
+					$fieldRow['required'], 
+					$fieldRow['unique'], 
+					json_decode($fieldRow['options'])
+				);
+			}
+
+			$keys[$keyRow['slug']] = new KeyDefinition(
+				new StorageDefinition(
+					$keyRow['table_name'],
+					$keyRow['pk_name']?:null
+				),
+				new LabelDefinition(
+					$keyRow['label_singular']?:null,
+					$keyRow['label_plural']?:null,
+					$keyRow['label_description']?:null,
+					$keyRow['label_icon']?:null,
+					$keyRow['label_color']?:null
+				), 
+				$keyRow['scope_id'] ? new ScopeDefinition(
+					$keyRow['scope_slug'],
+					$keyRow['scope_column_name']?:null
+				) : null, 
+				$keyRow['reflexivity_id'] ? new ReflexivityDefinition(
+					$keyRow['reflexivity_parent_column']?:'parent',
+					$keyRow['reflexivity_child_column']?:'child',
+					$keyRow['reflexivity_depth_column']?:'depth'
+				) : null, 
+				$keyRow['order_id'] ? new OrderDefinition(
+					$keyRow['order_column_name']?:null,
+					$keyRow['order_singleton']
+				) : null, 
+				$fields,
+				new SummaryDefinition(
+					[]
+					//$keyRow['summary']
+				)
+			);
+		}
+
+		return new SchemaDefinition(
+			new LabelDefinition($row['label_singular'], $row['label_plural'], $row['label_description'], $row['label_icon'], $row['label_color']), $keys, $this->fieldTypes);
+	}
+
+	private function loadBaseDefinition() {
+		return new SchemaDefinition(
+			new LabelDefinition('Hierarchy Manager', 'Hierarchie Managers', null, null, '#444'), [
+			'hierarchy' => new KeyDefinition(
+				new StorageDefinition('hierarchy'),
+				new LabelDefinition('Hierarchy', 'Hierarchies'),
+				null, null, null, [
+					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
+					'dsn' => new FieldDefinition(new LabelDefinition('DSN'), 'string', true, false),
+					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
+					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
+					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
+					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['values' => [], 'style' => 'compact']),
+					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
+				], new SummaryDefinition(['%label_singular'])
+			),
+			'blub' => new KeyDefinition(
+				new StorageDefinition('blub'),
+				new LabelDefinition('blub', 'blubs'),
+				null, null, new OrderDefinition(singleton: true), [
+					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
+				], new SummaryDefinition(['%slug'])
+			),
+			'collection' => new KeyDefinition(
+				new StorageDefinition('collection'),
+				new LabelDefinition('Collection'),
+				new ScopeDefinition('hierarchy'), null, new OrderDefinition('priority', 'DESC'), [
+					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
+					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
+					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
+					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
+					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false,  ['values' => [], 'style' => 'compact']),
+					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
+					'summary' => new FieldDefinition(new LabelDefinition('Summary Template'), 'string', true, false),
+					'table_name' => new FieldDefinition(new LabelDefinition('Table Name'), 'string', true, false),
+					'pk_name' => new FieldDefinition(new LabelDefinition('Primary Key Column Name'), 'string', true, false),
+				], new SummaryDefinition(['%label_singular'])
+			),
+			'scope_definition' => new KeyDefinition(
+				new StorageDefinition('scope'),
+				new LabelDefinition('Scope', 'Scopes'),
+				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+					'scope_key' => new FieldDefinition(new LabelDefinition('Parent'), 'reference', true, false, ['target' => 'collection']),
+					'scope_column_name' => new FieldDefinition(new LabelDefinition('Scope Column'), 'string', true, false),
+				], new SummaryDefinition([])
+			),
+			'order_definition' => new KeyDefinition(
+				new StorageDefinition('order'),
+				new LabelDefinition('Order', 'Order'),
+				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+
+					'is_singleton' => new FieldDefinition(new LabelDefinition('Singleton'), 'bool', true, false),
+					'order_column_name' => new FieldDefinition(new LabelDefinition('Order column Name'), 'string', true, false),
+				], new SummaryDefinition([])
+			),
+			'reflexivity_definition' => new KeyDefinition(
+				new StorageDefinition('reflexivity'),
+				new LabelDefinition('Reflexivity', 'Reflexivity'),
+				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+					'parent_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
+					'child_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
+					'depth_name' => new FieldDefinition(new LabelDefinition('Depth Column'), 'string', true, false),
+				], new SummaryDefinition([])
+			),
+			'field' => new KeyDefinition(
+				new StorageDefinition('field'),
+				new LabelDefinition('Field'),
+				new ScopeDefinition('collection'), null, new OrderDefinition('priority', 'DESC'), [
+					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
+					'type' => new FieldDefinition(new LabelDefinition('Type'), 'enum', true, false, ['style' => 'compact', 'values' => [
+						'string',
+						'text',
+						'file',
+						'reference',
+						'bool',
+						'date',
+						'datetime',
+						'decimal',
+						'enum',
+						'float',
+						'hash',
+						'integer',
+						'json',
+						'time',
+						'timeRange',
+						'dateRange',
+						'dateTimeRange',
+						'integerRange',
+						'floatRange',
+						'decimalRange',
+					]]),
+					'options' => new FieldDefinition(new LabelDefinition('Options'), 'json', true, false),
+					'is_required' => new FieldDefinition(new LabelDefinition('Required'), 'bool', true, false),
+					'is_unique' => new FieldDefinition(new LabelDefinition('Unique'), 'bool', true, false),
+					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
+					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
+					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
+					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['style' => 'compact', 'values' => []]),
+					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
+				], new SummaryDefinition(['%label_singular'])
+			),
+		], $this->fieldTypes);
+	}
+}

@@ -6,14 +6,14 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
-<h1>{{ key.label.singular }} {{node.id}}</h1>
+<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'edit'} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'edit'} only %}
 
 <h2>Edit</h2>
 
-{% include 'hierarchy/partials/form_edit.html.twig' with {key, node, then: 'edit'} only %}
+{% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key, node, then: 'edit'} only %}
 
 {% endblock %}

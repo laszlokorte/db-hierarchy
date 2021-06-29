@@ -78,7 +78,7 @@ class Key {
 	}
 
 	public function isSingleton() {
-		return $this->def->isKeyScopedUnique($this->keyId);
+		return $this->def->isKeySingleton($this->keyId);
 	}
 
 	public function getReferencingKeys() {

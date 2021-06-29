@@ -60,7 +60,7 @@ class SchemaDefinition {
         }
 
 		if(count($keys) < count($this->keys)) {
-			throw new Exception("cyclic hierarchy");
+			throw new \Exception("cyclic hierarchy");
 		}
 
 		array_shift($keys);
@@ -71,13 +71,13 @@ class SchemaDefinition {
 	public function getKeyIdsScopedInside($keyId, $singletons = true) {
 		return array_filter(array_keys($this->keys), 
 			fn($k) => $this->isKeyScopedInside($k, $keyId) 
-			&& ($singletons || !$this->isKeyScopedUnique($k)));
+			&& ($singletons || !$this->isKeySingleton($k)));
 	}
 
 	public function getKeyIdsScopedInsideAndReflexiveSelf($keyId, $singletons = true) {
 		return array_filter(array_keys($this->keys), 
 			fn($k) => $this->isKeyScopedInsideOrReflexiveSelf($k, $keyId)
-			 && ($singletons || !$this->isKeyScopedUnique($k)));
+			 && ($singletons || !$this->isKeySingleton($k)));
 	}
 
 	public function getKeyScopePath($keyId, $includeSelf = false) {
@@ -109,6 +109,14 @@ class SchemaDefinition {
 		return new ColumnDefinition($this->keys[$keyId]->getOrderColumnName(), new StorageCoding(StorageCoding::INTEGER), false, 0);
 	}
 
+	public function getKeyOrderColumnName($keyId) {
+		return $this->keys[$keyId]->getOrderColumnName();
+	}
+
+	public function getKeySingletonColumnName($keyId) {
+		return $this->keys[$keyId]->getOrderColumnName();
+	}
+
 	public function getKeyOrderDirection($keyId) {
 		return $this->keys[$keyId]->getOrderDirection();
 	}
@@ -132,8 +140,8 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->isScopedInside($scopeKeyId);
 	}
 
-	public function isKeyScopedUnique($keyId) {
-		return $this->keys[$keyId]->isScopedUnique();
+	public function isKeySingleton($keyId) {
+		return $this->keys[$keyId]->isSingleton();
 	}
 
 	public function getKeyScopeId($keyId) {

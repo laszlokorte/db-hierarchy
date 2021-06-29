@@ -1,7 +1,8 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
     globals:
-        schemaRoot: '@App\Hierarchy\Schema\SchemaRoot'
+        systemHierarchy: '@App\Hierarchy\Schema\DefaultHierarchy'
+        subSchemas: '@App\Hierarchy\Schema\SchemaList'
 
 when@test:
     twig:

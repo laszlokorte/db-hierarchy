@@ -18,6 +18,7 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
+            - '../src/Hierarchy/'
             - '../src/Kernel.php'
             - '../src/Tests/'
 
@@ -28,10 +29,16 @@ services:
         tags: ['controller.service_arguments']
 
 
-    App\Hierarchy\Schema\Definition\SchemaDefinition:
-        factory: ['@App\Hierarchy\Schema\Definition\RecursiveLoader', 'loadDefinition']
-
     App\Doctrine\SqliteForeignKeyActivationSubscriber:
         class: App\Doctrine\SqliteForeignKeyActivationSubscriber
         tags:
             - { name: doctrine.event_listener, event: postConnect }
+
+    App\Hierarchy\Schema\RecursiveLoader:
+        class: App\Hierarchy\Schema\RecursiveLoader
+
+
+    App\Hierarchy\Schema\DefaultHierarchy:
+        factory: ['@App\Hierarchy\Schema\RecursiveLoader', 'loadSchema']
+    App\Hierarchy\Schema\SchemaList:
+        factory: ['@App\Hierarchy\Schema\RecursiveLoader', 'loadSubSchemas']

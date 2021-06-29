@@ -6,12 +6,12 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'Diagnosis'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,trailing: 'Diagnosis'} only %}
 
 <h1>Hierarchy Diagnosis</h1>
 
 <div class="details-summary">
-<form style="margin-left: auto; "action="{{ path('repair') }}" method="post" accept-charset="utf-8">
+<form style="margin-left: auto; "action="{{ path('repair', {hierarchySlug: hierarchy.slug}) }}" method="post" accept-charset="utf-8">
     <button>Repair all</button>
 </form>
 </div>
@@ -23,7 +23,7 @@
         {{ d.keyId }}
 
 
-        <form style="margin-left: auto;" action="{{ path('repair_key',{key: d.keyId}) }}" method="post" accept-charset="utf-8">
+        <form style="margin-left: auto;" action="{{ path('repair_key',{hierarchySlug: hierarchy.slug, key: d.keyId}) }}" method="post" accept-charset="utf-8">
             <button>Repair {{d.keyId}} closure</button>
         </form>
 

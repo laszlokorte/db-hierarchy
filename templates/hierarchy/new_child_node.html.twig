@@ -6,11 +6,10 @@
 
 {% block area_main %}
 
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
-
-<h1>{{ key.label.singular }} {{node.id}}</h1>
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'new', childKey} only %}
+<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'new', childKey} only %}
 
 
 {% if childKey.isSingleton %}
@@ -18,7 +17,7 @@
 
  <ul class="quicktab-list">
 
-    <li class="quicktab-list-item"><a href="{{ path('list_child_nodes', {key: key.id, id: node.id, childKey: childKey.id}) }}" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+    <li class="quicktab-list-item"><a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, key: key.id, id: node.id, childKey: childKey.id}) }}" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
     No
     </a></li>
     <li class="quicktab-list-item"><span for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
@@ -26,15 +25,15 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'form'} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, key: key.id, id: node.id, childKey: childKey.id})} only %}
 
 {% else %}
 <h2>{{ childKey.label.plural }}</h2>
 
 
-{% include 'hierarchy/partials/sub_tabs.html.twig' with {active: 'new', key, node, childKey} only %}
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'new', key, node, childKey} only %}
 
-{% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'form'} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'form'} only %}
 {% endif %}
 
 

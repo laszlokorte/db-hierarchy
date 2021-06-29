@@ -10,15 +10,17 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use App\Hierarchy\Schema\SchemaRoot;
+use App\Hierarchy\Schema\Hierarchy;
 
 use Twig\Environment;
 
 class AssetController {
 
-	#[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000)]
+	#[Route('/favicon-{hierarchySlug}.svg', name: 'hierarchy_favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchy' => 'system'])]
+    #[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchy' => 'system'])]
+    #[ParamConverter('schema')]
 	#[Cache(expires: "tomorrow", public: true)]
-	public function favicon(Request $request, Environment $twig, SchemaRoot $schema) {
+	public function favicon(Request $request, Environment $twig, Hierarchy $schema) {
 		$response = new Response($twig->render('asset/favicon.svg.twig', [
 			'color' => $schema->getLabel()->getColor(),
 		]), 200, [
@@ -26,7 +28,7 @@ class AssetController {
 		]);
 
 		$response->setEtag(md5($response->getContent()));
-        $response->setPublic(); // make sure the response is public/cacheable
+        $response->setPublic();
         $response->isNotModified($request);
 
         return $response;

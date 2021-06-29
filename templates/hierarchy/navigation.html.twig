@@ -1,10 +1,10 @@
-{% macro walkSubKeys(key) %}
+{% macro walkSubKeys(hierarchy, key) %}
     {% if key.scopeChildKeys(false) %}
     <ul class="block-list small">
         {% for childKey in key.scopeChildKeys(false) %}
         <li>
-        <a href="{{ path('list_root_nodes', {key: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
-        {{ _self.walkSubKeys(childKey) }}
+        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
+        {{ _self.walkSubKeys(hierarchy, childKey) }}
         </li>
         {% endfor %}
     </ul>
@@ -12,25 +12,26 @@
 {% endmacro %}
 
 <nav class="site-nav">
-    <a class="stealth-link" href="{{ path('hierarchy_root') }}" title="">
-    <h1 class="site-title">Hierarchy Manager</h1>
+    <a class="stealth-link" href="{{ path('hierarchy_root', {hierarchySlug: hierarchy.slug}) }}" title="">
+        <h1 class="site-title">{{hierarchy.label.singular}}</h1>
     </a>
     <ul class="block-list">
-        {% for rootKey in rootKeys %}
+        {% for rootKey in hierarchy.rootKeys %}
         <li>
-        <a href="{{ path('list_root_nodes', {key: rootKey.id}) }}" title="">{{ rootKey.label.plural }}</a>
-        {{ _self.walkSubKeys(rootKey) }}
+        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: rootKey.id}) }}" title="">{{ rootKey.label.string(rootKey.isSingleton) }}</a>
+        {{ _self.walkSubKeys(hierarchy, rootKey) }}
         </li>
         {% endfor %}
     </ul>
 
     <h2 class="site-section-title">System</h2>
     <ul class="block-list">
-        <li><a href="{{ path('hierarchy_setup') }}">Show Schema</a></li>
-        <li><a href="{{ path('show_diagnosis') }}">Diagnosis</a></li>
-        <li><a href="{{ path('hierarchy_tree') }}">Full Hierarchy</a></li>
+        <li><a href="{{ path('hierarchy_setup', {hierarchySlug: hierarchy.slug}) }}">Show Schema</a></li>
+        <li><a href="{{ path('show_diagnosis', {hierarchySlug: hierarchy.slug}) }}">Diagnosis</a></li>
+        <li><a href="{{ path('hierarchy_tree', {hierarchySlug: hierarchy.slug}) }}">Full Hierarchy</a></li>
         <li><span onclick="document.body.classList.toggle('show-quickform');window.localStorage.setItem('quickform', 'true'!=window.localStorage.getItem('quickform'))">Toggle Quickform</span></li>
     </ul>
+
 
     <script>
         if(window.localStorage.getItem('quickform') == 'true') {

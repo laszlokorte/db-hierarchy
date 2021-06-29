@@ -1,5 +1,5 @@
 <ul class="breadcrump outer">
-    <li class="breadcrump-item"><a href="{{ path('hierarchy_root') }}">Root</a></li>
+    <li class="breadcrump-item"><a href="{{ path('hierarchy_root', {hierarchySlug: hierarchy.slug}) }}">Root</a></li>
     {%- if key is defined -%}
         {%- for k in key.getNestingPath -%}
             {% if parentNodes.hasNodesFor(k.id) %}
@@ -7,9 +7,9 @@
                     {% if loop.first %}
                         <li class="breadcrump-segment">{#--#}
                         {% if k.isScoped %}
-                            <a class="breadcrump-segment-title" href="{{ path('list_child_nodes', {key: k.scopeKey.id, id: parentNodes.nodesFor(k.scopeKey.id).ids|last, childKey:k.id}) }}" title="">{{ k.label.plural }}</a>
+                            <a class="breadcrump-segment-title" href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, key: k.scopeKey.id, id: parentNodes.nodesFor(k.scopeKey.id).ids|last, childKey:k.id}) }}" title="">{{ k.label.string(k.singleton) }}</a>
                         {% else %}
-                            <a class="breadcrump-segment-title" href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
+                            <a class="breadcrump-segment-title" href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key:k.id}) }}" title="">{{ k.label.string(k.singleton) }}</a>
                         {% endif %}
                         <span class="breadcrump-item">
                     {% else %}
@@ -18,9 +18,9 @@
                     {% if loop.last and loop.parent.loop.last and trailing is not defined %}
                         {{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}
                     {% elseif key.reflexive %}
-                        <a href="{{ path('list_child_nodes', {key:k.id, id:nodeId, childKey: k.id}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
+                        <a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, key:k.id, id:nodeId, childKey: k.id}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
                     {% else %}
-                        <a href="{{ path('show_node', {key:k.id, id:nodeId}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
+                        <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key:k.id, id:nodeId}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
                     {% endif %}
                     {% if loop.first %}</span>{% endif %}
                     </li>
@@ -28,11 +28,11 @@
             {% else %}
                 <li class="{{html_classes('breadcrump-item')}}">{#--#}
                     {% if loop.last %}
-                        {{ k.label.plural }}
+                        {{ k.label.string(k.singleton) }}
                     {% elseif k.isScoped %}
-                        <a href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
+                        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key:k.id}) }}" title="">{{ k.label.string(k.singleton) }}</a>
                     {% else %}
-                    <a href="{{ path('list_root_nodes', {key:k.id}) }}" title="">{{ k.label.plural }}</a>
+                    <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key:k.id}) }}" title="">{{ k.label.string(k.singleton) }}</a>
                     {% endif %}
                 </li>
             {% endif %}

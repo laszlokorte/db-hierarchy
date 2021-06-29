@@ -28,7 +28,7 @@ class KeyDefinition {
 	}
 
 	public function isOrdered() {
-		return $this->order !== NULL;
+		return $this->order !== NULL && !$this->order->isSingleton();
 	}
 
 	public function getOrderColumnName() {
@@ -43,8 +43,8 @@ class KeyDefinition {
 		return $this->scope !== NULL;
 	}
 
-	public function isScopedUnique() {
-		return $this->scope->isUnique();
+	public function isSingleton() {
+		return $this->order !== NULL && $this->order->isSingleton();
 	}
 
 	public function getScopeKeyId() {

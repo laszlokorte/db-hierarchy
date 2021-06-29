@@ -6,6 +6,8 @@ class ReflexivityDefinition {
 	public function __construct(
 		private string $parentColumn = 'parent_id', 
 		private string $childColumn = 'child_id',
+		private string $depth = 'depth',
+		private ?string $closureTable = null,
 	) {
 	}
 
@@ -18,6 +20,6 @@ class ReflexivityDefinition {
 	}
 
 	public function deriveTableName($baseTableName) {
-		return sprintf('%s_closure', $baseTableName);
+		return $this->closureTable ?? sprintf('%s_closure', $baseTableName);
 	}
 }

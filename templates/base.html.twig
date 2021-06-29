@@ -10,8 +10,8 @@
             {#{{ encore_entry_link_tags('app') }}#}
             <style>
                 :root {
-                    --favicon-url: url(#app-logo), url('{{path('favicon_svg')}}');
-                    --accent-primary: {{ schemaRoot.label.color  }};
+                    --favicon-url: url('{{path('hierarchy_favicon_svg', {hierarchySlug: hierarchy|default(systemHierarchy).slug})}}');
+                    --accent-primary: {{ hierarchy|default(systemHierarchy).label.color  }};
                 }
             </style>
             <link rel="stylesheet" type="text/css" href="/style.css">

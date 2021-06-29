@@ -2,7 +2,9 @@
 
 {% block html_body %}
 
-    <div style="display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center; padding: 0 1em">
+
+
+    <div style="width: 100%; display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center; padding: 0 1em">
 
         {% for label, messages in app.flashes(['error','success']) %}
             {% if messages %}
@@ -16,7 +18,7 @@
             {% endif %}
         {% endfor %}
 
-        {% include 'hierarchy/navigation.html.twig' %}
+        {% include 'hierarchy/navigation.html.twig' with {hierarchy} only %}
 
         <section>
             {% block area_main %}
@@ -26,4 +28,13 @@
     
     </div>
 
+
+    <nav class="global-bar">
+        <ul class="global-tabs">
+            {% for subSchema in subSchemas %}
+                <li class="global-tabs-item"><a class="{{ html_classes('global-tabs-link', {'state-active': hierarchy.slug == subSchema.slug}) }}" href="{{ path('hierarchy_root', {hierarchySlug: subSchema.slug}) }}">{{subSchema.label_singular|default(subSchema.slug)}}</a></li>
+            {% endfor %}
+            <li class="global-tabs-item"><a class="{{ html_classes('global-tabs-link', {'state-active': hierarchy.slug == systemHierarchy.slug}) }}" href="{{ path('hierarchy_root', {hierarchySlug: systemHierarchy.slug}) }}">System</a></li>
+        </ul>
+    </nav>
 {% endblock %}

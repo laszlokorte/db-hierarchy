@@ -33,4 +33,5 @@ security:
     access_control:
         - { path: ^/_login, roles: PUBLIC_ACCESS }
         - { path: ^/favicon.(ico|svg), roles: PUBLIC_ACCESS }
+        - { path: ^/favicon-[a-z]+.(ico|svg), roles: PUBLIC_ACCESS }
         - { path: ^/, roles: ROLE_ADMIN  }

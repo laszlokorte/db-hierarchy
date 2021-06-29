@@ -1,4 +1,4 @@
-<form action="{{ path('update_node',{key:key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('update_node',{hierarchySlug: hierarchy.slug, key:key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
@@ -12,11 +12,25 @@
         {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
     	</dd>
     	<dd class="form-container-info">
-        <a class="icon-link" href="{{ path('show_node_field',{key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
+        <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
     	</dd>
     	{% endfor %}
 
 	<dt class="form-container-label form-container-spacer"></dt>
-	<dd class="form-container-buttons"><button class="form-button primary">Update</button></dd>
+	<dd class="form-container-buttons">
+	{% if force_then|default(false) %}
+		<button class="form-button primary">Save Changes</button>
+	{% else %}
+		<button class="form-button primary">Update</button>
+		<button class="form-button" name="_then" value="show">Update and back</button>
+	{% endif %}
+	{% if cancel is defined %}
+		{% if cancel is same as(true) %}
+			<button class="link-button" type="reset">Reset</button>
+		{% else %}
+			<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
+		{% endif %}
+	{% endif %}
+	</dd>
     </dl>
 </form>

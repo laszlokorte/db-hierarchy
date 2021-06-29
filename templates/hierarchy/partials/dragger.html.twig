@@ -3,7 +3,7 @@
     draggable="true" 
     data-nest-id="{{key}}-{{nestId}}" 
     data-order="{{order}}" 
-    data-url="{{url('order_node',{key, id})}}" 
+    data-url="{{url('order_node',{hierarchySlug: hierarchy.slug, key, id})}}" 
     ondragstart="event.dataTransfer.setData('order-url', this.dataset.url);event.dataTransfer.setData('nestId', this.dataset.nestId);this.classList.add('state-dragging');document.querySelectorAll('[data-nest-id=\''+this.dataset.nestId+'\']').forEach(e=>e.classList.add('drag-target'));document.body.classList.add('state-dragging')" 
     ondragend="this.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'));document.body.classList.remove('state-dragging')" 
     ondragover="if(event.dataTransfer.getData('nestId')==this.dataset.nestId) {this.classList.add('state-over');event.preventDefault()}" 

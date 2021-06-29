@@ -7,15 +7,15 @@
 {% block area_main %}
 
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
-<h1>{{ key.label.singular }} {{node.id}}</h1>
+<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'delete'} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'delete'} only %}
 
 <h2>Delete</h2>
 
-<form action="{{ path('delete_node',{key: key.id, id:node.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, key: key.id, id:node.id}) }}" method="post" accept-charset="utf-8">
     {% if deletionPlan.willDelete.nodesFor(key.id).count > 1 or deletionPlan.willDelete.getKeys()|length > 1 %}
         <div class="warning-box">
             <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
@@ -23,11 +23,11 @@
 
             <dl class="keyvalue-container">
                 {% for key in deletionPlan.willDelete.getKeys() %}
-                    <dt class="keyvalue-container-label top">{{schemaRoot.getKey(key).label.plural}}</dt>
+                    <dt class="keyvalue-container-label top">{{hierarchy.getKey(key).label.plural}}</dt>
                     <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
                             {% for id in deletionPlan.willDelete.getNodesFor(key).getIds() %}
-                                <li><a href="{{path('show_node',{key, id})}}">{{schemaRoot.getKey(key).summarize(deletionPlan.willDelete.getNodesFor(key).getNode(id))}}</a></li>
+                                <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, key, id})}}">{{hierarchy.getKey(key).summarize(deletionPlan.willDelete.getNodesFor(key).getNode(id))}}</a></li>
                             {% endfor %}
                         </ul>
                     </dd>
@@ -48,11 +48,11 @@
 
             <dl class="keyvalue-container">
                 {% for key in deletionPlan.blockers.keys %}
-                    <dt class="keyvalue-container-label top">{{schemaRoot.getKey(key).label.plural}}</dt>
+                    <dt class="keyvalue-container-label top">{{hierarchy.getKey(key).label.plural}}</dt>
                     <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
                             {% for id in deletionPlan.blockers.getNodesFor(key).getIds() %}
-                                <li><a href="{{path('show_node',{key, id})}}">{{schemaRoot.getKey(key).summarize(deletionPlan.blockers.getNodesFor(key).getNode(id))}}</a></li>
+                                <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, key, id})}}">{{hierarchy.getKey(key).summarize(deletionPlan.blockers.getNodesFor(key).getNode(id))}}</a></li>
                             {% endfor %}
                         </ul>
                     </dd>
@@ -68,12 +68,9 @@
                 <dt class="form-container-spacer"></dt>
                 <dd class="form-container-buttons">
                     <button class="action-button danger">Yes, Delete!</button>
-                    <a class="link-button" href="{{ path('show_node', {key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
+                    <a class="link-button" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: key.id, id:node.id}) }}" title="cancel">Cancel</a>
                 </dd>
             </dl>
-
     {% endif %}
-
-    
 </form>
 {% endblock %}

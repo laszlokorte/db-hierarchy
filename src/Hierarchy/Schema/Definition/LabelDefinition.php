@@ -22,6 +22,10 @@ class LabelDefinition {
 		return $this->plural;
 	}
 
+	public function getString($singular = true) {
+		return $singular ? $this->singular : $this->plural;
+	}
+
 	public function getDescription() {
 		return $this->description;
 	}

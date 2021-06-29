@@ -112,9 +112,6 @@ class SchemaBuilder {
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
 			$columns[] = $this->fieldColumnToTableColumn($scopeColumn);
 
-			if($this->schemaDef->isKeyScopedUnique($keyId)) {
-				$uniques[] = [$this->nodeOwnScopeColumnName($keyId)];
-			}
 
 			if(!$this->quirks->noDeferredFK()) {
 				$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
@@ -122,12 +119,33 @@ class SchemaBuilder {
 
 		}
 
+
+		if($this->schemaDef->isKeySingleton($keyId)) {
+
+			if(!$this->schemaDef->isKeyReflexive($keyId)) {
+				$singletonKey = [];
+				if($this->schemaDef->isKeyScoped($keyId)) {
+					$singletonKey[] = $this->nodeOwnScopeColumnName($keyId);
+				}
+
+				$columns[] = new TableColumn(
+					new Identifier($this->schemaDef->getKeySingletonColumnName($keyId)),
+					'char(1)',
+					true,
+					new Constant('x')
+				);
+				$singletonKey[] = new Identifier($this->schemaDef->getKeySingletonColumnName($keyId));
+
+				$uniques[] = $singletonKey;
+			}
+		}
+
 		foreach ($this->fieldsColumns($keyId) as $fieldColumn) {
 			$columns[] = $this->fieldColumnToTableColumn($fieldColumn);
 			
 			if($fieldColumn->isReference()) {
 				$targetKeyName = $fieldColumn->getCoding()->getTarget();
-				$ownColumnName = $this->fieldColumnToname($fieldColumn);
+				$ownColumnName = $this->fieldColumnToName($fieldColumn);
 				$targetColumnName = $this->nodeTablePKName($keyId);
 
 				$targetTableName = $this->nodeTableName($targetKeyName);
@@ -198,7 +216,7 @@ class SchemaBuilder {
 
 	private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition) {
 		return new TableColumn(
-			$this->fieldColumnToname($columnDefinition),
+			$this->fieldColumnToName($columnDefinition),
 			$this->columnCodingToSqlType($columnDefinition->getCoding()),
 			$columnDefinition->isNullable(),
 			$columnDefinition->getDefault() !== null ?
@@ -294,8 +312,16 @@ class SchemaBuilder {
 			[$childColumnName, $depthId],
 		];
 
-		if($this->schemaDef->isKeyScoped($keyId) && $this->schemaDef->isKeyScopedUnique($keyId)) {
+		if($this->schemaDef->isKeyScoped($keyId) && $this->schemaDef->isKeySingleton($keyId)) {
 			$uniques[] = array_merge($scopeColumnNames, [$depthId]);
+		}
+
+		if($this->schemaDef->isKeySingleton($keyId)) {
+			if($this->schemaDef->isKeyScoped($keyId)) {
+				$uniques[] = array_merge($scopeColumnNames, [$depthId]);
+			} else {
+				$uniques[] = [$depthId];
+			}
 		}
 
 		$foreignKeys = [

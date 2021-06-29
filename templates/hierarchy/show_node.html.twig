@@ -6,11 +6,11 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
-<h1>{{ key.label.singular }} {{node.id}}</h1>
+<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'show'} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'show'} only %}
 
 
 <div class="tab-container">
@@ -27,7 +27,7 @@
         </label></li>
     </ul>
         
-     {% include 'hierarchy/partials/form_edit.html.twig' with {key, node} only %}
+     {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key, node} only %}
     </div>
 
     <input type="radio" class="tab-container-radio" id="feid_tab_view" name="field_tab" value="list">
@@ -43,7 +43,7 @@
             </label></li>
         </ul>
 
-        {% include 'hierarchy/partials/fields.html.twig' with {key, node} only %}
+        {% include 'hierarchy/partials/fields.html.twig' with {hierarchy: hierarchy,key, node} only %}
 
     </div>
 </div>
@@ -78,7 +78,7 @@
             Are you sure?
         </p>
 
-        <form action="{{ path('delete_node',{key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
+        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
         <dl class="form-container">
             <dt class="form-container-spacer"></dt>
             <dd class="form-container-buttons">
@@ -103,7 +103,7 @@
         </label></li>
     </ul>
 
-    {% include 'hierarchy/partials/form_edit.html.twig' with {key: childKey, node: childNodes.nodesFor(childKey.id).getNode(childId)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key: childKey, node: childNodes.nodesFor(childKey.id).getNode(childId)} only %}
 
     </div>
 </div>
@@ -122,7 +122,7 @@
         </label></li>
     </ul>
         
-    {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent:node} only %}
     </div>
 
     <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list" checked>
@@ -157,7 +157,7 @@
         </label></li>
     </ul>
         
-    {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent:node} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent:node} only %}
     </div>
 
     <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab" value="list">
@@ -173,7 +173,7 @@
             </label></li>
         </ul>
 
-        {% include 'hierarchy/partials/table.html.twig' with {nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
+        {% include 'hierarchy/partials/table.html.twig' with {hierarchy: hierarchy,nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
     </div>
 </div>
 {% endif %}

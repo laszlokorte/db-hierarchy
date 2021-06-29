@@ -7,18 +7,13 @@ class ScopeDefinition {
 
 	public function __construct(
 		private string $scopeKeyId, 
-		?string $columnName = NULL, 
-		private bool $unique = FALSE
+		?string $columnName = NULL
 	) {
 		$this->columnName = $columnName ?? $scopeKeyId . '_id';
 	}
 
 	public function getScopeKeyId() {
 		return $this->scopeKeyId;
-	}
-
-	public function isUnique() {
-		return $this->unique;
 	}
 
 	public function getColumnName() {

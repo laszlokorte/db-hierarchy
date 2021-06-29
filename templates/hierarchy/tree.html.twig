@@ -20,6 +20,7 @@
                 fd.append('target_scope-parent', this.dataset.parent+'/');
             }
             fd.append('_then', 'tree');
+            document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false)
             fetch(event.dataTransfer.getData('move-url'), {
               method: 'POST',
               body: fd
@@ -34,7 +35,7 @@
             <div style="display: flex;">
                 {% if key.isNested %}
                 <span class="dragger" 
-                data-url="{{ path('move_node', {key:key.id, id: node.id}) }}"
+                data-url="{{ path('move_node', {hierarchySlug: hierarchy.slug, key:key.id, id: node.id}) }}"
                 {% if key.isScoped %}
                 data-scope="{{key.scopeKey.id}}"
                 {% endif %}
@@ -52,9 +53,9 @@
                 ></span>&nbsp;
                 {% endif %}
                 {% if key.isOrdered %}
-                {% include 'hierarchy/partials/dragger.html.twig' with {then:'tree',key:key.id, nestId: (scope??'-')~"*"~(parent??'-'), id: node.id, order:node.order} %}
+                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',key:key.id, nestId: (scope??'-')~"*"~(parent??'-'), id: node.id, order:node.order} %}
                 {% endif %}
-                <a href="{{ path('show_node', {key:key.id, id: node.id}) }}" title="">{{key.summarize(node)}}</a>
+                <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key:key.id, id: node.id}) }}" title="">{{key.summarize(node)}}</a>
             </div>
             
             {% for childKey in key.getNestedKeys %}
@@ -76,29 +77,30 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'Tree'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,trailing: 'Tree'} only %}
 
 <h1>Tree</h1>
 
-{% for key in rootKeys %}
-    <h3><a href="{{ path('list_root_nodes', {key: key.id}) }}" title="">{{ key.label.plural }}</a></h3>
+{% for key in hierarchy.rootKeys %}
+    <h3><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: key.id}) }}" title="">{{ key.label.plural }}</a></h3>
     
-    {% if not hierarchy.hasNodes(key.id) %}
+    {% if not hierarchyNodes.hasNodes(key.id) %}
         <p>
             None
         </p>
     {% else %}
         <span data-key="{{key.id}}"
-    ondragover="if(event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
+    ondragover="if(!event.dataTransfer.getData('scope')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
     ondragleave="this.classList.remove('state-over')"
     ondrop="
-    if(event.dataTransfer.getData('move-url') && (event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key)) {
+    if(event.dataTransfer.getData('move-url') && (!event.dataTransfer.getData('scope')) {
         event.stopPropagation()
         this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));
             event.stopPropagation();
             let fd = new FormData();
             fd.append('target_scope-parent', '/');
             fd.append('_then', 'tree');
+            document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false)
             fetch(event.dataTransfer.getData('move-url'), {
               method: 'POST',
               body: fd

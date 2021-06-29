@@ -9,12 +9,14 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
 use Doctrine\DBAL\Connection;
 
-use App\Hierarchy\Schema\SchemaRoot;
+use App\Hierarchy\Schema\RecursiveLoader;
+use App\Hierarchy\Schema\Hierarchy;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use App\Hierarchy\Storage\Relational\Exception\DeletionBlockedException;
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
@@ -22,104 +24,118 @@ use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Data\MultiCollection;
 
 class HierarchyController {
-
-	public function __construct(SchemaRoot $schema) {
-		$this->schema = $schema;
-	}
 	
-	#[Route('/', name: 'hierarchy_root', methods: 'GET')]
+	#[Route('/{hierarchySlug}', name: 'hierarchy_root', methods: 'GET', defaults: ['hierarchySlug' => 'system'])]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function root(StorageConnection $storageConnection)
+    public function root(Hierarchy $hierarchy, StorageConnection $storageConnection)
     {
     	return [
-    		'rootKeys' => $this->schema->getRootKeys(),
+            'hierarchy' => $hierarchy,
     		'rootNodes' => $storageConnection->getFetcher()->findAllRootNodes(),
     	];
     }
 
-    #[Route('/_full-tree', name: 'hierarchy_tree', methods: 'GET')]
+    #[Route('/{hierarchySlug}/_full-tree', name: 'hierarchy_tree', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function tree(StorageConnection $storageConnection)
+    public function tree(Hierarchy $hierarchy, StorageConnection $storageConnection)
     {       
     	return [
-    		'rootKeys' => $this->schema->getRootKeys(),
-    		'hierarchy' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
+            'hierarchy' => $hierarchy,
+    		'hierarchyNodes' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
     	];
     }
 
-    #[Route('/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
+    #[Route('/{hierarchySlug}/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function showSetup(StorageConnection $storageConnection)
+    public function showSetup(Hierarchy $hierarchy, StorageConnection $storageConnection)
     {
         try {
-            $rootKeys = $this->schema->getRootKeys();
+            $rootKeys = $hierarchy->getRootKeys();
         } catch(\Exception $e) {
             $rootKeys = [];
         }
 
     	return [
+            'hierarchy' => $hierarchy,
     		'installer' => $storageConnection->getInstaller(),
     		'adapter' => new Sqlite(),
-    		'rootKeys' => $rootKeys,
     	];
     }
 
-    #[Route('/_setup', name: 'hierarchy_setup', methods: 'POST')]
-    public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
+    #[Route('/{hierarchySlug}/_setup', name: 'hierarchy_setup', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, Connection $db)
     {
         $storageConnection->getInstaller()->createSchema(true, $request->request->get('only_views', false));
 
         $session->getFlashBag()->add('success', 'Schema has been updated.');
 
-        return new RedirectResponse($urlGen->generate('show_hierarchy_setup'));
+        return new RedirectResponse($urlGen->generate('show_hierarchy_setup', ['hierarchySlug' => $hierarchy->getSlug()]));
     }
 
-    #[Route('/_uninstall', name: 'hierarchy_uninstall', methods: 'POST')]
-    public function setup(Request $request, Session $session, UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, Connection $db)
+    #[Route('/{hierarchySlug}/_uninstall', name: 'hierarchy_uninstall', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function setup(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, Connection $db)
     {
         $storageConnection->getInstaller()->dropSchema();
 
         $session->getFlashBag()->add('success', 'Schema has been removed.');
 
-        return new RedirectResponse($urlGen->generate('show_hierarchy_setup'));
+        return new RedirectResponse($urlGen->generate('show_hierarchy_setup', ['hierarchySlug' => $hierarchy->getSlug()]));
     }
 
-    #[Route('/_diagnosis', name: 'show_diagnosis', methods: 'GET')]
+    #[Route('/{hierarchySlug}/_diagnosis', name: 'show_diagnosis', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function diagnosis(StorageConnection $storageConnection)
+    public function diagnosis(Hierarchy $hierarchy, StorageConnection $storageConnection)
     {
     	$diagnosis = $storageConnection->getFetcher()->findAllDefects();
 
     	return [
-    		'rootKeys' => $this->schema->getRootKeys(),
+            'hierarchy' => $hierarchy,
     		'diagnosis' => $diagnosis,
     	];
     }
 
-    #[Route('/_repair', name: 'repair', methods: 'POST')]
-    public function repairDefects(UrlGeneratorInterface $urlGen, StorageConnection $storageConnection)
+    #[Route('/{hierarchySlug}/_repair', name: 'repair', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function repairDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection)
     {
     	$storageConnection->getCommander()->repairAll();
 
-    	return new RedirectResponse($urlGen->generate('show_diagnosis'));
+    	return new RedirectResponse($urlGen->generate('show_diagnosis', ['hierarchySlug' => $hierarchy->getSlug()]));
     }
 
-    #[Route('/_repair/{key}', name: 'repair_key', methods: 'POST')]
-    public function repairKeyDefects(UrlGeneratorInterface $urlGen, StorageConnection $storageConnection, $key)
+    #[Route('/{hierarchySlug}/_repair/{key}', name: 'repair_key', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function repairKeyDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, $key)
     {
     	$storageConnection->getCommander()->repairKey($key);
 
-    	return new RedirectResponse($urlGen->generate('show_diagnosis'));
+    	return new RedirectResponse($urlGen->generate('show_diagnosis', ['hierarchySlug' => $hierarchy->getSlug()]));
     }
 
 
 
-    #[Route('_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]
+    #[Route('/{hierarchySlug}_all/{key}.json', name: 'list_all_nodes', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
     #[Template()]
-    public function listAllNodes(StorageConnection $storageConnection, $key)
+    public function listAllNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, $key)
     {
         $all = $storageConnection->getFetcher()->findAllNodes($key);
-        $key = $this->schema->getKey($key);
+        $key = $hierarchy->getKey($key);
         return new JsonResponse([
             'key' => $key->getId(),
             'nodes' => array_map(fn($id) => [
@@ -129,78 +145,107 @@ class HierarchyController {
         ]);
     }
 
-    #[Route('/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}({field})/{id}', name: 'show_node_field', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function showNodeField(StorageConnection $storageConnection, $key, $id, $field)
+    public function showNodeField(Hierarchy $hierarchy, StorageConnection $storageConnection, $key, $id, $field)
     {
     	return new JsonResponse((object)[
             'key' => $key,
             'id' => $id,
             'field' => $field,
-            'value' => $this->schema->getKey($key)->getField($field)->readObjectOf(
+            'value' => $hierarchy->getKey($key)->getField($field)->readObjectOf(
                 $storageConnection->getFetcher()->findNodeField($key, $id, $field)
             ),
         ]);
     }
 
-    #[Route('/{key}/+', name: 'new_root_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/+', name: 'new_root_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function newRootNode(Request $request, $key)
+    public function newRootNode(Request $request, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, $key)
     {
+        $k = $hierarchy->getKey($key);
+
+        if($k->isSingleton()) {
+            if(!$storageConnection->getFetcher()->findRootNodes($key)->isEmpty()) {
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
+            }
+        }
+
     	return [
-    		'key' => $this->schema->getKey($key),
+            'hierarchy' => $hierarchy,
+    		'key' => $k,
             'parentNodes' => new MultiCollection(null, null, [], null, null),
-    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
-    #[Route('/{key}/{id}/{childKey}/+', name: 'new_child_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}/{childKey}/+', name: 'new_child_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function newChildNode(StorageConnection $storageConnection, $key, $id, $childKey)
+    public function newChildNode(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, $key, $id, $childKey)
     {
+        $k = $hierarchy->getKey($key);
+        $ck = $hierarchy->getKey($childKey);
+
+        if($ck->isSingleton()) {
+            if(!$storageConnection->getFetcher()->findNodeChildren($key, $id, $childKey)->isEmpty()) {
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key, 'id' => $id, 'childKey' => $childKey]));
+            }
+        }
+
     	return [
-    		'key' => $this->schema->getKey($key),
-    		'childKey' => $this->schema->getKey($childKey),
+            'hierarchy' => $hierarchy,
+    		'key' => $k,
+    		'childKey' => $ck,
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
-    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
-    #[Route('/{key}/{id}', name: 'show_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}', name: 'show_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function showNode(StorageConnection $storageConnection, $key, $id)
+    public function showNode(Hierarchy $hierarchy, StorageConnection $storageConnection, $key, $id)
     {
     	return [
-    		'key' => $this->schema->getKey($key),
+            'hierarchy' => $hierarchy,
+    		'key' => $hierarchy->getKey($key),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
             'childNodes' => $storageConnection->getFetcher()->findNodeAllChildren($key, $id),
-    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
-    #[Route('/{key}/{id}/_edit', name: 'edit_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}/_edit', name: 'edit_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function editNode(StorageConnection $storageConnection, $key, $id)
+    public function editNode(Hierarchy $hierarchy, StorageConnection $storageConnection, $key, $id)
     {
     	return [
-    		'key' => $this->schema->getKey($key),
+            'hierarchy' => $hierarchy,
+    		'key' => $hierarchy->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
-    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
-    #[Route('/{key}/{id}/-', name: 'delete_node', methods: 'POST')]
-    public function deleteNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    #[Route('/{hierarchySlug}/{key}/{id}/-', name: 'delete_node', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
     	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
 
         try {
             $storageConnection->getCommander()->deleteNode($key, $id);
         } catch(DeletionBlockedException $e) {
-            return new RedirectResponse($urlGen->generate('ask_delete_node', ['key' => $key, 'id' => $id]));
+            return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key, 'id' => $id]));
         }
 
 		$then = $request->request->get('_then', null);
@@ -210,43 +255,47 @@ class HierarchyController {
 
         if($then === 'list') {
             if($lastParent) {
-                $args = array_merge($lastParent->pathArgs(), ['childKey' => $key]);
+                $args = array_merge($lastParent->pathArgs(), ['hierarchySlug' => $hierarchy->getSlug(), 'childKey' => $key]);
                 return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
             } else {
-                return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
             }
         } elseif($then === 'root_list') {
-            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
         } elseif($then === 'parent') {
             if($lastParent) {
-                return new RedirectResponse($urlGen->generate('show_node', $lastParent->pathArgs()));
+                return new RedirectResponse($urlGen->generate('show_node', array_merge($lastParent->pathArgs(), ['hierarchySlug' => $hierarchy->getSlug()])));
             } else {
-                return new RedirectResponse($urlGen->generate('hierarchy_root'));
+                return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
             }
     	} else {
-            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
         } 
     }
 
-    #[Route('/{key}/{id}/-', name: 'ask_delete_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}/-', name: 'ask_delete_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function askDeleteNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, $key, $id)
+    public function askDeleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, $key, $id)
     {
         $deletionPlan = $storageConnection->getCommander()->getDeletionPlan($key, $id);
 
 		return [
-    		'key' => $this->schema->getKey($key),
+            'hierarchy' => $hierarchy,
+    		'key' => $hierarchy->getKey($key),
     		'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
-    		'rootKeys' => $this->schema->getRootKeys(),
             'deletionPlan' => $deletionPlan,
     	];
     }
 
-    #[Route('/{key}', name: 'create_node', methods: 'POST')]
-    public function createNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key)
+    #[Route('/{hierarchySlug}/{key}', name: 'create_node', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function createNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key)
     {
-    	$key = $this->schema->getKey($key);
+    	$key = $hierarchy->getKey($key);
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
     	$newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
@@ -257,62 +306,66 @@ class HierarchyController {
 
 		if($then === 'form') {
             if($parent) {
-                return new RedirectResponse($urlGen->generate('new_child_node', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
+                return new RedirectResponse($urlGen->generate('new_child_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
             } elseif ($scope) {
                 $parentKey = $key->getScopeKey()->getId();
-                return new RedirectResponse($urlGen->generate('new_child_node', ['key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
+                return new RedirectResponse($urlGen->generate('new_child_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
             } else {
-                return new RedirectResponse($urlGen->generate('new_root_node', ['key' => $key->getId()]));
+                return new RedirectResponse($urlGen->generate('new_root_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId()]));
             }
         } elseif($then === 'root_form') {
-            return new RedirectResponse($urlGen->generate('new_root_node', ['key' => $key->getId()]));
+            return new RedirectResponse($urlGen->generate('new_root_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId()]));
         } elseif($then === 'new') {
-            return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $newId]));
+            return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId(), 'id' => $newId]));
         } elseif($then === 'list') {
             if($parent) {
-                return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId(), 'childKey' => $key->getId(), 'id' => $parent]));
             } elseif ($scope) {
                 $parentKey = $key->getScopeKey()->getId();
-                return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $parentKey, 'childKey' => $key->getId(), 'id' => $scope]));
             } else {
-                return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId()]));
             }
         } elseif($then === 'root_list') {
-            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key->getId()]));
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId()]));
         } else {
             if($parent) {
-                return new RedirectResponse($urlGen->generate('show_node', ['key' => $key->getId(), 'id' => $parent]));
+                return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key->getId(), 'id' => $parent]));
             } elseif ($scope) {
                 $parentKey = $key->getScopeKey()->getId();
-                return new RedirectResponse($urlGen->generate('show_node', ['key' => $parentKey, 'id' => $scope]));
+                return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $parentKey, 'id' => $scope]));
             } else {
-                return new RedirectResponse($urlGen->generate('hierarchy_root'));
+                return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug(), 'hierarchySlug' => $hierarchy->getSlug()]));
             }
         }
     }
 
-    #[Route('/{key}/{id}/_move', name: 'ask_move_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}/_move', name: 'ask_move_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
     #[Template()]
-    public function askMoveNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    public function askMoveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-        $k = $this->schema->getKey($key);
+        $k = $hierarchy->getKey($key);
         if(!$k->isNested()) {
             throw new NotFoundHttpException(sprintf('%s are not nested', $k->getLabel()->getPlural()));
         }
 
         return [
+            'hierarchy' => $hierarchy,
             'key' => $k,
             'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
-            'rootKeys' => $this->schema->getRootKeys(),
         ];
     }
 
-    #[Route('/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
-    public function moveNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    #[Route('/{hierarchySlug}/{key}/{id}/_move', name: 'move_node', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-        $k = $this->schema->getKey($key);
+        $k = $hierarchy->getKey($key);
         if(!$k->isNested()) {
             throw new NotFoundHttpException(sprintf('%s are not nested', $k->getLabel()->getPlural()));
         }
@@ -327,35 +380,39 @@ class HierarchyController {
         $then = $request->request->get('_then', null);
 
         if($then === 'tree') {
-            return new RedirectResponse($urlGen->generate('hierarchy_tree'));
+            return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
         } else {
-            return new RedirectResponse($urlGen->generate('ask_move_node', ['key' => $key, 'id' => $id]));
+            return new RedirectResponse($urlGen->generate('ask_move_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key, 'id' => $id]));
         }
     }
 
-    #[Route('/{key}/{id}/_order', name: 'ask_order_node', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}/_order', name: 'ask_order_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
     #[Template()]
-    public function askOrderNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    public function askOrderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
-        $k = $this->schema->getKey($key);
+        $k = $hierarchy->getKey($key);
         if(!$k->isOrdered()) {
             throw new NotFoundHttpException(sprintf('%s are not ordered', $k->getLabel()->getPlural()));
         }
 
         return [
-            'key' => $this->schema->getKey($key),
+            'hierarchy' => $hierarchy,
+            'key' => $hierarchy->getKey($key),
             'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key, $id),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
-            'rootKeys' => $this->schema->getRootKeys(),
         ];
     }
 
-    #[Route('/{key}/{id}/_order', name: 'order_node', methods: 'POST')]
-    public function orderNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    #[Route('/{hierarchySlug}/{key}/{id}/_order', name: 'order_node', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
 
-        $k = $this->schema->getKey($key);
+        $k = $hierarchy->getKey($key);
         if(!$k->isOrdered()) {
             throw new NotFoundHttpException(sprintf('%s are not ordered', $k->getLabel()->getPlural()));
         }
@@ -371,34 +428,36 @@ class HierarchyController {
         $then = $request->request->get('_then', null);
 
         if($then === 'tree') {
-            return new RedirectResponse($urlGen->generate('hierarchy_tree'));
+            return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
         } elseif($then === 'list') {
             $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
 
             if($directParent) {
-                return new RedirectResponse($urlGen->generate('list_child_nodes', ['key' => $directParent->getKey(), 'id' => $directParent->getId(), 'childKey' => $key]));
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $directParent->getKey(), 'id' => $directParent->getId(), 'childKey' => $key]));
 
             } else {
-                return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
             }
         } elseif($then === 'root_list') {
-            return new RedirectResponse($urlGen->generate('list_root_nodes', ['key' => $key]));
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
         } elseif($then === 'parent') {
             $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
 
             if($directParent) {
-                return new RedirectResponse($urlGen->generate('show_node', ['key' => $directParent->getKey(), 'id' => $directParent->getId()]));
+                return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $directParent->getKey(), 'id' => $directParent->getId()]));
 
             } else {
-                return new RedirectResponse($urlGen->generate('hierarchy_root'));
+                return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
             }
         } else {
-            return new RedirectResponse($urlGen->generate('ask_order_node', ['key' => $key, 'id' => $id]));
+            return new RedirectResponse($urlGen->generate('ask_order_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key, 'id' => $id]));
         }
     }
 
-    #[Route('/{key}/{id}', name: 'update_node', methods: 'POST')]
-    public function updateNode(StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
+    #[Route('/{hierarchySlug}/{key}/{id}', name: 'update_node', methods: 'POST')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, $key, $id)
     {
 		$storageConnection->getCommander()->updateNode($key, $id, $request->request->get('field', []));
 
@@ -406,36 +465,48 @@ class HierarchyController {
 
 		$session->getFlashBag()->add('success', 'Node Updated');
 
-		if($then === 'edit') {
-    		return new RedirectResponse($urlGen->generate('edit_node', ['key' => $key, 'id' => $id]));
+        if($then === 'root') {
+            return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
+        } elseif($then === 'list') {
+            $lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key, $id);
+            if($lastParent) {
+                $args = array_merge($lastParent->pathArgs(), ['hierarchySlug' => $hierarchy->getSlug(), 'childKey' => $key]);
+                return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
+            } else {
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key]));
+            }
+        } elseif($then === 'edit') {
+    		return new RedirectResponse($urlGen->generate('edit_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key, 'id' => $id]));
 		} else {
-    		return new RedirectResponse($urlGen->generate('show_node', ['key' => $key, 'id' => $id]));
+    		return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'key' => $key, 'id' => $id]));
 		}
     }
 
-    #[Route('/{key}', name: 'list_root_nodes', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}', name: 'list_root_nodes', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function listRootNodes(StorageConnection $storageConnection, $key)
+    public function listRootNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, $key)
     {
     	return [
-    		'key' => $this->schema->getKey($key),
+            'hierarchy' => $hierarchy,
+    		'key' => $hierarchy->getKey($key),
     		'nodeCollection' => $storageConnection->getFetcher()->findRootNodes($key),
             'parentNodes' => new MultiCollection(null, null, [], null, null),
-    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 
-    #[Route('/{key}/{id}/{childKey}', name: 'list_child_nodes', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{key}/{id}/{childKey}', name: 'list_child_nodes', methods: 'GET')]
 	#[Template()]
-    public function listChildNodes(StorageConnection $storageConnection, $key, $id, $childKey)
+    public function listChildNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, $key, $id, $childKey)
     {
     	return [
-    		'key' => $this->schema->getKey($key),
-    		'childKey' => $this->schema->getKey($childKey),
+            'hierarchy' => $hierarchy,
+    		'key' => $hierarchy->getKey($key),
+    		'childKey' => $hierarchy->getKey($childKey),
             'node' => $storageConnection->getFetcher()->findNode($key, $id),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key, $id),
             'nodeCollection' => $storageConnection->getFetcher()->findNodeChildren($key, $id, $childKey),
-    		'rootKeys' => $this->schema->getRootKeys(),
     	];
     }
 

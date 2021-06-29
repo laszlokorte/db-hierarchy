@@ -4,9 +4,10 @@ namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
-class SchemaRoot {
+class Hierarchy {
 	public function __construct(
-		private SchemaDefinition $def
+		private SchemaDefinition $def,
+		private string $slug
 	) {
 	}
 
@@ -40,6 +41,10 @@ class SchemaRoot {
 
 	public function getHierarchy($keyId) {
 		return new Hierarchy($this->def, $keyId);
+	}
+
+	public function getSlug() {
+		return $this->slug;
 	}
 
 }

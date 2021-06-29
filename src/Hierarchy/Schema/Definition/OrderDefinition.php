@@ -3,10 +3,14 @@
 namespace App\Hierarchy\Schema\Definition;
 
 class OrderDefinition {
+	private $columnName;
+
 	public function __construct(
-		private $columnName = 'order', 
-		private $direction = 'ASC'
+		$columnName = null, 
+		private $direction = 'ASC',
+		private bool $singleton = false
 	) {
+		$this->columnName = $columnName ?: ($singleton ? 'singleton' : 'order');
 	}
 
 	public function getColumnName() {
@@ -15,5 +19,9 @@ class OrderDefinition {
 
 	public function getDirection() {
 		return $this->direction;
+	}
+
+	public function isSingleton() {
+		return $this->singleton;
 	}
 }

@@ -7,14 +7,14 @@
 {% block area_main %}
 
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
-<h1>{{ key.label.singular }} {{node.id}}</h1>
+<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'order'} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'order'} only %}
 
 <h2>Reorder</h2>
 
-{% include 'hierarchy/partials/ordering.html.twig' with {key:key, node, orderTargets} only %}
+{% include 'hierarchy/partials/ordering.html.twig' with {hierarchy: hierarchy,key:key, node, orderTargets} only %}
 
 {% endblock %}

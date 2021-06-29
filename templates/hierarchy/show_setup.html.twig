@@ -6,7 +6,7 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {trailing: 'Setup'} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,trailing: 'Setup'} only %}
 
 <h1>Hierarchy Schema</h1>
 
@@ -17,11 +17,11 @@
     <summary class="details-summary">
     Schema
     <div style="margin-left: auto;">
-        <form style="display: contents;" action="{{ path('hierarchy_setup')}}" method="post" accept-charset="utf-8">
+        <form style="display: contents;" action="{{ path('hierarchy_setup', {hierarchySlug: hierarchy.slug})}}" method="post" accept-charset="utf-8">
         <button name="only_views" value="1">Reinstall Views</button>
         <button>Reinstall Schema</button>
         </form>
-        <form style="display: contents;" action="{{ path('hierarchy_uninstall')}}" method="post" accept-charset="utf-8">
+        <form style="display: contents;" action="{{ path('hierarchy_uninstall', {hierarchySlug: hierarchy.slug})}}" method="post" accept-charset="utf-8">
         <button>Uninstall</button>
         </form>
     </div>

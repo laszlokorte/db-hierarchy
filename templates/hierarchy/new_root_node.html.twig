@@ -6,14 +6,34 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
+
+{% if key.isSingleton %}
+<h2>{{ key.label.singular }}</h2>
+
+ <ul class="quicktab-list">
+
+    <li class="quicktab-list-item"><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: key.id}) }}" for="child_tab_{{key.id}}_new" class="quicktab-link">
+    No
+    </a></li>
+    <li class="quicktab-list-item"><span for="child_tab_{{key.id}}_list" class="quicktab-link state-active">
+    Yes
+    </span></li>
+</ul>
+
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: key, then: 'list', force_then: true, cancel: path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: key.id})} only %}
+
+{% else %}
 
 <h1>{{key.label.plural}}</h1>
 
-{% include 'hierarchy/partials/sub_tabs.html.twig' with {active: 'new', key} only %}
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'new', key} only %}
 
 
-{% include 'hierarchy/partials/form_new.html.twig' with {key, then:'root_form'} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key, then:'root_form'} only %}
+
+
+{% endif %}
 
 {% endblock %}

@@ -6,12 +6,11 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {parentNodes, key} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,parentNodes, key} only %}
 
-<h1>{{ key.label.singular }} {{node.id}}</h1>
+<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
 
-
-{% include 'hierarchy/partials/tabs.html.twig' with {key, node, active: 'list', childKey} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'list', childKey} only %}
 
 {% if childKey.isSingleton %}
 <h2>{{ childKey.label.singular }}</h2>
@@ -30,16 +29,21 @@
             <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
             Yes
             </label></li>
+
+            <li class="quicktab-list-item">
+                <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: childKey.id, id: childId}) }}" title="">Details&hellip;</a>
+            </li>
         </ul>
 
         <p>
             Are you sure?
         </p>
 
-        <form action="{{ path('delete_node',{key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
+        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
         <dl class="form-container">
             <dt class="form-container-spacer"></dt>
             <dd class="form-container-buttons">
+                <input type="hidden" name="_then" value="list">
                 <button name="soft" class="action-button danger">Yes, Delete!</button>
                 <label class="link-button" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
             Cancel
@@ -59,23 +63,52 @@
         <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
         Yes
         </label></li>
+        
+        <li class="quicktab-list-item">
+            <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: childKey.id, id: childId}) }}" title="">Details&hellip;</a>
+        </li>
     </ul>
 
 
-    {% include 'hierarchy/partials/form_edit.html.twig' with {key: childKey, node: nodeCollection.getNode(childId)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key: childKey, node: nodeCollection.getNode(childId), force_then: true, then: 'list', cancel: true} only %}
 
     </div>
 </div>
 {% else %}
- <ul class="quicktab-list">
-    <li class="quicktab-list-item"><span class="quicktab-link state-active">
-    No
-    </span></li>
+<div class="tab-container dense">
+    
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab_{{childKey.id}}" value="new">
+    <div class="tab-container-content">
 
-    <li class="quicktab-list-item"><a href="{{ path('new_child_node', {key: key.id, id: node.id, childKey: childKey.id}) }}" class="quicktab-link">
-    Yes
-    </a></li>
-</ul>
+    <ul class="quicktab-list">
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
+        No
+        </label></li>
+
+        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
+        Yes
+        </label></li>
+    </ul>
+
+
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel_tab: 'child_tab_'~childKey.id~'_list'} only %}
+
+    </div>
+
+    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list" checked>
+    <div class="tab-container-content">
+        
+        <ul class="quicktab-list">
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
+            No
+            </label></li>
+
+            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            Yes
+            </label></li>
+        </ul>
+    </div>
+</div>
 {% endfor %}
 
 {% else %}
@@ -83,13 +116,13 @@
 <h2>{{ childKey.label.plural }}</h2>
 
 
-{% include 'hierarchy/partials/sub_tabs.html.twig' with {active: 'list', key, node, childKey} only %}
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'list', key, node, childKey} only %}
 
-{% include 'hierarchy/partials/table.html.twig' with {nodeCollection, key: childKey, parent: {key:key.id,id: node.id}, then: 'list'} only %}
+{% include 'hierarchy/partials/table.html.twig' with {hierarchy: hierarchy,nodeCollection, key: childKey, parent: {key:key.id,id: node.id}, then: 'list'} only %}
 
 <div class="quickform">
 <h3>Add </h3>
-    {% include 'hierarchy/partials/form_new.html.twig' with {key: childKey, parent: node, then: 'list'} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list'} only %}
 </div>
 
 {% endif %}
