@@ -53,10 +53,14 @@ class RecursiveLoader {
 	}
 
 	public function loadSubSchemas() {
-		$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
-		$stmt->execute();
+		try {
+			$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
+			$stmt->execute();
 
-		return $stmt->fetchAll();
+			return $stmt->fetchAll();
+		} catch(\Exception) {
+			return [];
+		}
 	}
 
 	public function loadStorageConnection(string $hierarchyName = 'system') {
