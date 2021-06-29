@@ -1,4 +1,4 @@
-<form action="{{ path('update_node',{hierarchySlug: hierarchy.slug, key:key.id, id: node.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('update_node',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
@@ -12,7 +12,7 @@
         {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
     	</dd>
     	<dd class="form-container-info">
-        <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, key:key.id, id: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
+        <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
     	</dd>
     	{% endfor %}
 

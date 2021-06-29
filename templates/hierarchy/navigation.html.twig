@@ -3,7 +3,7 @@
     <ul class="block-list small">
         {% for childKey in key.scopeChildKeys(false) %}
         <li>
-        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
+        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
         {{ _self.walkSubKeys(hierarchy, childKey) }}
         </li>
         {% endfor %}
@@ -18,7 +18,7 @@
     <ul class="block-list">
         {% for rootKey in hierarchy.rootKeys %}
         <li>
-        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: rootKey.id}) }}" title="">{{ rootKey.label.string(rootKey.isSingleton) }}</a>
+        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: rootKey.id}) }}" title="">{{ rootKey.label.string(rootKey.isSingleton) }}</a>
         {{ _self.walkSubKeys(hierarchy, rootKey) }}
         </li>
         {% endfor %}

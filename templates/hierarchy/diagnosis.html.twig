@@ -23,7 +23,7 @@
         {{ d.keyId }}
 
 
-        <form style="margin-left: auto;" action="{{ path('repair_key',{hierarchySlug: hierarchy.slug, key: d.keyId}) }}" method="post" accept-charset="utf-8">
+        <form style="margin-left: auto;" action="{{ path('repair_key',{hierarchySlug: hierarchy.slug, keyId: d.keyId}) }}" method="post" accept-charset="utf-8">
             <button>Repair {{d.keyId}} closure</button>
         </form>
 

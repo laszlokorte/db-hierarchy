@@ -63,4 +63,12 @@ class Sqlite extends SqlBase implements DialectInterface {
 		}
 	}
 
+	protected function valueToString(ValueInterface $v) {
+		switch(get_class($v)) {
+			case Value\DefaultValue::class:
+				return 'NULL';
+		}
+		
+		return parent::valueToString($v);
+	}
 }

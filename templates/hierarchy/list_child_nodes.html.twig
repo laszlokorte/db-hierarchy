@@ -31,7 +31,7 @@
             </label></li>
 
             <li class="quicktab-list-item">
-                <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: childKey.id, id: childId}) }}" title="">Details&hellip;</a>
+                <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: childId}) }}" title="">Details&hellip;</a>
             </li>
         </ul>
 
@@ -39,7 +39,7 @@
             Are you sure?
         </p>
 
-        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
+        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId:childId}) }}" method="post" accept-charset="utf-8">
         <dl class="form-container">
             <dt class="form-container-spacer"></dt>
             <dd class="form-container-buttons">
@@ -65,7 +65,7 @@
         </label></li>
         
         <li class="quicktab-list-item">
-            <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: childKey.id, id: childId}) }}" title="">Details&hellip;</a>
+            <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: childId}) }}" title="">Details&hellip;</a>
         </li>
     </ul>
 
@@ -118,7 +118,7 @@
 
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'list', key, node, childKey} only %}
 
-{% include 'hierarchy/partials/table.html.twig' with {hierarchy: hierarchy,nodeCollection, key: childKey, parent: {key:key.id,id: node.id}, then: 'list'} only %}
+{% include 'hierarchy/partials/table.html.twig' with {hierarchy: hierarchy,nodeCollection, key: childKey, parent: node.pathArgs, then: 'list'} only %}
 
 <div class="quickform">
 <h3>Add </h3>

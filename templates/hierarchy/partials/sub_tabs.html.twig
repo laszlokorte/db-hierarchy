@@ -1,20 +1,20 @@
 {% if childKey is defined %}
 <ul class="quicktab-list">
-    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='list'}) }}" href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, key: key.id, id: node.id, childKey: childKey.id}) }}" title="">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='list'}) }}" href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}) }}" title="">
     List
     </a></li>
 
-    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='new'}) }}" href="{{ path('new_child_node', {hierarchySlug: hierarchy.slug, key: key.id, id: node.id, childKey: childKey.id}) }}" title="">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='new'}) }}" href="{{ path('new_child_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}) }}" title="">
     New
     </a></li>
 </ul>
 {% else %}
 <ul class="quicktab-list">
-    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='list'}) }}" href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: key.id}) }}" title="">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='list'}) }}" href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">
     List
     </a></li>
 
-    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='new'}) }}" href="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, key: key.id}) }}" title="">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': active=='new'}) }}" href="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">
     New
     </a></li>
 </ul>

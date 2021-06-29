@@ -1,6 +1,6 @@
 {% extends 'hierarchy/base.html.twig' %}
 
-{% macro walkTree(key, h, scope, parent) %}
+{% macro walkTree(hierarchy, key, h, scope, parent) %}
     {% if h.getNodes(key.id, scope, parent) %}
     <ul class="block-list"
     >
@@ -35,7 +35,7 @@
             <div style="display: flex;">
                 {% if key.isNested %}
                 <span class="dragger" 
-                data-url="{{ path('move_node', {hierarchySlug: hierarchy.slug, key:key.id, id: node.id}) }}"
+                data-url="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}"
                 {% if key.isScoped %}
                 data-scope="{{key.scopeKey.id}}"
                 {% endif %}
@@ -53,16 +53,16 @@
                 ></span>&nbsp;
                 {% endif %}
                 {% if key.isOrdered %}
-                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',key:key.id, nestId: (scope??'-')~"*"~(parent??'-'), id: node.id, order:node.order} %}
+                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',keyId:key.id, nestId: (scope??'-')~"*"~(parent??'-'), nodeId: node.id, order:node.order} %}
                 {% endif %}
-                <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key:key.id, id: node.id}) }}" title="">{{key.summarize(node)}}</a>
+                <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}" title="">{{key.summarize(node)}}</a>
             </div>
             
             {% for childKey in key.getNestedKeys %}
                 {% if childKey.id == key.id %}
-                    {{ _self.walkTree(childKey, h, node.scope, node.id) }}
+                    {{ _self.walkTree(hierarchy, childKey, h, node.scope, node.id) }}
                 {% else %}
-                    {{ _self.walkTree(childKey, h, node.id) }}
+                    {{ _self.walkTree(hierarchy, childKey, h, node.id) }}
                 {% endif %}
             {% endfor %}
             </li>
@@ -82,7 +82,7 @@
 <h1>Tree</h1>
 
 {% for key in hierarchy.rootKeys %}
-    <h3><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, key: key.id}) }}" title="">{{ key.label.plural }}</a></h3>
+    <h3><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">{{ key.label.plural }}</a></h3>
     
     {% if not hierarchyNodes.hasNodes(key.id) %}
         <p>
@@ -113,7 +113,7 @@
         }
         "
     >Root</span>
-        {{ _self.walkTree(key, hierarchy) }}
+        {{ _self.walkTree(hierarchy, key, hierarchyNodes) }}
     {% endif %}
 {% endfor %}
 

@@ -4,7 +4,7 @@
 {%- endblock %}
 {% block area_main %}
 
-<h1>Dashboard</h1>
+<h1>{{ hierarchy.label.singular }} Dashboard</h1>
 
 {% for rootKey in hierarchy.rootKeys %}
     <section>
@@ -28,7 +28,7 @@
             </label></li>
 
             <li class="quicktab-list-item">
-                <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: rootKey.id, id: nodeId}) }}" title="">Details&hellip;</a>
+                <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: rootKey.id, nodeId: nodeId}) }}" title="">Details&hellip;</a>
             </li>
         </ul>
 
@@ -36,7 +36,7 @@
             Are you sure?
         </p>
 
-        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, key: rootKey.id, id:nodeId}) }}" method="post" accept-charset="utf-8">
+        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: rootKey.id, nodeId:nodeId}) }}" method="post" accept-charset="utf-8">
         <dl class="form-container">
             <dt class="form-container-spacer"></dt>
             <dd class="form-container-buttons">
@@ -62,7 +62,7 @@
         </label></li>
         
         <li class="quicktab-list-item">
-            <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: rootKey.id, id: nodeId}) }}" title="">Details&hellip;</a>
+            <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: rootKey.id, nodeId: nodeId}) }}" title="">Details&hellip;</a>
         </li>
     </ul>
 

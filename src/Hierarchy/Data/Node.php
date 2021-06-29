@@ -44,7 +44,7 @@ class Node {
 	}
 
 	public function pathArgs() {
-		return ['key' => $this->keyId, 'id' => $this->nodeId];
+		return ['keyId' => $this->keyId, 'nodeId' => $this->nodeId];
 	}
 
 }

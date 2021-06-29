@@ -4,7 +4,7 @@
     data-label-singular="{{ field.label.singular }}" 
     data-label-plural="{{ field.label.plural }}" 
     data-explicit="{{ field.getOption('explicit') }}" 
-    data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, key: field.getOption('target')}) }}" 
+    data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: field.getOption('target')}) }}" 
     class="form-field" 
     type="text" 
     id="field_{{field.id}}" 
@@ -19,13 +19,13 @@
 {% block cell %}
     {% set val = field.readValueOf(nodeCollection.getNode(nodeId)) %}
     {% if val %}
-        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: val.key, id:val.id}) }}">{{val.id}}</a></span>
+        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: val.key, nodeId:val.id}) }}">{{val.id}}</a></span>
     {% endif %}
 {% endblock %}
 
 {% block display %}
     {% set val = field.readValueOf(node) %}
     {% if val %}
-        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, key: val.key, id:val.id}) }}">{{val.id}}</a></span>
+        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: val.key, nodeId:val.id}) }}">{{val.id}}</a></span>
     {% endif %}
 {% endblock %}

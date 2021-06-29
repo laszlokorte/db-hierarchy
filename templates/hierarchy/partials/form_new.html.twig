@@ -1,4 +1,4 @@
-<form action="{{ path('create_node',{hierarchySlug: hierarchy.slug, key: key.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('create_node',{hierarchySlug: hierarchy.slug, keyId: key.id}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
@@ -24,9 +24,9 @@
     	<input 
     data-label-singular="{{ key.scopeKey.label.singular }}" 
     data-label-plural="{{ key.scopeKey.label.plural }}" 
-    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, key: key.scopeKey.id}) }}" 
+    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" 
 
-    required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, key: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+    required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
     	</dd>
 		{% endif %}
 		{% if parent is not defined and key.isReflexive %}
@@ -38,9 +38,9 @@
     	<input 
     data-label-singular="{{ key.label.singular }}" 
     data-label-plural="{{ key.label.plural }}" 
-    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, key: key.id}) }}" 
+    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" 
 
-     data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, key: key.id}) }}" class="form-field" type="text" id="parent" name="parent" value="" placeholder="{{key.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+     data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" class="form-field" type="text" id="parent" name="parent" value="" placeholder="{{key.label.singular}} ID" data-style="expanded" data-expand-limit="10">
     	</dd>
 		{% endif %}
 		{% for field in key.fields %}

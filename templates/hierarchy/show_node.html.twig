@@ -78,7 +78,7 @@
             Are you sure?
         </p>
 
-        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, key: childKey.id, id:childId}) }}" method="post" accept-charset="utf-8">
+        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId:childId}) }}" method="post" accept-charset="utf-8">
         <dl class="form-container">
             <dt class="form-container-spacer"></dt>
             <dd class="form-container-buttons">

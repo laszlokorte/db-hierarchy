@@ -18,6 +18,9 @@ use App\Hierarchy\Schema\Definition\ScopeDefinition;
 class RecursiveLoader {
 	private array $fieldTypes;
 
+	private $subSchemas;
+	private $connectionCache = [];
+
 	public function __construct(Connection $baseConnection) {
 		$this->baseConnection = $baseConnection;
 
@@ -53,26 +56,42 @@ class RecursiveLoader {
 	}
 
 	public function loadSubSchemas() {
-		try {
-			$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
-			$stmt->execute();
+		if($this->subSchemas === null) {
+			try {
+				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
+				$stmt->execute();
 
-			return $stmt->fetchAll();
-		} catch(\Exception) {
-			return [];
+				$this->subSchemas = $stmt->fetchAll();
+			} catch(\Exception) {
+				$this->subSchemas = [];
+			}
 		}
+		
+
+		return $this->subSchemas;
 	}
 
 	public function loadStorageConnection(string $hierarchyName = 'system') {
-		return new StorageConnection($this->loadDefinition($hierarchyName), $this->loadHierarchyConnection($hierarchyName));
+		if(empty($this->connectionCache[$hierarchyName])) {
+			$this->connectionCache[$hierarchyName] = new StorageConnection(
+				$this->loadDefinition($hierarchyName), 
+				$this->loadHierarchyConnection($hierarchyName)
+			);
+		}
+
+		return $this->connectionCache[$hierarchyName];
 	}
 
 	public function loadDefinition(string $hierarchyName = 'system') {
-		if($hierarchyName === 'system') {
-			return $this->loadBaseDefinition();
-		} else {
-			return $this->loadDynamicDefinition($hierarchyName);
+		if(empty($this->definitionCache[$hierarchyName])) {
+			 if($hierarchyName === 'system') {
+				$this->definitionCache[$hierarchyName] = $this->loadBaseDefinition();
+			} else {
+				$this->definitionCache[$hierarchyName] = $this->loadDynamicDefinition($hierarchyName);
+			}
 		}
+
+		return $this->definitionCache[$hierarchyName];
 	}
 
 	public function loadHierarchyConnection(string $hierarchyName = 'system') {
@@ -84,17 +103,25 @@ class RecursiveLoader {
 			$stmt->execute();
 			$dsn = $stmt->fetchColumn();
 
-			dump($dsn);
+			if($dsn===false) {
+				throw new \Exception();
+			}
 
 			return $dsn ? \Doctrine\DBAL\DriverManager::getConnection(['pdo' => new \PDO($dsn)]) : $this->baseConnection;
 		}
 	}
 
 	private function loadDynamicDefinition($hierarchyName) {
-		$stmt = $this->baseConnection->prepare('SELECT id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
+		$stmt = $this->baseConnection->prepare('SELECT id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
+		$stmt->bindValue('slug', $hierarchyName, \PDO::PARAM_STR);
 		$stmt->execute();
 
 		$row = $stmt->fetch();
+
+		if(!$row) {
+			throw new \Exception();
+		}
+
 		$hierarchyId = $row['id'];
 
 		$keyStmt = $this->baseConnection->prepare('
@@ -130,7 +157,7 @@ class RecursiveLoader {
 			ON scope.scope_key_ref = scope_collection.id
 			WHERE collection.hierarchy_id = :hid
 			');
-		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
+		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
 		$keyStmt->execute();
 		$keyRows = $keyStmt->fetchAll();
 
@@ -151,7 +178,7 @@ class RecursiveLoader {
 			ON collection.id = field.collection_id 
 			WHERE collection.hierarchy_id = :hid
 		');
-		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
+		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
 		$fieldStmt->execute();
 		$fieldRows = $fieldStmt->fetchAllAssociativeIndexed();
 

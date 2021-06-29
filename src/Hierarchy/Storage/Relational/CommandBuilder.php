@@ -21,6 +21,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Selection;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Tuple;
+use App\Hierarchy\Storage\Relational\Algebra\Value\DefaultValue;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThanEqual;
@@ -101,6 +102,9 @@ class CommandBuilder  {
 				new Constant(1)
 			);
 		}
+
+		$columns[] = $this->naming->nodeTablePKName($keyId);
+		$values[] = new DefaultValue();
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {

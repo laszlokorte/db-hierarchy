@@ -152,6 +152,8 @@ abstract class SqlBase implements DialectInterface {
 		switch(get_class($v)) {
 			case TableReference::class:
 				return sprintf('%s.*', $this->escapeIdentifier($v->getUsageName()));
+			case Value\DefaultValue::class:
+				return 'DEFAULT';
 			case Value\Aggregation::class:
 				return $this->aggregationToString($v);
 			case Value\AssociativeOperation::class:
@@ -479,6 +481,10 @@ abstract class SqlBase implements DialectInterface {
 			$query .= 'VALUES';
 			foreach ($insert->getRows() as $i => $row) {
 				$query .= ($i?',':'') . PHP_EOL;
+				if(empty($row)) {
+					$query .= 'DEFAULT VALUES';
+					continue;
+				}
 				$query .= '('. implode(', ', array_map(
 				fn($c) => $this->valueToString($c),
 				$row

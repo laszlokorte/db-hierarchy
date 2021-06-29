@@ -17,7 +17,7 @@
 
  <ul class="quicktab-list">
 
-    <li class="quicktab-list-item"><a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, key: key.id, id: node.id, childKey: childKey.id}) }}" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+    <li class="quicktab-list-item"><a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}) }}" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
     No
     </a></li>
     <li class="quicktab-list-item"><span for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
@@ -25,7 +25,7 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, key: key.id, id: node.id, childKey: childKey.id})} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id})} only %}
 
 {% else %}
 <h2>{{ childKey.label.plural }}</h2>
