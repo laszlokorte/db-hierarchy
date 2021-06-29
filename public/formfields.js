@@ -10,7 +10,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
     const origParent = el.parentNode
     const newUrl = el.dataset.newUrl
     const loader = document.createElement('ul')
-    const loaderInner = document.createElement('ul')
+    const loaderInner = document.createElement('li')
     loaderInner.classList.add('form-choice-label')
     loaderInner.appendChild(document.createTextNode(`Loading ${plural}...`))
     loader.classList.add('form-choice-list')
@@ -54,11 +54,11 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
 
                     json['nodes'].forEach(node => {
                         const input = document.createElement('input')
-                        input.setAttribute('value', node.id);
+                        input.setAttribute('value', node.nodeId);
                         input.setAttribute('type', 'radio');
                         input.setAttribute('name', nameAttr)
                         input.required = required
-                        if(oldValue == node.id) {
+                        if(oldValue == node.nodeId) {
                             input.checked = true
                         }
                         const li = document.createElement('li')
@@ -128,7 +128,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
 
                     json['nodes'].forEach(node => {
                         const opt = document.createElement('option')
-                        opt.setAttribute('value', node.id);
+                        opt.setAttribute('value', node.nodeId);
                         opt.appendChild(document.createTextNode(node.label))
                         options.appendChild(opt)
                     })
@@ -143,7 +143,19 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
                     while(origParent.firstChild) {
                         origParent.removeChild(origParent.lastChild)
                     }
-                    origParent.appendChild(select)
+
+                    if(!json['nodes'].length) {
+                        const empty = document.createElement('ul')
+                        const emptyInner = document.createElement('ul')
+                        emptyInner.classList.add('form-choice-label')
+                        emptyInner.appendChild(document.createTextNode(`No ${plural} yet`))
+                        empty.classList.add('form-choice-list')
+                        empty.appendChild(emptyInner)
+
+                        origParent.appendChild(empty)
+                    } else {
+                        origParent.appendChild(select)
+                    }
 
                     if(newUrl) {
                         const newLink = document.createElement('a')
@@ -153,7 +165,6 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
 
                         origParent.appendChild(newLink)
                         origParent.appendChild(document.createTextNode(' '))
-
                     }
 
                     {

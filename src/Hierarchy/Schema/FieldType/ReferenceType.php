@@ -34,6 +34,10 @@ class ReferenceType implements FieldTypeInterface {
 		];
 	}
 
+	public function columnDataToStringData(string $fieldId, array $fieldOptions, $columnData) {
+		return $fieldOptions['target'] . '-' . $columnData[0];
+	}
+
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
 
 	}

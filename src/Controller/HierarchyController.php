@@ -462,7 +462,7 @@ class HierarchyController {
     #[ParamConverter('key')]
     public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
     {
-		$storageConnection->getCommander()->updateNode($key, $nodeId, $request->request->get('field', []));
+		$storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
 		$then = $request->request->get('_then', null);
 

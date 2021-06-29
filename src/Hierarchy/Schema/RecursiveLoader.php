@@ -203,7 +203,7 @@ class RecursiveLoader {
 					$fieldRow['type'], 
 					$fieldRow['is_required'], 
 					$fieldRow['is_unique'], 
-					json_decode($fieldRow['options'])??[]
+					json_decode($fieldRow['options'], true)??[]
 				);
 			}
 
@@ -242,8 +242,17 @@ class RecursiveLoader {
 	}
 
 	private function loadBaseDefinition() {
+		try {
+			$stmt = $this->baseConnection->prepare('SELECT title, url, accent_color FROM settings');
+			$stmt->execute();
+
+			$settings = $stmt->fetch();
+		} catch(\Exception $e) {
+			$settings = ['accent_color' => null];
+		}
+
 		return new SchemaDefinition(
-			new LabelDefinition('Hierarchy Manager', 'Hierarchie Managers', null, null, '#444'), [
+			new LabelDefinition('Hierarchy Manager', 'Hierarchie Managers', null, null, $settings['accent_color']?:'#444'), [
 			'hierarchy' => new KeyDefinition(
 				new StorageDefinition('hierarchy'),
 				new LabelDefinition('Hierarchy', 'Hierarchies'),
@@ -272,10 +281,42 @@ class RecursiveLoader {
 				null, null, null, [
 					'login' => new FieldDefinition(new LabelDefinition('Login'), 'string', true, true),
 					'password' => new FieldDefinition(new LabelDefinition('Password'), 'hash', true, false),
-
 					'full_name' => new FieldDefinition(new LabelDefinition('Full Name'), 'string', false, false),
-					'email' => new FieldDefinition(new LabelDefinition('Full Email'), 'email', false, false),
+					'email' => new FieldDefinition(new LabelDefinition(' E-mail'), 'email', false, false),
+					'role' => new FieldDefinition(new LabelDefinition('Role', 'Roles'), 'reference', false, false, ['target' => 'role','style' => 'expanded']),
 				], SummaryDefinition::parseString('{login}')
+			),
+			'role' => new KeyDefinition(
+				new StorageDefinition('role'),
+				new LabelDefinition('Role', 'Roles'),
+				null, null, null, [
+					'title' => new FieldDefinition(new LabelDefinition('Title'), 'string', true, true),
+					'is_admin' => new FieldDefinition(new LabelDefinition('Admin'), 'bool', true, false),
+				], SummaryDefinition::parseString('{title}')
+			),
+			'hierarchy_permission' => new KeyDefinition(
+				new StorageDefinition('hierarchy_permission'),
+				new LabelDefinition('Hierarchy Permission', 'Hierarchy Permissions'),
+				new ScopeDefinition('role'), null, null, [
+					'hierarchy' => new FieldDefinition(new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true, ['target' => 'hierarchy']),
+					'type' => new FieldDefinition(new LabelDefinition('Type', 'Types'), 'enum', true, false, ['values' => ['permit', 'restrict']]),
+				], SummaryDefinition::parseString('{hierarchy}/{type}')
+			),
+			'collection_permission' => new KeyDefinition(
+				new StorageDefinition('collection_permission'),
+				new LabelDefinition('Collection Permission', 'Collection Permissions'),
+				new ScopeDefinition('role'), null, null, [
+					'collection' => new FieldDefinition(new LabelDefinition('Collection', 'Collections'), 'reference', true, true, ['target' => 'collection']),
+					'type' => new FieldDefinition(new LabelDefinition('Type', 'Types'), 'enum', true, false, ['values' => ['permit', 'restrict']]),
+				], SummaryDefinition::parseString('{collection}/{type}')
+			),
+			'field_permission' => new KeyDefinition(
+				new StorageDefinition('field_permission'),
+				new LabelDefinition('Field Permission', 'Field Permissions'),
+				new ScopeDefinition('role'), null, null, [
+					'field' => new FieldDefinition(new LabelDefinition('Field', 'Fields'), 'reference', true, true, ['target' => 'field']),
+					'type' => new FieldDefinition(new LabelDefinition('Type', 'Types'), 'enum', true, false, ['values' => ['permit', 'restrict']]),
+				], SummaryDefinition::parseString('{field}/{type}')
 			),
 			'collection' => new KeyDefinition(
 				new StorageDefinition('collection'),
@@ -296,7 +337,7 @@ class RecursiveLoader {
 				new StorageDefinition('scope'),
 				new LabelDefinition('Scope', 'Scopes'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
-					'scope_key' => new FieldDefinition(new LabelDefinition('Parent'), 'reference', true, false, ['target' => 'collection']),
+					'scope_key' => new FieldDefinition(new LabelDefinition('Parent', 'Parents'), 'reference', true, false, ['target' => 'collection']),
 					'scope_column_name' => new FieldDefinition(new LabelDefinition('Scope Column'), 'string', true, false),
 				], SummaryDefinition::parseString('')
 			),

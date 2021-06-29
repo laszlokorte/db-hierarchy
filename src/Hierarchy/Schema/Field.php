@@ -46,6 +46,13 @@ class Field {
 		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
 	}
 
+	public function readStringValueOf(Node $node) {
+		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
+		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
+		
+		return $type->columnDataToStringData($this->fieldId, $options, array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+	}
+
 	public function hasValue(Node $node) {
 		$v = $this->readValueOf($node);
 		return $v !== '' && $v !== null;

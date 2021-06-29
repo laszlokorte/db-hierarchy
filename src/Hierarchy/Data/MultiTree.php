@@ -29,7 +29,6 @@ class MultiTree {
 	}
 
 	public function getScopes($keyId) {
-		dump($this->groupedRows);
 		return array_unique(array_map(fn($k) => explode('/',$k,2)[0], array_keys($this->groupedRows[$keyId])));
 	}
 }
