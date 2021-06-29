@@ -142,7 +142,7 @@ class HierarchyController {
         ]);
     }
 
-    #[Route('/{hierarchySlug}/{keyId}({field})/{nodeId}', name: 'show_node_field', methods: 'GET')]
+    #[Route('/{hierarchySlug}/{keyId}({fieldId})/{nodeId}', name: 'show_node_field', methods: 'GET')]
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]

@@ -12,7 +12,7 @@
         {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
     	</dd>
     	<dd class="form-container-info">
-        <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, field: field.id}) }}" title="" target="_blank">🡕</a>
+        <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, fieldId: field.id}) }}" title="" target="_blank">🡕</a>
     	</dd>
     	{% endfor %}
 

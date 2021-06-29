@@ -1,0 +1,13 @@
+{% block field %}
+    <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][lat]" value="{{node is defined ? field.readValueOf(node).lat : ''}}">
+    <input class="form-field" type="text" name="field[{{field.id}}][log]" value="{{node is defined ? field.readValueOf(node).log : ''}}">
+{% endblock %}
+
+
+{% block cell %}
+    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+{% endblock %}
+
+{% block display %}
+    {{field.readValueOf(node)}}
+{% endblock %}

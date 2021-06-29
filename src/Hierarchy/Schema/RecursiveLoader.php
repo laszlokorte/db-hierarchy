@@ -40,6 +40,10 @@ class RecursiveLoader {
 			'integer' => new FieldType\IntegerType(),
 			'json' => new FieldType\JsonType(),
 			'time' => new FieldType\TimeType(),
+			'email' => new FieldType\EmailType(),
+			'color' => new FieldType\ColorType(),
+			'geo' => new FieldType\GeolocationType(),
+			'url' => new FieldType\UrlType(),
 
 
 			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
@@ -250,15 +254,28 @@ class RecursiveLoader {
 					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
 					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
 					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['values' => [], 'style' => 'compact']),
-					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
+					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'color', true, false),
 				], SummaryDefinition::parseString('{label_singular}')
 			),
-			'blub' => new KeyDefinition(
-				new StorageDefinition('blub'),
-				new LabelDefinition('blub', 'blubs'),
+			'setting' => new KeyDefinition(
+				new StorageDefinition('settings'),
+				new LabelDefinition('Settings', 'Settings'),
 				null, null, new OrderDefinition(singleton: true), [
-					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
-				], SummaryDefinition::parseString('{slug}')
+					'title' => new FieldDefinition(new LabelDefinition('Title'), 'string', false, false),
+					'url' => new FieldDefinition(new LabelDefinition('Url'), 'url', false, false),
+					'accent_color' => new FieldDefinition(new LabelDefinition('Accent Color'), 'color', false, false),
+				], SummaryDefinition::parseString('settings')
+			),
+			'account' => new KeyDefinition(
+				new StorageDefinition('account'),
+				new LabelDefinition('Account', 'Accounts'),
+				null, null, null, [
+					'login' => new FieldDefinition(new LabelDefinition('Login'), 'string', true, true),
+					'password' => new FieldDefinition(new LabelDefinition('Password'), 'hash', true, false),
+
+					'full_name' => new FieldDefinition(new LabelDefinition('Full Name'), 'string', false, false),
+					'email' => new FieldDefinition(new LabelDefinition('Full Email'), 'email', false, false),
+				], SummaryDefinition::parseString('{login}')
 			),
 			'collection' => new KeyDefinition(
 				new StorageDefinition('collection'),
@@ -306,28 +323,9 @@ class RecursiveLoader {
 				new LabelDefinition('Field'),
 				new ScopeDefinition('collection'), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
-					'type' => new FieldDefinition(new LabelDefinition('Type'), 'enum', true, false, ['style' => 'compact', 'values' => [
-						'string',
-						'text',
-						'file',
-						'reference',
-						'bool',
-						'date',
-						'datetime',
-						'decimal',
-						'enum',
-						'float',
-						'hash',
-						'integer',
-						'json',
-						'time',
-						'timeRange',
-						'dateRange',
-						'dateTimeRange',
-						'integerRange',
-						'floatRange',
-						'decimalRange',
-					]]),
+					'type' => new FieldDefinition(new LabelDefinition('Type'), 'enum', true, false, ['style' => 'compact', 'values' => array_keys($this->fieldTypes)
+
+					]),
 					'options' => new FieldDefinition(new LabelDefinition('Options'), 'json', true, false),
 					'is_required' => new FieldDefinition(new LabelDefinition('Required'), 'bool', true, false),
 					'is_unique' => new FieldDefinition(new LabelDefinition('Unique'), 'bool', true, false),

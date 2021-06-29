@@ -36,7 +36,7 @@ class EmailType implements FieldTypeInterface {
 	}
 
 	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'string';
+		return 'email';
 	}
 
 }

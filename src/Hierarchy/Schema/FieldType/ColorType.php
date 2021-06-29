@@ -36,7 +36,7 @@ class ColorType implements FieldTypeInterface {
 	}
 
 	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'string';
+		return 'color';
 	}
 
 }

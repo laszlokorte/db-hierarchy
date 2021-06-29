@@ -29,17 +29,36 @@ class HierarchyParamConverter implements ParamConverterInterface {
 				$request->attributes->set($name, $object);
 			} elseif($configuration->getClass() === Hierarchy::class) {
 				$name = $configuration->getName();
-				$object = $this->schemaLoader->loadSchema($request->attributes->get('hierarchySlug', 'system'));
+				$schema = $this->schemaLoader->loadSchema($request->attributes->get('hierarchySlug', 'system'));
 
-				$request->attributes->set($name, $object);
+				$request->attributes->set($name, $schema);
 			} elseif($configuration->getClass() === Key::class) {
-				$object = $this->schemaLoader->loadSchema($request->attributes->get('hierarchySlug', 'system'))->getKey($request->attributes->get($name.'Id'));
+				$schemaSlug = $request->attributes->get('hierarchySlug', 'system');
+				$keyId = $request->attributes->get($name.'Id');
+				$schema = $this->schemaLoader->loadSchema($schemaSlug);
 
-				$request->attributes->set($name, $object);
+				if(empty($keyId) || !$schema->hasKey($keyId)) {
+					throw new NotFoundHttpException('Key not defined');
+				}
+
+				$request->attributes->set($name, $schema->getKey($keyId));
 			} elseif($configuration->getClass() === Field::class) {
-				$object = $this->schemaLoader->loadSchema($request->attributes->get('hierarchySlug', 'system'))->getKey($request->attributes->get($name.'Id'))->getField($request->attributes->get($name.'Id'));
+				$schemaSlug = $request->attributes->get('hierarchySlug', 'system');
+				$keyId = $request->attributes->get('keyId');
+				$fieldId = $request->attributes->get($name.'Id');
+				$schema = $this->schemaLoader->loadSchema($schemaSlug);
 
-				$request->attributes->set($name, $object);
+				if(empty($keyId) || !$schema->hasKey($keyId)) {
+					throw new NotFoundHttpException('Key not defined');
+				}
+
+				$key = $schema->getKey($keyId);
+
+				if(empty($fieldId) || !$key->hasField($fieldId)) {
+					throw new NotFoundHttpException('Field not defined');
+				}
+
+				$request->attributes->set($name, $key->getField($fieldId));
 			} 
 		} catch(\Exxception $e) {
 			throw new NotFoundHttpException('Hierarchy not defined');

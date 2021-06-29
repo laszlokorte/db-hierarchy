@@ -1,0 +1,13 @@
+{% block field %}
+    <input class="form-field.small" type="color" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{node is defined ? field.readValueOf(node) : ''}}">
+{% endblock %}
+
+
+{% block cell %}
+    <span class="badge" style="background-color: {{field.readValueOf(nodeCollection.getNode(nodeId))}}">{{field.readValueOf(nodeCollection.getNode(nodeId))}}</span>
+{% endblock %}
+
+{% block display %}
+    <span class="badge" style="background-color: {{field.readValueOf(node)}}">{{field.readValueOf(node)}}</span>
+    
+{% endblock %}
