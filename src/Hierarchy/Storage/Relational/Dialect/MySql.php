@@ -108,6 +108,6 @@ class MySql extends SqlBase implements DialectInterface {
 	}
 
 	public function stringSwitchForeignKey($on) {
-		return sprintf('SET foreign_key_checks = %d;', $on ? 1 : 1);
+		return sprintf('SET foreign_key_checks = %d;', $on ? 1 : 0);
 	}
 }
