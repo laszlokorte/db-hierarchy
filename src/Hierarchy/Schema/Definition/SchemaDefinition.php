@@ -297,4 +297,8 @@ class SchemaDefinition {
 			$this->getKeySummary($keyId)->getFieldIds())
 		);
 	}
+
+	public function isKeyLeaf($keyId) {
+		return empty($this->getReferencingKeys($keyId)) && empty($this->getKeyIdsScopedInside($keyId));
+	}
 }

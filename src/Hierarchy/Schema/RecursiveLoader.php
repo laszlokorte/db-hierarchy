@@ -111,7 +111,7 @@ class RecursiveLoader {
 	public function loadSubSchemas() {
 		if($this->subSchemas === null) {
 			try {
-				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
+				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug');
 				$stmt->execute();
 				$rows = $stmt->fetchAll();
 
@@ -220,7 +220,7 @@ class RecursiveLoader {
 			ON scope.collection_id = collection.id
 			LEFT JOIN collection scope_collection
 			ON scope.scope_key_ref = scope_collection.id
-			WHERE collection.hierarchy_id = :hid
+			WHERE collection.hierarchy_id = :hid AND collection.slug
 			');
 		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
 		$keyStmt->execute();
@@ -241,7 +241,7 @@ class RecursiveLoader {
 			FROM field 
 			INNER JOIN collection 
 			ON collection.id = field.collection_id 
-			WHERE collection.hierarchy_id = :hid
+			WHERE collection.hierarchy_id = :hid AND field.slug
 		');
 		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
 		$fieldStmt->execute();

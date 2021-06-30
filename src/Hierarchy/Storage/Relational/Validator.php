@@ -20,7 +20,10 @@ class Validator {
 	}
 
 	public function validateCreateNode(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
-		
+		// check empty fields
+		// check unique fields
+
+
 		return new Validation(
 			$keyId, 
 			null, 
@@ -32,6 +35,9 @@ class Validator {
 	}
 
 	public function validateUpdateNode(string $keyId, string $nodeId, array $fieldData) {
+		// check empty fields
+		// check unique fields != self
+
 		return new Validation(
 			$keyId, 
 			$nodeId, 
@@ -41,6 +47,8 @@ class Validator {
 	}
 
 	public function validateMoveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId) {
+		// check target position
+
 		return new Validation(
 			$keyId, 
 			$nodeId, 
@@ -55,6 +63,8 @@ class Validator {
 		$scopeId = null; 
 		$parentId = null;
 
+		// check deletion plan
+
 		return new Validation(
 			$keyId, 
 			$nodeId, 
@@ -68,6 +78,8 @@ class Validator {
 	public function validateOrderNode(string $keyId, string $nodeId, $targetPosition) {
 		$scopeId = null; 
 		$parentId = null;
+
+		// check order
 
 		return new Validation(
 			$keyId, 

@@ -208,12 +208,16 @@ class Commander {
 	public function getDeletionPlan($keyId, $nodeId) {
 		$willDelete = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
 
-        $blockers = $this->collectReferencedNodesByIds($keyId, [$nodeId]);
+        $referenced = $this->collectReferencedNodesByIds($keyId, [$nodeId]);
+		$willDelete = array_merge($willDelete, array_filter($referenced['leafs']));
+        $blockers = $referenced['inner'];
 
         foreach ($willDelete as $willkey => $rows) {
 			$willIds = array_keys($rows);
+			$referenced = $this->collectReferencedNodesByIds($willkey, $willIds);
 
-            $blockers = array_merge($blockers, $this->collectReferencedNodesByIds($willkey, $willIds));
+			$willDelete = array_merge($willDelete, array_filter($referenced['leafs']));
+            $blockers = array_merge($blockers, $referenced['inner']);
         }
 
         return [
@@ -299,17 +303,27 @@ class Commander {
 	}
 
 	private function collectReferencedNodesByIds($keyId, $nodeIds) {
+		$result = [
+			'leafs' => [],
+			'inner' => [],
+		];
+
 		if(empty($nodeIds)) {
-			return [];
+			return $result;
 		}
 
-		$result = [];
 		$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
 
 		foreach ($this->schemaDef->getAllKeyIds() as $refKey) {
 			$columns = $this->schemaDef->getReferencingKeyColumns($keyId, $refKey);
 			if(empty($columns)) {
 				continue;
+			}
+
+			if($this->schemaDef->isKeyLeaf($refKey)) {
+				$group = 'leafs';
+			} else {
+				$group = 'inner';
 			}
 
 			$select = $this->commandBuilder->getSelectForReferencedNodes($refKey, $columns, $nodeIdParams);
@@ -319,7 +333,7 @@ class Commander {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], \PDO::PARAM_INT);
 			}
 			$stmt->execute();
-			$result[$refKey] = $stmt->fetchAllAssociativeIndexed();
+			$result[$group][$refKey] = $stmt->fetchAllAssociativeIndexed();
 		}
 
 		return $result;
