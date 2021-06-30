@@ -199,23 +199,23 @@ class RecursiveLoader {
 				collection.label_description AS label_description,
 				collection.label_icon AS label_icon,
 				collection.label_color AS label_color,
-				scope.id AS scope_id,
-				scope.collection_id AS scope_collection_id,
-				scope.scope_column_name AS scope_column_name,
+				scope_definition.id AS scope_id,
+				scope_definition.collection_id AS scope_collection_id,
+				scope_definition.scope_column_name AS scope_column_name,
 				scope_collection.slug AS scope_slug,
-				reflexivity.id AS reflexivity_id,
-				reflexivity.parent_name AS reflexivity_parent_column,
-				reflexivity.child_name AS reflexivity_child_column,
-				reflexivity.depth_name AS reflexivity_depth_column,
-				"order".id AS order_id,
-				"order".order_column_name AS order_column_name,
-				"order".is_singleton AS order_singleton,
+				reflexivity_definition.id AS reflexivity_id,
+				reflexivity_definition.parent_name AS reflexivity_parent_column,
+				reflexivity_definition.child_name AS reflexivity_child_column,
+				reflexivity_definition.depth_name AS reflexivity_depth_column,
+				order_definition.id AS order_id,
+				order_definition.order_column_name AS order_column_name,
+				order_definition.is_singleton AS order_singleton,
 				collection.summary AS summary
 			FROM collection
 			LEFT JOIN reflexivity 
 			ON reflexivity.collection_id = collection.id
-			LEFT JOIN "order"
-			ON "order".collection_id = collection.id
+			LEFT JOIN order_definition
+			ON order_definition.collection_id = collection.id
 			LEFT JOIN scope 
 			ON scope.collection_id = collection.id
 			LEFT JOIN collection scope_collection
@@ -493,7 +493,7 @@ class RecursiveLoader {
 				], SummaryDefinition::parseSegments('{$nesting}-{$nesting/label}/{label_singular}')
 			),
 			'scope_definition' => new KeyDefinition(
-				new StorageDefinition('scope'),
+				new StorageDefinition('scope_definition'),
 				new LabelDefinition('Scope', 'Scopes'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'scope_key' => new FieldDefinition(
@@ -506,7 +506,7 @@ class RecursiveLoader {
 				], SummaryDefinition::parseSegments('')
 			),
 			'order_definition' => new KeyDefinition(
-				new StorageDefinition('order'),
+				new StorageDefinition('order_definition'),
 				new LabelDefinition('Order', 'Order'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 
@@ -519,7 +519,7 @@ class RecursiveLoader {
 				], SummaryDefinition::parseSegments('')
 			),
 			'reflexivity_definition' => new KeyDefinition(
-				new StorageDefinition('reflexivity'),
+				new StorageDefinition('reflexivity_definition'),
 				new LabelDefinition('Reflexivity', 'Reflexivity'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'parent_name' => new FieldDefinition(
