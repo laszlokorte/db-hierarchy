@@ -219,7 +219,7 @@ class RecursiveLoader {
 			LEFT JOIN scope_definition 
 			ON scope_definition.collection_id = collection.id
 			LEFT JOIN collection scope_collection
-			ON scope.scope_key_ref = scope_collection.id
+			ON scope_definition.scope_key_ref = scope_collection.id
 			WHERE collection.hierarchy_id = :hid AND collection.slug <> ""
 			');
 		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
