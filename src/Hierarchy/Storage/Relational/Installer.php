@@ -31,7 +31,6 @@ class Installer {
 			$this->connection->exec($turnOffFk);
 		}
 
-		$this->connection->setAutoCommit(false);
 
 		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
@@ -50,7 +49,6 @@ class Installer {
 		foreach ($this->schmaBuilder->getAllViews() as $v) {
 			$this->connection->executeStatement($this->dialect->createViewToString($v));
 		}
-    	$this->connection->commit();
 
 		if($turnOnFk) {
 			$this->connection->exec($turnOnFk);
@@ -65,14 +63,12 @@ class Installer {
 			$this->connection->exec($turnOffFk);
 		}
 
-		$this->connection->setAutoCommit(false);
     	foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
 		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
 			$this->connection->executeStatement($this->dialect->dropTableToString($t));
 		}
-    	$this->connection->commit();
 
 		if($turnOnFk) {
 			$this->connection->exec($turnOnFk);
