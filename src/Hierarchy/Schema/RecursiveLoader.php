@@ -214,9 +214,9 @@ class RecursiveLoader {
 			FROM collection
 			LEFT JOIN reflexivity 
 			ON reflexivity.collection_id = collection.id
-			LEFT JOIN order_definition
+			LEFT JOIN reflexivity_definition
 			ON order_definition.collection_id = collection.id
-			LEFT JOIN scope 
+			LEFT JOIN scope_definition 
 			ON scope.collection_id = collection.id
 			LEFT JOIN collection scope_collection
 			ON scope.scope_key_ref = scope_collection.id
