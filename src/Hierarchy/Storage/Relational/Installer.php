@@ -31,7 +31,7 @@ class Installer {
 			$this->connection->exec($turnOffFk);
 		}
 
-		$this->connection->beginTransaction();
+		$this->connection->setAutoCommit(false);
 
 		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
@@ -65,7 +65,7 @@ class Installer {
 			$this->connection->exec($turnOffFk);
 		}
 
-		$this->connection->beginTransaction();
+		$this->connection->setAutoCommit(false);
     	foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}

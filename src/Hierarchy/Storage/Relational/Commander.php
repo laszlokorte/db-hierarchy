@@ -523,18 +523,10 @@ class Commander {
 	}
 
 	private function beginTransaction($noFk = false) {
-		if($noFk) {
-			$this->noFk = true;		
-			//$this->connection->executeStatement('SET foreign_key_checks = 0;');
-		}
-		$this->connection->beginTransaction();
+		$this->connection->setAutoCommit(false);
 	}
 
 	private function commitTransaction() {
-		if($this->noFk) {		
-			//$this->connection->executeStatement('SET foreign_key_checks = 1;');
-			$this->noFk = false;
-		}
 		$this->connection->commit();
 	}
 }
