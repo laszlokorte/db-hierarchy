@@ -348,16 +348,16 @@ class RecursiveLoader {
 					),
 					'dsn' => new FieldDefinition(
 						new LabelDefinition('DSN','DSNs', 'What is?'), 
-						'string', true, false),
+						'string', false, false),
 					'label_singular' => new FieldDefinition(
 						new LabelDefinition('Label Singular'), 
-						'string', true, false),
+						'string', false, false),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', true, false),
+						'string', false, false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', true, false),
+						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'enum', false, false, 
@@ -467,29 +467,29 @@ class RecursiveLoader {
 						new LabelDefinition('Slug'), 'string', true, true),
 					'label_singular' => new FieldDefinition(
 						new LabelDefinition('Label Singular'), 
-						'string', true, false),
+						'string', false, false),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', true, false),
+						'string', false, false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', true, false),
+						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'enum', false, false,  
 						['values' => $this->icons, 'style' => 'compact']),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
-						'string', true, false),
+						'string', false, false),
 					'summary' => new FieldDefinition(
 						new LabelDefinition('Summary Template'), 
-						'string', true, false),
+						'string', false, false),
 					'table_name' => new FieldDefinition(
 						new LabelDefinition('Table Name'), 
-						'string', true, false),
+						'string', false, false),
 					'pk_name' => new FieldDefinition(
 						new LabelDefinition('Primary Key Column Name'), 
-						'string', true, false),
+						'string', false, false),
 				], SummaryDefinition::parseSegments('{$nesting}-{$nesting/label}/{label_singular}')
 			),
 			'scope_definition' => new KeyDefinition(
