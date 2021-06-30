@@ -403,7 +403,7 @@ class RecursiveLoader {
 						'email', false, false),
 					'role' => new FieldDefinition(
 						new LabelDefinition('Role', 'Roles'), 
-						'reference', false, false, 
+						'reference', true, false, 
 						['target' => 'role','style' => 'expanded']),
 				], SummaryDefinition::parseSegments('{login}')
 			),

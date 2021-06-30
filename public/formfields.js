@@ -16,6 +16,12 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
     loader.classList.add('form-choice-list')
     loader.appendChild(loaderInner)
 
+
+    const hidden = document.createElement('input')
+    hidden.setAttribute('type', 'hidden')
+    hidden.setAttribute('name', nameAttr)
+    hidden.setAttribute('value', '');
+
     load()
 
     function load() {
@@ -28,6 +34,8 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
             return response.json().then((json) => {
                 if(isExpanded && json['nodes'].length < expandLimit) {
                     const options = document.createDocumentFragment();
+
+                    options.appendChild(hidden)
 
                     if(isExplicit) {
                         const input = document.createElement('input')
@@ -118,6 +126,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
 
                 } else {
                     const options = document.createDocumentFragment();
+
                 
                     if(isExplicit) {
                         const nullOpt = document.createElement('option')
@@ -143,6 +152,8 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
                     while(origParent.firstChild) {
                         origParent.removeChild(origParent.lastChild)
                     }
+
+                    origParent.appendChild(hidden)
 
                     if(!json['nodes'].length) {
                         const empty = document.createElement('ul')

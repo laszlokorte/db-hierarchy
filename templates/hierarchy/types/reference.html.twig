@@ -19,14 +19,14 @@
 
 {% block cell %}
     {% set val = field.readValueOf(nodeCollection.getNode(nodeId)) %}
-    {% if val %}
+    {% if val.id %}
         <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: val.key, nodeId:val.id}) }}">{{val.id}}</a></span>
     {% endif %}
 {% endblock %}
 
 {% block display %}
     {% set val = field.readValueOf(node) %}
-    {% if val %}
+    {% if val.id %}
         <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: val.key, nodeId:val.id}) }}">{{val.id}}</a></span>
     {% endif %}
 {% endblock %}

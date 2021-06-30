@@ -1,4 +1,4 @@
-<form action="{{ path('create_node',{hierarchySlug: hierarchy.slug, keyId: key.id}) }}" method="post" accept-charset="utf-8">
+<form novalidate="" action="{{ path('create_node',{hierarchySlug: hierarchy.slug, keyId: key.id}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}

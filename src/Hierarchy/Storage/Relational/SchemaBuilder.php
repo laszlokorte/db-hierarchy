@@ -178,8 +178,17 @@ class SchemaBuilder {
 			fn($fieldId) => $this->schemaDef->isKeyFieldUnique($keyId, $fieldId)
 		);
 
-		foreach ($uniqueFieldsIds as $ufid) {
-			$uniques[] = array_map(fn($c) => $this->fieldColumnToName($c), $this->getFieldColumns($keyId, $ufid));
+		// TODO: unique keys do not work for reflexive nodes
+		if($this->schemaDef->isKeyReflexive($keyId)) {
+			foreach ($uniqueFieldsIds as $ufid) {
+				$uniqueFieldCombi = array_map(fn($c) => $this->fieldColumnToName($c), $this->getFieldColumns($keyId, $ufid));
+
+				if($this->schemaDef->isKeyScoped($keyId)) {
+					$uniqueFieldCombi[] = $this->nodeOwnScopeColumnName($keyId);
+				}
+
+				$uniques[] = $uniqueFieldCombi;
+			}
 		}
 
 
