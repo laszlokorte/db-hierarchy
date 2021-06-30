@@ -8,9 +8,10 @@
 
 {% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
+<h1>{{key.label.string(key.isSingleton)}}</h1>
+
 
 {% if key.isSingleton %}
-<h2>{{ key.label.singular }}</h2>
 
  <ul class="quicktab-list">
 
@@ -25,8 +26,6 @@
 {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: key, then: 'list', force_then: true, cancel: path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id})} only %}
 
 {% else %}
-
-<h1>{{key.label.plural}}</h1>
 
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'new', key} only %}
 

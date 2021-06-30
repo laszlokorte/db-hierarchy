@@ -50,6 +50,12 @@
         <dd class="form-container-field">
         {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
     	</dd>
+
+    	{% if field.label.description %}
+	    	<dd class="form-container-info">
+	        <i class="icon-link info" title="{{field.label.description}}" target="_blank">i</i>
+	    	</dd>
+    	{% endif %}
     	{% endfor %}
 
 	<dt class="form-container-label form-container-spacer"></dt>

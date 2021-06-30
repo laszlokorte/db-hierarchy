@@ -14,6 +14,13 @@
     	<dd class="form-container-info">
         <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, fieldId: field.id}) }}" title="" target="_blank">🡕</a>
     	</dd>
+
+    	{% if field.label.description %}
+    	<dd class="form-container-info">
+	        <i class="icon-link info" title="{{field.label.description}}" target="_blank">i</i>
+    	</dd>
+    	{% endif %}
+
     	{% endfor %}
 
 	<dt class="form-container-label form-container-spacer"></dt>

@@ -101,7 +101,7 @@ class Key {
 
 		for ($i=0; $i < count($constants); $i++) {
 			if($i>0) {
-				$result .= $this->getField($fieldIds[$i-1])->readStringValueOf($node);
+				$result .= $this->getField($fieldIds[$i-1])->readFormattedValueOf($node);
 			}
 			$result .= $constants[$i];
 		}

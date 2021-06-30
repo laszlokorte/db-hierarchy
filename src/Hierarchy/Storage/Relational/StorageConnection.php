@@ -36,4 +36,13 @@ class StorageConnection {
 	public function getInstaller() {
 		return new Installer(new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), $this->connection, $this->dialect);
 	}
+
+	public function getValidator() {
+		return new Validator(
+			$this->schemaDef,
+			new ValidationBuilder($this->schemaDef, $this->naming),
+			$this->connection, 
+			$this->dialect
+		);
+	}
 }

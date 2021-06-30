@@ -47,7 +47,7 @@ class FileType implements FieldTypeInterface {
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
-
+		return $fieldData;
 	}
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {

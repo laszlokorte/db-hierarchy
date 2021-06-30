@@ -155,7 +155,7 @@
 .keyvalue-container {
     display: grid;
     gap: 0.5em;
-    grid-template-columns: max-content min-content auto;
+    grid-template-columns: max-content max-content auto;
     grid-auto-flow: row;
     gap: 1em;
 }
@@ -227,12 +227,16 @@
     background: var(--accent-primary, #034);
     width: 1.3em;
     height: 1.3em;
-    display: flex;
+    display: inline-flex;
     font-size: 0.8em;
     align-items: center;
     justify-content: center;
     text-align: center;
     vertical-align: center;
+}
+
+.icon-link.info {
+    cursor: help;
 }
 
 .icon-link:hover {
@@ -984,6 +988,7 @@ details>.details-summary ~ * {
     font-size: 0.7em;
     font-weight: normal;
     line-height: 0.8;
+    display: block;
 }
 .badge {
     display: inline-block;
@@ -1005,4 +1010,10 @@ details>.details-summary ~ * {
 
 .badge.false {
     background: #a00;
+}
+
+h1, h2, h3 {
+    display: flex;
+    gap: 0.5em;
+    align-items: baseline;
 }

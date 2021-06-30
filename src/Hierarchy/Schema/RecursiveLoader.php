@@ -44,6 +44,8 @@ class RecursiveLoader {
 			'color' => new FieldType\ColorType(),
 			'geo' => new FieldType\GeolocationType(),
 			'url' => new FieldType\UrlType(),
+			'svg' => new FieldType\SvgType(),
+			'sql' => new FieldType\SqlType(),
 
 
 			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
@@ -64,14 +66,26 @@ class RecursiveLoader {
 			try {
 				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy');
 				$stmt->execute();
+				$rows = $stmt->fetchAll();
 
-				$this->subSchemas = $stmt->fetchAll();
+				$this->subSchemas = [];
+				foreach ($rows as $row) {
+					$this->subSchemas[] = [
+						'slug' => $row['slug'],
+						'label' => new LabelDefinition(
+							$row['label_singular']?:ucfirst($row['slug']),
+							$row['label_plural']?:null,
+							$row['label_description'],
+							$row['label_icon'],
+							$row['label_color']
+						),
+					];
+				}
 			} catch(\Exception) {
 				$this->subSchemas = [];
 			}
 		}
 		
-
 		return $this->subSchemas;
 	}
 
@@ -194,8 +208,8 @@ class RecursiveLoader {
 			foreach($fieldRows[$keyRow['slug']]??[] AS $fieldRow) {
 				$fields[$fieldRow['slug']] = new FieldDefinition(
 					new LabelDefinition(
-						$fieldRow['label_singular'],
-						$fieldRow['label_plural'],
+						$fieldRow['label_singular']?:ucfirst($fieldRow['slug']),
+						$fieldRow['label_plural']?:null,
 						$fieldRow['label_description'],
 						$fieldRow['label_icon'],
 						$fieldRow['label_color']
@@ -238,107 +252,201 @@ class RecursiveLoader {
 		}
 
 		return new SchemaDefinition(
-			new LabelDefinition($row['label_singular'], $row['label_plural'], $row['label_description'], $row['label_icon'], $row['label_color']), $keys, $this->fieldTypes);
+			new LabelDefinition(
+				$row['label_singular']?:ucfirst($hierarchyName), 
+				$row['label_plural']?:null, 
+				$row['label_description'], 
+				$row['label_icon'], 
+				$row['label_color']
+			), 
+			$keys, 
+			$this->fieldTypes
+		);
 	}
 
 	private function loadBaseDefinition() {
+		$settings = ['accent_color' => null];
 		try {
 			$stmt = $this->baseConnection->prepare('SELECT title, url, accent_color FROM settings');
 			$stmt->execute();
 
-			$settings = $stmt->fetch();
+			$settingsRow = $stmt->fetch();
+
+			if($settingsRow) {
+				$settings = array_merge($settings, $settingsRow);
+			}
 		} catch(\Exception $e) {
-			$settings = ['accent_color' => null];
+			
 		}
 
 		return new SchemaDefinition(
 			new LabelDefinition('Hierarchy Manager', 'Hierarchie Managers', null, null, $settings['accent_color']?:'#444'), [
 			'hierarchy' => new KeyDefinition(
 				new StorageDefinition('hierarchy'),
-				new LabelDefinition('Hierarchy', 'Hierarchies'),
+				new LabelDefinition(
+					'Hierarchy', 
+					'Hierarchies',
+					'What is a hierarchy?'
+				),
 				null, null, null, [
-					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
-					'dsn' => new FieldDefinition(new LabelDefinition('DSN'), 'string', true, false),
-					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
-					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
-					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
-					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['values' => [], 'style' => 'compact']),
-					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'color', true, false),
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, false
+					),
+					'dsn' => new FieldDefinition(
+						new LabelDefinition('DSN','DSNs', 'What is?'), 
+						'string', true, false),
+					'label_singular' => new FieldDefinition(
+						new LabelDefinition('Label Singular'), 
+						'string', true, false),
+					'label_plural' => new FieldDefinition(
+						new LabelDefinition('Label Plural'), 
+						'string', true, false),
+					'label_description' => new FieldDefinition(
+						new LabelDefinition('Description'), 
+						'text', true, false),
+					'label_icon' => new FieldDefinition(
+						new LabelDefinition('Icon'), 
+						'enum', false, false, 
+						['values' => [], 'style' => 'compact']),
+					'label_color' => new FieldDefinition(
+						new LabelDefinition('Color'), 
+						'color', true, false),
 				], SummaryDefinition::parseString('{label_singular}')
 			),
 			'setting' => new KeyDefinition(
 				new StorageDefinition('settings'),
 				new LabelDefinition('Settings', 'Settings'),
 				null, null, new OrderDefinition(singleton: true), [
-					'title' => new FieldDefinition(new LabelDefinition('Title'), 'string', false, false),
-					'url' => new FieldDefinition(new LabelDefinition('Url'), 'url', false, false),
-					'accent_color' => new FieldDefinition(new LabelDefinition('Accent Color'), 'color', false, false),
+					'title' => new FieldDefinition(
+						new LabelDefinition('Title'), 
+						'string', false, false),
+					'url' => new FieldDefinition(
+						new LabelDefinition('Url'), 
+						'url', false, false),
+					'accent_color' => new FieldDefinition(
+						new LabelDefinition('Accent Color'), 
+						'color', false, false),
 				], SummaryDefinition::parseString('settings')
 			),
 			'account' => new KeyDefinition(
 				new StorageDefinition('account'),
 				new LabelDefinition('Account', 'Accounts'),
 				null, null, null, [
-					'login' => new FieldDefinition(new LabelDefinition('Login'), 'string', true, true),
-					'password' => new FieldDefinition(new LabelDefinition('Password'), 'hash', true, false),
-					'full_name' => new FieldDefinition(new LabelDefinition('Full Name'), 'string', false, false),
-					'email' => new FieldDefinition(new LabelDefinition(' E-mail'), 'email', false, false),
-					'role' => new FieldDefinition(new LabelDefinition('Role', 'Roles'), 'reference', false, false, ['target' => 'role','style' => 'expanded']),
+					'login' => new FieldDefinition(
+						new LabelDefinition('Login'), 
+						'string', true, true),
+					'password' => new FieldDefinition(
+						new LabelDefinition('Password'), 
+						'hash', true, false),
+					'full_name' => new FieldDefinition(
+						new LabelDefinition('Full Name'), 
+						'string', false, false),
+					'email' => new FieldDefinition(
+						new LabelDefinition(' E-mail'), 
+						'email', false, false),
+					'role' => new FieldDefinition(
+						new LabelDefinition('Role', 'Roles'), 
+						'reference', false, false, 
+						['target' => 'role','style' => 'expanded']),
 				], SummaryDefinition::parseString('{login}')
 			),
 			'role' => new KeyDefinition(
 				new StorageDefinition('role'),
 				new LabelDefinition('Role', 'Roles'),
 				null, null, null, [
-					'title' => new FieldDefinition(new LabelDefinition('Title'), 'string', true, true),
-					'is_admin' => new FieldDefinition(new LabelDefinition('Admin'), 'bool', true, false),
+					'title' => new FieldDefinition(
+						new LabelDefinition('Title'), 
+						'string', true, true),
+					'is_admin' => new FieldDefinition(
+						new LabelDefinition('Admin'), 
+						'bool', true, false),
 				], SummaryDefinition::parseString('{title}')
 			),
 			'hierarchy_permission' => new KeyDefinition(
 				new StorageDefinition('hierarchy_permission'),
 				new LabelDefinition('Hierarchy Permission', 'Hierarchy Permissions'),
 				new ScopeDefinition('role'), null, null, [
-					'hierarchy' => new FieldDefinition(new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true, ['target' => 'hierarchy']),
-					'type' => new FieldDefinition(new LabelDefinition('Type', 'Types'), 'enum', true, false, ['values' => ['permit', 'restrict']]),
+					'hierarchy' => new FieldDefinition(
+						new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true, 
+						['target' => 'hierarchy']),
+					'type' => new FieldDefinition(
+						new LabelDefinition('Type', 'Types'), 
+						'enum', true, false, ['values' => ['permit', 'restrict']]),
 				], SummaryDefinition::parseString('{hierarchy}/{type}')
 			),
 			'collection_permission' => new KeyDefinition(
 				new StorageDefinition('collection_permission'),
 				new LabelDefinition('Collection Permission', 'Collection Permissions'),
 				new ScopeDefinition('role'), null, null, [
-					'collection' => new FieldDefinition(new LabelDefinition('Collection', 'Collections'), 'reference', true, true, ['target' => 'collection']),
-					'type' => new FieldDefinition(new LabelDefinition('Type', 'Types'), 'enum', true, false, ['values' => ['permit', 'restrict']]),
+					'collection' => new FieldDefinition(
+						new LabelDefinition('Collection', 'Collections'), 
+						'reference', true, true, 
+						['target' => 'collection']),
+					'type' => new FieldDefinition(
+						new LabelDefinition('Type', 'Types'), 
+						'enum', true, false, 
+						['values' => ['permit', 'restrict']]),
 				], SummaryDefinition::parseString('{collection}/{type}')
 			),
 			'field_permission' => new KeyDefinition(
 				new StorageDefinition('field_permission'),
 				new LabelDefinition('Field Permission', 'Field Permissions'),
 				new ScopeDefinition('role'), null, null, [
-					'field' => new FieldDefinition(new LabelDefinition('Field', 'Fields'), 'reference', true, true, ['target' => 'field']),
-					'type' => new FieldDefinition(new LabelDefinition('Type', 'Types'), 'enum', true, false, ['values' => ['permit', 'restrict']]),
+					'field' => new FieldDefinition(
+						new LabelDefinition('Field', 'Fields'), 
+						'reference', true, true,
+						['target' => 'field']),
+					'type' => new FieldDefinition(
+						new LabelDefinition('Type', 'Types'), 
+						'enum', true, false, 
+						['values' => ['permit', 'restrict']]),
 				], SummaryDefinition::parseString('{field}/{type}')
 			),
 			'collection' => new KeyDefinition(
 				new StorageDefinition('collection'),
 				new LabelDefinition('Collection'),
 				new ScopeDefinition('hierarchy'), null, new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
-					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
-					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
-					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
-					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false,  ['values' => [], 'style' => 'compact']),
-					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
-					'summary' => new FieldDefinition(new LabelDefinition('Summary Template'), 'string', true, false),
-					'table_name' => new FieldDefinition(new LabelDefinition('Table Name'), 'string', true, false),
-					'pk_name' => new FieldDefinition(new LabelDefinition('Primary Key Column Name'), 'string', true, false),
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 'string', true, false),
+					'label_singular' => new FieldDefinition(
+						new LabelDefinition('Label Singular'), 
+						'string', true, false),
+					'label_plural' => new FieldDefinition(
+						new LabelDefinition('Label Plural'), 
+						'string', true, false),
+					'label_description' => new FieldDefinition(
+						new LabelDefinition('Description'), 
+						'text', true, false),
+					'label_icon' => new FieldDefinition(
+						new LabelDefinition('Icon'), 
+						'enum', false, false,  
+						['values' => [], 'style' => 'compact']),
+					'label_color' => new FieldDefinition(
+						new LabelDefinition('Color'), 
+						'string', true, false),
+					'summary' => new FieldDefinition(
+						new LabelDefinition('Summary Template'), 
+						'string', true, false),
+					'table_name' => new FieldDefinition(
+						new LabelDefinition('Table Name'), 
+						'string', true, false),
+					'pk_name' => new FieldDefinition(
+						new LabelDefinition('Primary Key Column Name'), 
+						'string', true, false),
 				], SummaryDefinition::parseString('{label_singular}')
 			),
 			'scope_definition' => new KeyDefinition(
 				new StorageDefinition('scope'),
 				new LabelDefinition('Scope', 'Scopes'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
-					'scope_key' => new FieldDefinition(new LabelDefinition('Parent', 'Parents'), 'reference', true, false, ['target' => 'collection']),
-					'scope_column_name' => new FieldDefinition(new LabelDefinition('Scope Column'), 'string', true, false),
+					'scope_key' => new FieldDefinition(
+						new LabelDefinition('Parent', 'Parents'), 
+						'reference', true, false, 
+						['target' => 'collection']),
+					'scope_column_name' => new FieldDefinition(
+						new LabelDefinition('Scope Column'), 
+						'string', true, false),
 				], SummaryDefinition::parseString('')
 			),
 			'order_definition' => new KeyDefinition(
@@ -346,35 +454,66 @@ class RecursiveLoader {
 				new LabelDefinition('Order', 'Order'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 
-					'is_singleton' => new FieldDefinition(new LabelDefinition('Singleton'), 'bool', true, false),
-					'order_column_name' => new FieldDefinition(new LabelDefinition('Order column Name'), 'string', true, false),
+					'is_singleton' => new FieldDefinition(
+						new LabelDefinition('Singleton'), 
+						'bool', true, false),
+					'order_column_name' => new FieldDefinition(
+						new LabelDefinition('Order column Name'), 
+						'string', true, false),
 				], SummaryDefinition::parseString('')
 			),
 			'reflexivity_definition' => new KeyDefinition(
 				new StorageDefinition('reflexivity'),
 				new LabelDefinition('Reflexivity', 'Reflexivity'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
-					'parent_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
-					'child_name' => new FieldDefinition(new LabelDefinition('Parent Column'), 'string', true, false),
-					'depth_name' => new FieldDefinition(new LabelDefinition('Depth Column'), 'string', true, false),
+					'parent_name' => new FieldDefinition(
+						new LabelDefinition('Parent Column'), 
+						'string', true, false),
+					'child_name' => new FieldDefinition(
+						new LabelDefinition('Parent Column'), 
+						'string', true, false),
+					'depth_name' => new FieldDefinition(
+						new LabelDefinition('Depth Column'), 
+						'string', true, false),
 				], SummaryDefinition::parseString('')
 			),
 			'field' => new KeyDefinition(
 				new StorageDefinition('field'),
 				new LabelDefinition('Field'),
 				new ScopeDefinition('collection'), null, new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
-					'type' => new FieldDefinition(new LabelDefinition('Type'), 'enum', true, false, ['style' => 'compact', 'values' => array_keys($this->fieldTypes)
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, false),
+					'type' => new FieldDefinition(
+						new LabelDefinition('Type'), 
+						'enum', true, false, 
+						['style' => 'compact', 'values' => array_keys($this->fieldTypes)
 
 					]),
-					'options' => new FieldDefinition(new LabelDefinition('Options'), 'json', true, false),
-					'is_required' => new FieldDefinition(new LabelDefinition('Required'), 'bool', true, false),
-					'is_unique' => new FieldDefinition(new LabelDefinition('Unique'), 'bool', true, false),
-					'label_singular' => new FieldDefinition(new LabelDefinition('Label Singular'), 'string', true, false),
-					'label_plural' => new FieldDefinition(new LabelDefinition('Label Plural'), 'string', true, false),
-					'label_description' => new FieldDefinition(new LabelDefinition('Description'), 'text', true, false),
-					'label_icon' => new FieldDefinition(new LabelDefinition('Icon'), 'enum', false, false, ['style' => 'compact', 'values' => []]),
-					'label_color' => new FieldDefinition(new LabelDefinition('Color'), 'string', true, false),
+					'options' => new FieldDefinition(
+						new LabelDefinition('Options'), 
+						'json', true, false),
+					'is_required' => new FieldDefinition(
+						new LabelDefinition('Required'), 
+						'bool', true, false),
+					'is_unique' => new FieldDefinition(
+						new LabelDefinition('Unique'), 
+						'bool', true, false),
+					'label_singular' => new FieldDefinition(
+						new LabelDefinition('Label Singular'), 
+						'string', true, false),
+					'label_plural' => new FieldDefinition(
+						new LabelDefinition('Label Plural'), 
+						'string', true, false),
+					'label_description' => new FieldDefinition(
+						new LabelDefinition('Description'), 
+						'text', true, false),
+					'label_icon' => new FieldDefinition(
+						new LabelDefinition('Icon'), 
+						'enum', false, false, ['style' => 'compact', 'values' => []]),
+					'label_color' => new FieldDefinition(
+						new LabelDefinition('Color'), 
+						'string', true, false),
 				], SummaryDefinition::parseString('{label_singular}')
 			),
 		], $this->fieldTypes);

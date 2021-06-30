@@ -6,9 +6,20 @@
 
 <h1>{{ hierarchy.label.singular }} Dashboard</h1>
 
+{% if hierarchy.label.description is not empty %}
+<p>
+    {{ hierarchy.label.description }}
+</p>
+{% endif %}
+
 {% for rootKey in hierarchy.rootKeys %}
     <section>
-        <h2>{{ rootKey.label.string(rootKey.isSingleton) }}</h2>
+        <h2>
+        {{ rootKey.label.string(rootKey.isSingleton) }}
+        {%- if rootKey.label.description is not empty -%}
+        <i class="icon-link info" title="{{rootKey.label.description}}" target="_blank">i</i>
+        {% endif %}
+        </h2>
 
         {% if rootKey.isSingleton %}
 

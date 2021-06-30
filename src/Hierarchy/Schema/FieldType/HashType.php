@@ -26,7 +26,7 @@ class HashType implements FieldTypeInterface {
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
-
+		return 'secret';
 	}
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {

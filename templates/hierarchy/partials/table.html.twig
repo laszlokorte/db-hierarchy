@@ -113,7 +113,7 @@
                 {% if parent is defined %}
                     <td class="data-table-foot-cell sticky-start" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
                     {% if listLink|default(false) %}
-                        <a href="{{ path('list_child_nodes', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Show {{key.label.singular}}s</a>
+                        <a href="{{ path('list_child_nodes', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %}
                     </td>
                     <td class="data-table-foot-cell sticky-end" align="right" colspan="{{key.nestedKeys|length + 2 + (not nodeCollection.isScoped and key.isScoped?1:0) }}" >
@@ -122,7 +122,7 @@
                 {% else %}
                     <td class="data-table-foot-cell sticky-start" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
                     {% if listLink|default(false) %}
-                        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Show {{key.label.singular}}s</a>
+                        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %} 
                     </td>
                     <td class="data-table-foot-cell sticky-end" colspan="{{key.nestedKeys|length + 2 + (not nodeCollection.isScoped and key.isScoped?1:0) }}"  align="right">

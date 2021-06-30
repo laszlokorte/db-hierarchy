@@ -243,6 +243,8 @@ class HierarchyController {
     {
     	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
 
+        $validation = $storageConnection->getValidator()->validateDeleteNode($key->getId(), $nodeId);
+
         try {
             $storageConnection->getCommander()->deleteNode($key->getId(), $nodeId);
         } catch(DeletionBlockedException $e) {
@@ -281,6 +283,8 @@ class HierarchyController {
 	#[Template()]
     public function askDeleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Key $key, $nodeId)
     {
+        $validation = $storageConnection->getValidator()->validateDeleteNode($key->getId(), $nodeId);
+
         $deletionPlan = $storageConnection->getCommander()->getDeletionPlan($key->getId(), $nodeId);
 
 		return [
@@ -300,6 +304,9 @@ class HierarchyController {
     {
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
+
+        $validation = $storageConnection->getValidator()->validateCreateNode($key->getId(), $request->request->get('field', []), $scope, $parent);
+
     	$newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
 		$then = $request->request->get('_then', null);
@@ -373,6 +380,8 @@ class HierarchyController {
         }
 
         list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
+
+        $validation = $storageConnection->getValidator()->validateMoveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
         
         $storageConnection->getCommander()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
 
@@ -395,7 +404,7 @@ class HierarchyController {
     #[Template()]
     public function askOrderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
     {
-        if(!$k->isOrdered()) {
+        if(!$key->isOrdered()) {
             throw new NotFoundHttpException(sprintf('%s are not ordered', $key->getLabel()->getPlural()));
         }
 
@@ -420,6 +429,8 @@ class HierarchyController {
         }
         
         $target = $request->request->get('target_order');
+
+        $validation = $storageConnection->getValidator()->validateOrderNode($key->getId(), $nodeId, $target);
 
         if(!empty($target)) {
             $storageConnection->getCommander()->orderNode($key->getId(), $nodeId, $target);
@@ -462,6 +473,9 @@ class HierarchyController {
     #[ParamConverter('key')]
     public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
     {
+
+        $validation = $storageConnection->getValidator()->validateUpdateNode($key->getId(), $nodeId, $request->request->get('field', []));
+
 		$storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
 		$then = $request->request->get('_then', null);

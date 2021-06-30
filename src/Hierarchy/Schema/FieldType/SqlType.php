@@ -28,7 +28,7 @@ class SqlType implements FieldTypeInterface {
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
-
+		return $fieldData;
 	}
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
@@ -36,7 +36,7 @@ class SqlType implements FieldTypeInterface {
 	}
 
 	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'string';
+		return 'sql';
 	}
 
 }

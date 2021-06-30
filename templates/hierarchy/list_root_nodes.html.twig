@@ -8,8 +8,17 @@
 
 {% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
+
+<h1>
+{{key.label.string(key.isSingleton)}}
+{%- if key.label.description is not empty -%}
+<i class="icon-link info" title="{{key.label.description}}" target="_blank">i</i>
+{% endif %}
+</h1>
+
+
+
 {% if key.isSingleton %}
-<h1>{{key.label.singular}}</h1>
 
 {% for nodeId in nodeCollection.ids %}
 <div class="tab-container dense">
@@ -109,7 +118,6 @@
 
 
 {% else %}
-<h1>{{key.label.plural}}</h1>
 
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'list', key} only %}
 

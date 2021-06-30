@@ -8,12 +8,11 @@
 
 {% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
 
-<h1 data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</h1>
-{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'new', childKey} only %}
+<h1><span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span></h1>{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'new', childKey} only %}
 
+<h2>{{childKey.label.string(childKey.isSingleton)}}</h2>
 
 {% if childKey.isSingleton %}
-<h2>{{ childKey.label.singular }}</h2>
 
  <ul class="quicktab-list">
 
@@ -28,8 +27,6 @@
 {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id})} only %}
 
 {% else %}
-<h2>{{ childKey.label.plural }}</h2>
-
 
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'new', key, node, childKey} only %}
 
