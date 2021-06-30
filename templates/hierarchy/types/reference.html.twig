@@ -13,7 +13,7 @@
     value="{{node is defined ? field.readValueOf(node).id : ''}}" 
     placeholder="{{field.getOption('target')}} ID" 
     data-style="{{field.getOption('style')}}" 
-    data-expand-limit="{{field.getOption('expandLimit')|default(30)}}">
+    data-expand-limit="{{field.getOption('expandLimit')??30}}">
 
 {% endblock %}
 

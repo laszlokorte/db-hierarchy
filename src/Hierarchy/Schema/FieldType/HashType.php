@@ -18,7 +18,7 @@ class HashType implements FieldTypeInterface {
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [hash($fieldData)];
+		return [password_hash($fieldData, PASSWORD_DEFAULT)];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {

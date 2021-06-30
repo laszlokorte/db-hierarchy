@@ -36,7 +36,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			$fieldData,
-			[]
+			[],
 		);
 	}
 

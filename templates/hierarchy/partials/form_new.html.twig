@@ -12,8 +12,14 @@
     {% endif %}
 	{% endif %}
 
-	
 	<dl class="form-container">
+		{% if not validation.isValid??true %}
+			<dt class="form-container-label form-container-spacer">
+			</dt>
+			<dd class="form-container-field">
+	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {validation} only %}
+	    	</dd>
+		{% endif %}
 
 		{% if parent is not defined and key.isScoped %}
 		<dt class="form-container-label">
@@ -60,7 +66,7 @@
 
 	<dt class="form-container-label form-container-spacer"></dt>
 	<dd class="form-container-buttons">
-	{% if force_then|default(false) %}
+	{% if force_then??false %}
 		<button class="form-button primary required">Confirm</button>
 	{% else %}
 		<button class="form-button primary" name="_then" value="new">Create and show</button>

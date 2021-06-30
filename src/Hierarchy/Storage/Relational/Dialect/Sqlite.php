@@ -71,4 +71,8 @@ class Sqlite extends SqlBase implements DialectInterface {
 		
 		return parent::valueToString($v);
 	}
+
+	public function stringSwitchForeignKey($on) {
+		return sprintf('PRAGMA foreign_keys = %s;', $on ? 'On' : 'Off');
+	}
 }

@@ -106,4 +106,8 @@ class MySql extends SqlBase implements DialectInterface {
 		
 		return parent::binaryOperationToString($binaryOperation);
 	}
+
+	public function stringSwitchForeignKey($on) {
+		return sprintf('SET foreign_key_checks = %d;', $on ? 1 : 1);
+	}
 }

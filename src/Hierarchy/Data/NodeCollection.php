@@ -44,7 +44,13 @@ class NodeCollection implements \Countable {
 	}
 
 	public function getNode($nodeId) {
-		return new Node($this->keyId, $nodeId, $this->rows[$nodeId], $this->scopeId, $this->parentId);
+		return new Node(
+			$this->keyId, 
+			$nodeId, 
+			$this->rows[$nodeId], 
+			$this->rows[$nodeId]['_scope']??$this->scopeId, 
+			$this->rows[$nodeId]['_parent']??$this->parentId
+		);
 	}
 
 	public function pathArgs($nodeId) {

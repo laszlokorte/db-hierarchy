@@ -1,5 +1,13 @@
 <form action="{{ path('order_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id}) }}" method="post" accept-charset="utf-8">
      <dl class="form-container">
+        {% if not validation.isValid??true %}
+            <dt class="form-container-label form-container-spacer">
+            </dt>
+            <dd class="form-container-field">
+            {% include 'hierarchy/partials/validation_errors.html.twig' with {validation} only %}
+            </dd>
+        {% endif %}
+
         <dt class="form-container-label"><label class="target_order" for="target_scope-parent">New Position</label></dt>
         <dd class="form-container-field">
                 

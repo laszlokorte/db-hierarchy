@@ -40,6 +40,10 @@ abstract class SqlBase implements DialectInterface {
 		return str_repeat(self::INDENT, $this->depth + $extra);
 	}
 
+	public function stringSwitchForeignKey($on) {
+		return false;
+	}
+
 	public function selectToString(Select $select) {
 		return $this->selectToStringInternal($select, true);
 	}

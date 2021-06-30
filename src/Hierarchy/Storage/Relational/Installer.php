@@ -24,7 +24,15 @@ class Installer {
 	}
 
 	public function createSchema($dropOld, $onlyViews) {
+		$turnOffFk = $this->dialect->stringSwitchForeignKey(false);
+		$turnOnFk = $this->dialect->stringSwitchForeignKey(true);
+
+		if($turnOffFk) {
+			$this->connection->exec($turnOffFk);
+		}
+
 		$this->connection->beginTransaction();
+
 		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
@@ -43,9 +51,20 @@ class Installer {
 			$this->connection->executeStatement($this->dialect->createViewToString($v));
 		}
     	$this->connection->commit();
+
+		if($turnOnFk) {
+			$this->connection->exec($turnOnFk);
+		}
 	}
 
 	public function dropSchema() {
+		$turnOffFk = $this->dialect->stringSwitchForeignKey(false);
+		$turnOnFk = $this->dialect->stringSwitchForeignKey(true);
+
+		if($turnOffFk) {
+			$this->connection->exec($turnOffFk);
+		}
+
 		$this->connection->beginTransaction();
     	foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
@@ -54,5 +73,9 @@ class Installer {
 			$this->connection->executeStatement($this->dialect->dropTableToString($t));
 		}
     	$this->connection->commit();
+
+		if($turnOnFk) {
+			$this->connection->exec($turnOnFk);
+		}
 	}
 }

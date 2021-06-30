@@ -1,0 +1,10 @@
+<div class="form-error-container">
+	<dl>
+		{% for fieldId in validation.errorFields %}
+		    <dt><label class="form-label" for="field_{{fieldId}}">{{fieldId}}</label></dt>
+		    {% for error in validation.fieldErrors(fieldId) %}
+			    <dd>{{error}}</dd>
+			{% endfor %}
+		{% endfor %}
+	</dl>
+</div>

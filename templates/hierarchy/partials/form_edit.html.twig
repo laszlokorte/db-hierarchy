@@ -2,8 +2,18 @@
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
+
 	
+
 	<dl class="form-container">
+		{% if not validation.isValid??true %}
+			<dt class="form-container-label form-container-spacer">
+			</dt>
+			<dd class="form-container-field">
+	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {validation} only %}
+	    	</dd>
+		{% endif %}
+
 		{% for field in key.fields %}
         <dt class="form-container-label">
         <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
@@ -25,7 +35,7 @@
 
 	<dt class="form-container-label form-container-spacer"></dt>
 	<dd class="form-container-buttons">
-	{% if force_then|default(false) %}
+	{% if force_then??false %}
 		<button class="form-button primary">Save Changes</button>
 	{% else %}
 		<button class="form-button primary">Update</button>

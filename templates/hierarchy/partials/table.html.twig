@@ -73,7 +73,7 @@
                         </td>
                         {% endfor %}
                         <td class="data-table-cell actions sticky-end" align="right">
-                            {% if quickDelete|default(false) %}
+                            {% if quickDelete??false %}
                             <form class="inline-form" action="{{ path('delete_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId}) }}" method="post" accept-charset="utf-8">
                                 {% if then is defined %}
                                 <input type="hidden" name="_then" value="{{then}}">
@@ -112,7 +112,7 @@
             <tr class="data-table-foot-row">
                 {% if parent is defined %}
                     <td class="data-table-foot-cell sticky-start" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
-                    {% if listLink|default(false) %}
+                    {% if listLink??false %}
                         <a href="{{ path('list_child_nodes', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %}
                     </td>
@@ -121,7 +121,7 @@
                     </td>
                 {% else %}
                     <td class="data-table-foot-cell sticky-start" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
-                    {% if listLink|default(false) %}
+                    {% if listLink??false %}
                         <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %} 
                     </td>

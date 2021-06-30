@@ -28,7 +28,7 @@ class ReferenceType implements FieldTypeInterface {
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return (object)[
+		return [
 			'id' => $columnData[0],
 			'key' => $fieldOptions['target'],
 		];

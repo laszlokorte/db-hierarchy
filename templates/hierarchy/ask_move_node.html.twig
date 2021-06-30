@@ -14,6 +14,6 @@
 
 <h2>Move</h2>
 
-{% include 'hierarchy/partials/movement.html.twig' with {hierarchy: hierarchy,key:key, node, moveTargets} only %}
+{% include 'hierarchy/partials/movement.html.twig' with {hierarchy: hierarchy,key:key, node, moveTargets, validation: validation|default(null)} only %}
 
 {% endblock %}

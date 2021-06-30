@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -14,6 +15,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
 use Doctrine\DBAL\Connection;
+use Twig\Environment;
 
 use App\Hierarchy\Schema\RecursiveLoader;
 use App\Hierarchy\Schema\Hierarchy;
@@ -31,12 +33,18 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function root(Hierarchy $hierarchy, StorageConnection $storageConnection)
+    public function root(Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection)
     {
-    	return [
-            'hierarchy' => $hierarchy,
-    		'rootNodes' => $storageConnection->getFetcher()->findAllRootNodes(),
-    	];
+    	try {
+            return [
+                'hierarchy' => $hierarchy,
+                'rootNodes' => $storageConnection->getFetcher()->findAllRootNodes(),
+            ];
+        } catch(\Doctrine\DBAL\Exception\DriverException) {
+            $session->getFlashBag()->add('error', 'An error occured. Maybe the schema has to be updated');
+
+            return new RedirectResponse($urlGen->generate('show_hierarchy_setup', ['hierarchySlug' => $hierarchy->getSlug()]));
+        }
     }
 
     #[Route('/{hierarchySlug}/_full-tree', name: 'hierarchy_tree', methods: 'GET')]
@@ -239,17 +247,30 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
-    public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
+    #[Template('ask_delete_node')]
+    public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
     	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
 
         $validation = $storageConnection->getValidator()->validateDeleteNode($key->getId(), $nodeId);
 
-        try {
-            $storageConnection->getCommander()->deleteNode($key->getId(), $nodeId);
-        } catch(DeletionBlockedException $e) {
-            return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+        if($validation->isValid()) {
+            try {
+                $storageConnection->getCommander()->deleteNode($key->getId(), $nodeId);
+            } catch(DeletionBlockedException $e) {
+                return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+            }
+        } else {
+            return new Response($twig->render('hierarchy/ask_delete_node.html.twig', [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'deletionPlan' => $storageConnection->getCommander()->getDeletionPlan($key->getId(), $nodeId),
+                'validation' => $validation,
+            ]));
         }
+        
 
 		$then = $request->request->get('_then', null);
 
@@ -285,14 +306,12 @@ class HierarchyController {
     {
         $validation = $storageConnection->getValidator()->validateDeleteNode($key->getId(), $nodeId);
 
-        $deletionPlan = $storageConnection->getCommander()->getDeletionPlan($key->getId(), $nodeId);
-
 		return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
     		'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-            'deletionPlan' => $deletionPlan,
+            'deletionPlan' => $storageConnection->getCommander()->getDeletionPlan($key->getId(), $nodeId),
     	];
     }
 
@@ -300,18 +319,27 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
-    public function createNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key)
+    public function createNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key)
     {
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
 
         $validation = $storageConnection->getValidator()->validateCreateNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
-    	$newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
+        if($validation->isValid()) {
+            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
-		$then = $request->request->get('_then', null);
-		
-		$session->getFlashBag()->add('success', 'Node Created');
+            $then = $request->request->get('_then', null);
+            
+            $session->getFlashBag()->add('success', 'Node Created');
+        } else {
+            return new Response($twig->render('hierarchy/new_root_node.html.twig', [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'parentNodes' => new MultiCollection(null, null, [], null, null),
+                'validation' => $validation,
+            ]));
+        }
 
 		if($then === 'form') {
             if($parent) {
@@ -373,7 +401,7 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
-    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
+    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
         if(!$key->isNested()) {
             throw new NotFoundHttpException(sprintf('%s are not nested', $key->getLabel()->getPlural()));
@@ -383,9 +411,20 @@ class HierarchyController {
 
         $validation = $storageConnection->getValidator()->validateMoveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
         
-        $storageConnection->getCommander()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
+        if($validation->isValid()) {
+            $storageConnection->getCommander()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
 
-        $session->getFlashBag()->add('success', 'Node Moved');
+            $session->getFlashBag()->add('success', 'Node Moved');
+        } else {
+            return new Response($twig->render('hierarchy/ask_move_node.html.twig', [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key->getId(), $nodeId),
+                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'validation' => $validation,
+            ]));
+        }
 
 
         $then = $request->request->get('_then', null);
@@ -421,7 +460,7 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
-    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
+    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
 
         if(!$key->isOrdered()) {
@@ -432,10 +471,19 @@ class HierarchyController {
 
         $validation = $storageConnection->getValidator()->validateOrderNode($key->getId(), $nodeId, $target);
 
-        if(!empty($target)) {
+        if($validation->isValid()) {
             $storageConnection->getCommander()->orderNode($key->getId(), $nodeId, $target);
 
             $session->getFlashBag()->add('success', 'Node Reordered');
+        } else {
+            return new Response($twig->render('hierarchy/ask_order_node.html.twig', [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key->getId(), $nodeId),
+                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'validation' => $validation,
+            ]));
         }
 
         $then = $request->request->get('_then', null);
@@ -471,16 +519,26 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
-    public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Key $key, $nodeId)
+    public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
 
         $validation = $storageConnection->getValidator()->validateUpdateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
-		$storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
+		if($validation->isValid()) {
+            $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
-		$then = $request->request->get('_then', null);
+            $then = $request->request->get('_then', null);
 
-		$session->getFlashBag()->add('success', 'Node Updated');
+            $session->getFlashBag()->add('success', 'Node Updated');
+        } else {
+            return new Response($twig->render('hierarchy/edit_node.html.twig', [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'validation' => $validation,
+            ]));
+        }
 
         if($then === 'root') {
             return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));

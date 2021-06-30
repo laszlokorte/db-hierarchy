@@ -94,16 +94,51 @@ class Key {
 
 	public function summarize(Node $node, $appendId = null) {
 		$summDef = $this->def->getKeySummary($this->keyId);
-		$constants = $summDef->getConstants();
-		$fieldIds = $summDef->getFieldIds();
 
 		$result = '';
 
-		for ($i=0; $i < count($constants); $i++) {
-			if($i>0) {
-				$result .= $this->getField($fieldIds[$i-1])->readFormattedValueOf($node);
+		foreach ($summDef->getSegments() as $seg) {
+			if($seg->isConstant()) {
+				$val = $seg->getType();
+			} elseif($seg->isLocal()) {
+				if($seg->isLabel()) {
+					$val = $this->getLabel()->getString();
+				} else if($seg->isId()) {
+					$val = $node->getId();
+				} else if($seg->isField()) {
+					$val = $this->getField($seg->getFieldId())->readFormattedValueOf($node);
+				}
+			} elseif($seg->isNested()) {
+				if($seg->isId()) {
+					$val = $node->getParent() ?: $node->getScope();
+				} elseif($seg->isLabel()) {
+					$val = $node->getParent() ? $this->getLabel()->getString() : $this->getScopeKey()->getLabel()->getString();
+				} else {
+					$val = '?';
+				}
+			} elseif($seg->isParent()) {
+				if($seg->isId()) {
+					$val = $node->getParent();
+				} elseif($seg->isLabel()) {
+					$val = $this->getLabel()->getString();
+				} else {
+					$val = '?';
+				}
+			} elseif($seg->isScope()) {
+				if($seg->isId()) {
+					$val = $node->getScope();
+				} elseif($seg->isLabel()) {
+					$val = $this->getScopeKey()->getLabel()->getString();
+				} else {
+					$val = '?';
+				}
 			}
-			$result .= $constants[$i];
+
+			if(empty($val)) {
+				return ' ['.$node->getKey().'-'.$node->getID().']';
+			}
+
+			$result .= $val;
 		}
 
 		if($appendId === true || $appendId === null && empty($result)) {

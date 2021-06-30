@@ -14,6 +14,6 @@
 
 <h2>Edit</h2>
 
-{% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key, node, then: 'edit'} only %}
+{% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key, node, then: 'edit', validation: validation|default(null)} only %}
 
 {% endblock %}

@@ -39,7 +39,7 @@
         {%- endfor -%}
     {%- endif -%}
 
-    {%- if trailing|default(false) -%}
+    {%- if trailing??false -%}
     <li class="breadcrump-item">{{ trailing|capitalize }}</li>
     {%- endif -%}
 </ul>
