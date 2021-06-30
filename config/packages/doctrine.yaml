@@ -1,14 +1,15 @@
 doctrine:
     dbal:
-        auto_commit: false
         default_connection: default
         connections:
             default:
                 # configure these for your database server
                 url: '%env(resolve:DATABASE_URL)%'
+                auto_commit: false
             meta:
                 # configure these for your database server
                 url: '%env(resolve:META_DATABASE_URL)%'
+                auto_commit: false
     orm:
         auto_generate_proxy_classes: true
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
