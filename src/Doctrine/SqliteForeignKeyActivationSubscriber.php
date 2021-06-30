@@ -23,7 +23,7 @@ class SqliteForeignKeyActivationSubscriber implements EventSubscriber
      * @throws \Doctrine\DBAL\DBALException
      */
     public function postConnect(ConnectionEventArgs $args)
-    {
+    {       
         if ('sqlite' !== strtolower($args->getDatabasePlatform()->getName())) {
             return;
         }

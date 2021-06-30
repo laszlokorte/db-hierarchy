@@ -1,5 +1,6 @@
 doctrine:
     dbal:
+        auto_commit: false
         default_connection: default
         connections:
             default:
