@@ -332,7 +332,7 @@ class Fetcher {
 
 	private function beginTransaction() {
 		if($this->transactionDepth++ === 0) {
-			$this->connection->setAutoCommit(false);
+			$this->connection->beginTransaction();
 		}
 	}
 

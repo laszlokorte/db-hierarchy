@@ -523,7 +523,7 @@ class Commander {
 	}
 
 	private function beginTransaction($noFk = false) {
-		$this->connection->setAutoCommit(false);
+		$this->connection->beginTransaction();
 	}
 
 	private function commitTransaction() {
