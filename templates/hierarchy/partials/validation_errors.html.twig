@@ -14,6 +14,10 @@
 	    			{{key.scopeKey.label.singular}}
 	    		{% elseif fieldId == '_parent' %}
 	    			{{key.label.singular}}
+	    		{% elseif fieldId == '_order' %}
+	    			{{key.orderColumnName}}
+	    		{% elseif fieldId == '_blocking' %}
+	    			Blocking items
 	    		{% else %}
 	    			{{key.field(fieldId).label.singular}}
 	    		{% endif %}

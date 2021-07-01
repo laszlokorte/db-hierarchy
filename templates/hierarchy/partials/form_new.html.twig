@@ -22,10 +22,11 @@
 		{% endif %}
 
 		{% if parent is not defined and key.isScoped %}
-		<dt class="form-container-label">
-        <label class="form-label" for="scope">{{key.scopeKey.label.singular}}</label>
+		<dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid('_scope')??true}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid('_scope')??true}) }}" for="scope">{{key.scopeKey.label.singular}}</label>
         </dt>
-        <dd class="form-container-field">
+        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid('_scope')??true}) }}">
+        <div>
         <input type="hidden" name="scope" value="">
     	<input 
     data-label-singular="{{ key.scopeKey.label.singular }}" 
@@ -33,13 +34,24 @@
     data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" 
 
     required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+      </div>
+    	
+    	{% if not validation.isFieldValid('_scope')??true %}
+    	<ul class="inline-list error">
+    		{% for e in validation.fieldErrors('_scope') %}
+    	    <li>{{e}}</li>
+    		{% endfor %}
+    	</ul>
+    	{% endif %}
+
     	</dd>
 		{% endif %}
 		{% if parent is not defined and key.isReflexive %}
-		<dt class="form-container-label">
-        <label class="form-label" for="parent">Parent {{key.label.singular}}</label>
+		<dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid('_parent')??true}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid('_parent')??true}) }}" for="parent">Parent {{key.label.singular}}</label>
         </dt>
-        <dd class="form-container-field">
+        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid('_parent')??true}) }}">
+        <div>
         <input type="hidden" name="parent" value="">
     	<input 
     data-label-singular="{{ key.label.singular }}" 
@@ -47,6 +59,16 @@
     data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" 
 
      data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" class="form-field" type="text" id="parent" name="parent" value="" placeholder="{{key.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+
+        </div>
+    	
+    	{% if not validation.isFieldValid('_parent')??true %}
+    	<ul class="inline-list error">
+    		{% for e in validation.fieldErrors('_parent') %}
+    	    <li>{{e}}</li>
+    		{% endfor %}
+    	</ul>
+    	{% endif %}
     	</dd>
 		{% endif %}
 		{% for field in key.fields %}

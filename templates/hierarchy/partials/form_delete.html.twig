@@ -11,7 +11,7 @@
 
             <dl class="keyvalue-container">
                 {% for keyId in deletionPlan.willDelete.getKeys() %}
-                    <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.plural}}</dt>
+                    <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.string(hierarchy.getKey(keyId).isSingleton)}}</dt>
                     <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
                             {% for nodeId in deletionPlan.willDelete.getNodesFor(keyId).getIds() %}
@@ -36,7 +36,7 @@
 
             <dl class="keyvalue-container">
                 {% for keyId in deletionPlan.blockers.keys %}
-                    <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.plural}}</dt>
+                    <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.string(hierarchy.getKey(keyId).isSingleton)}}</dt>
                     <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
                             {% for nodeId in deletionPlan.blockers.getNodesFor(keyId).getIds() %}

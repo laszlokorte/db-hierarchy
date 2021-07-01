@@ -65,8 +65,6 @@ class SchemaDefinition {
 
 		array_shift($keys);
 
-		dump($keys);
-
 		return $keys;
 	}
 

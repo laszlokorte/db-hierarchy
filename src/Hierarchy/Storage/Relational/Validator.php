@@ -50,7 +50,7 @@ class Validator {
 
 			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-			if(empty(array_filter($columnData, fn($d) => !empty($d) || $d === false))) {
+			if(empty(array_filter($columnData, fn($d) => $d !== '' && $d !== null))) {
 				$errors[$fieldId][] = 'is required';
 			}
 		}
@@ -152,6 +152,7 @@ class Validator {
 		$errors = [];
 
 		$this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
+		$this->validateRequiredField($errors, $keyId, $fieldData);
 
 		return new Validation(
 			$keyId, 
@@ -220,7 +221,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			null,
-			[],
+			['_scope' => 'x'],
 			$targetScopeId, 
 			$targetParentId
 		);
@@ -236,7 +237,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			null,
-			[],
+			['_blocking' => 'x'],
 			$scopeId, 
 			$parentId
 		);
@@ -252,7 +253,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			null,
-			[],
+			['_order' => 'x'],
 			$scopeId, 
 			$parentId
 		);

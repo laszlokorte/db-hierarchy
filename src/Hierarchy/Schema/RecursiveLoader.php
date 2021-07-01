@@ -357,7 +357,7 @@ class RecursiveLoader {
 						'string', false, false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', true, false),
+						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'enum', true, false, 
@@ -450,7 +450,7 @@ class RecursiveLoader {
 				new ScopeDefinition('role'), null, null, [
 					'collection' => new FieldDefinition(
 						new LabelDefinition('Collection', 'Collections'), 
-						'reference', false, true, 
+						'reference', true, true, 
 						['target' => 'collection']),
 					'type' => new FieldDefinition(
 						new LabelDefinition('Type', 'Types'), 
@@ -515,8 +515,11 @@ class RecursiveLoader {
 						['target' => 'collection']),
 					'scope_column_name' => new FieldDefinition(
 						new LabelDefinition('Scope Column'), 
-						'string', true, false),
-				], SummaryDefinition::parseSegments('')
+						'string', false, false),
+					'can_change' => new FieldDefinition(
+						new LabelDefinition('Can change'), 
+						'bool', true, false),
+				], SummaryDefinition::parseSegments('{scope_key}')
 			),
 			'order_definition' => new KeyDefinition(
 				new StorageDefinition('order_definition'),
@@ -547,7 +550,10 @@ class RecursiveLoader {
 					'closure_table_name' => new FieldDefinition(
 						new LabelDefinition('Closure Table Name', null, 'For nested collections an addition table is needed.'), 
 						'string', true, false),
-				], SummaryDefinition::parseSegments('')
+					'can_change' => new FieldDefinition(
+						new LabelDefinition('Can change parent'), 
+						'bool', true, false),
+				], SummaryDefinition::parseSegments('{$self/label}')
 			),
 			'field' => new KeyDefinition(
 				new StorageDefinition('field'),
@@ -564,7 +570,7 @@ class RecursiveLoader {
 					]),
 					'options' => new FieldDefinition(
 						new LabelDefinition('Options'), 
-						'json', true, false),
+						'json', false, false),
 					'is_required' => new FieldDefinition(
 						new LabelDefinition('Required'), 
 						'bool', true, false),
@@ -573,19 +579,19 @@ class RecursiveLoader {
 						'bool', true, false),
 					'label_singular' => new FieldDefinition(
 						new LabelDefinition('Label Singular'), 
-						'string', true, false),
+						'string', false, false),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', true, false),
+						'string', false, false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', true, false),
+						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'enum', false, false, ['style' => 'compact', 'values' => $this->icons]),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
-						'string', true, false),
+						'string', false, false),
 				], SummaryDefinition::parseSegments('{label_singular}')
 			),
 		], $this->fieldTypes);

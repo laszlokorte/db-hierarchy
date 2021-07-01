@@ -15,12 +15,22 @@
 		{% endif %}
 
 		{% for field in key.fields %}
-        <dt class="form-container-label">
-        <label class="form-label" for="field_{{field.id}}">{{field.label.singular}}</label>
+        <dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid(field.id)??true}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid(field.id)??true}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
         </dt>
-        <dd class="form-container-field">
-        {{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
-    	</dd>
+        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid(field.id)??true}) }}">
+        
+        <div>
+        	{{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
+        </div>
+    	
+    	{% if not validation.isFieldValid(field.id)??true %}
+    	<ul class="inline-list error">
+    		{% for e in validation.fieldErrors(field.id) %}
+    	    <li>{{e}}</li>
+    		{% endfor %}
+    	</ul>
+    	{% endif %}
     	<dd class="form-container-info">
         <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, fieldId: field.id}) }}" title="" target="_blank">🡕</a>
     	</dd>

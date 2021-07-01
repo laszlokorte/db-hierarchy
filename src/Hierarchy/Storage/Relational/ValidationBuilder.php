@@ -119,7 +119,7 @@ class ValidationBuilder {
 		$tableH = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h1'));
 		$tableH2 = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h2'));
 		$conditions = [];
-		$checks = [];
+		$checks = [new Constant(0)];
 		$projections = [];
 
 		foreach ($fieldsToCheck as $fieldId => $params) {
