@@ -112,6 +112,21 @@ class SchemaBuilder {
 			$scopeColumn = $this->schemaDef->getKeyScopeColumn($keyId);
 			$columns[] = $this->fieldColumnToTableColumn($scopeColumn);
 
+			$isolations = $this->schemaDef->getKeyIsolations($keyId);
+			if(!empty($isolations)) {
+				foreach ($isolations as $isoKey) {
+					$isoColumn = $this->schemaDef->getKeyIsolationColumn($isoKey);
+					$columns[] = $this->fieldColumnToTableColumn($isoColumn);
+				}
+
+				$uniques[] = array_merge(
+					array_reverse(array_map(fn($iso) => $this->naming->nodeOwnIsolationColumnName($iso), $isolations)),
+					$this->schemaDef->isKeyScopeIsolating($keyId) ? [
+						$this->naming->nodeOwnScopeColumnName($keyId)
+					] : [],
+					[$pkColumnName]
+				);
+			}
 
 			if(!$this->quirks->noDeferredFK()) {
 				$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
@@ -211,10 +226,27 @@ class SchemaBuilder {
 
 			$targetTableName = $this->scopeTableName($keyId);
 
+			$ownColumns = [$ownColumnName];
+			$targetColumns = [$targetColumnName];
+
+			$isolations = $this->schemaDef->getKeyIsolations($keyId);
+			if(!empty($isolations)) {
+				foreach ($isolations as $i => $isoKey) {
+					array_unshift($ownColumns, $this->naming->nodeOwnIsolationColumnName($isoKey));
+
+					if($isoKey === $this->schemaDef->getKeyScopeId($keyId)) {
+						array_unshift($targetColumns, $this->naming->nodeOwnScopeColumnName($isoKey));
+					} else {
+						array_unshift($targetColumns, $this->naming->nodeOwnIsolationColumnName($isoKey));
+					}
+
+				}
+			}
+
 			$foreignKeys[] = new ForeignKey(
-				[$ownColumnName], 
+				$ownColumns, 
 				$targetTableName, 
-				[$targetColumnName],
+				$targetColumns,
 				ForeignKey::RESTRICT
 			);
 		}

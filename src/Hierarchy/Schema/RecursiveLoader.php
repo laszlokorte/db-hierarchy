@@ -248,6 +248,7 @@ class RecursiveLoader {
 		$fieldStmt->execute();
 		$fieldRows = $fieldStmt->fetchAll(\PDO::FETCH_GROUP);
 
+
 		$keys = [];
 
 		foreach ($keyRows as $keyRow) {
@@ -299,7 +300,10 @@ class RecursiveLoader {
 			);
 		}
 
-		return new SchemaDefinition(
+				dump($keys);
+
+
+		$def = new SchemaDefinition(
 			new LabelDefinition(
 				$row['label_singular']?:ucfirst($hierarchyName), 
 				$row['label_plural']?:null, 
@@ -310,6 +314,10 @@ class RecursiveLoader {
 			$keys, 
 			$this->fieldTypes
 		);
+
+		$def->validate();
+
+		return $def;
 	}
 
 	private function loadBaseDefinition() {
@@ -475,7 +483,7 @@ class RecursiveLoader {
 			'collection' => new KeyDefinition(
 				new StorageDefinition('collection'),
 				new LabelDefinition('Collection'),
-				new ScopeDefinition('hierarchy'), null, new OrderDefinition('priority', 'DESC'), [
+				new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 'string', true, true),
 					'label_singular' => new FieldDefinition(
@@ -612,6 +620,43 @@ class RecursiveLoader {
 						new LabelDefinition('Slug'), 
 						'string', true, true),
 				], SummaryDefinition::parseSegments('{slug}')
+			),
+
+			'aa' => new KeyDefinition(
+				new StorageDefinition('aa'),
+				new LabelDefinition('aa'),
+				null, null, null, [],
+				SummaryDefinition::parseSegments('aa')
+			),
+			'bb' => new KeyDefinition(
+				new StorageDefinition('bb'),
+				new LabelDefinition('bb'),
+				new ScopeDefinition('aa',null, true), null, null, [],
+				SummaryDefinition::parseSegments('bb')
+			),
+			'cc' => new KeyDefinition(
+				new StorageDefinition('cc'),
+				new LabelDefinition('cc'),
+				new ScopeDefinition('bb'), null, null, [],
+				SummaryDefinition::parseSegments('cc')
+			),
+			'dd' => new KeyDefinition(
+				new StorageDefinition('dd'),
+				new LabelDefinition('dd'),
+				new ScopeDefinition('cc',null, true), null, null, [],
+				SummaryDefinition::parseSegments('dd')
+			),
+			'ee' => new KeyDefinition(
+				new StorageDefinition('ee'),
+				new LabelDefinition('ee'),
+				new ScopeDefinition('dd'), null, null, [],
+				SummaryDefinition::parseSegments('ee')
+			),
+			'ff' => new KeyDefinition(
+				new StorageDefinition('ff'),
+				new LabelDefinition('ff'),
+				new ScopeDefinition('ee',null, true), null, null, [],
+				SummaryDefinition::parseSegments('ff')
 			),
 		], $this->fieldTypes);
 	}

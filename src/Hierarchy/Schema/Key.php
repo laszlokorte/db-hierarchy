@@ -73,6 +73,13 @@ class Key {
 		);
 	}
 
+	public function getIsolations() {
+		return array_map(
+			fn($k) => new Key($this->def, $k),
+			$this->def->getKeyIsolations($this->keyId)
+		);
+	}
+
 	public function isNested() {
 		return $this->def->isKeyNested($this->keyId);
 	}

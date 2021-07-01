@@ -106,6 +106,28 @@ class CommandBuilder  {
 		$columns[] = $this->naming->nodeTablePKName($keyId);
 		$values[] = new DefaultValue();
 
+		$isolations = $this->schemaDef->getKeyIsolations($keyId);
+
+		foreach ($isolations as $isolation) {
+			$scopeTable = new TableReference($this->naming->scopeTablename($keyId));
+			$columns[] = $this->naming->nodeOwnIsolationColumnName($isolation);
+			$values[] = new Selection(new Select([
+				new Projection(
+					new ColumnReference($scopeTable, 
+						$isolation === $this->schemaDef->getKeyScopeId($keyId)?
+						$this->naming->nodeOwnScopeColumnName($isolation)
+						: $this->naming->nodeOwnIsolationColumnName($isolation)
+					)
+				)
+			], [
+				$scopeTable,
+			], [], new BinaryOperation(
+				new Equal(), 
+				new ColumnReference($scopeTable, $this->naming->scopeTablePKName($keyId)),
+				$scopeParam
+			)));
+		}
+
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
 				$columns[] = $this->naming->fieldColumnToName($column);
@@ -435,19 +457,48 @@ class CommandBuilder  {
 
 	public function getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
-		// UPDATE %s SET %s_id = :parentId WHERE id = :id
+		$scopeTable = new TableReference($this->naming->scopeTablename($keyId), new Identifier('scope'));
+
+		$projections = [
+			new Projection(new ColumnReference($scopeTable, $this->naming->scopeTablePKName($keyId)), new Identifier('scope_id')),
+		];
+
+		$setters = [
+			new Setter(
+				new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
+				new Projected($projections[0])
+			)
+		];
+
+		$isolations = $this->schemaDef->getKeyIsolations($keyId);
+
+		foreach ($isolations as $i => $isolation) {
+			$pr = new Projection(
+				new ColumnReference($scopeTable, 
+					$isolation === $this->schemaDef->getKeyScopeId($keyId)?
+					$this->naming->nodeOwnScopeColumnName($isolation)
+					: $this->naming->nodeOwnIsolationColumnName($isolation)
+				), new Identifier('iso_'.$i)
+			);
+			$projections[] = $pr;
+			$setters[] = new Setter(
+				new ColumnReference($table, $this->naming->nodeOwnIsolationColumnName($isolation)),
+				new Projected($pr)
+			);
+		}
+		
 		return new Update(
-			$table, [
-				new Setter(
-					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
-					$scopeParam
-				)
-			],
+			$table, $setters,
 			new BinaryOperation(
 				new Equal(), 
 				new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
 				$idParam
-			)
+			),
+			new Select($projections, [$scopeTable], [], new BinaryOperation(
+				new Equal(), 
+				new ColumnReference($scopeTable, $this->naming->scopeTablePKName($keyId)),
+				$scopeParam
+			))
 		);
 	}
 

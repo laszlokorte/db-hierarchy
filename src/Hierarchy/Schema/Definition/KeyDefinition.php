@@ -43,6 +43,10 @@ class KeyDefinition {
 		return $this->scope !== NULL;
 	}
 
+	public function isScopeIsolating() {
+		return $this->scope->isIsolating();
+	}
+
 	public function isSingleton() {
 		return $this->order !== NULL && $this->order->isSingleton();
 	}

@@ -117,6 +117,14 @@ class Naming {
 		return $this->fieldColumnToName($this->schemaDef->getKeyScopeColumn($keyId));
 	}
 
+	public function nodeOwnIsolationColumnName($keyId) {
+		return $this->fieldColumnToName($this->schemaDef->getKeyIsolationColumn($keyId));
+	}
+
+	public function nodeIsolationColumnNames($keyId) {
+		return $this->fieldColumnToName($this->schemaDef->getKeyScopeColumn($keyId));
+	}
+
 	public function closureTableName($keyId) {
 		return new Identifier($this->schemaDef->getKeyReflexivityTableName($keyId));
 	}

@@ -7,7 +7,8 @@ class ScopeDefinition {
 
 	public function __construct(
 		private string $scopeKeyId, 
-		?string $columnName = NULL
+		?string $columnName = NULL,
+		private bool $isolating = false
 	) {
 		$this->columnName = $columnName ?? $scopeKeyId . '_id';
 	}
@@ -18,5 +19,9 @@ class ScopeDefinition {
 
 	public function getColumnName() {
 		return $this->columnName;
+	}
+
+	public function isIsolating() {
+		return $this->isolating;
 	}
 }

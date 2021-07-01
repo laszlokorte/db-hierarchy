@@ -10,7 +10,10 @@ class Validation {
 		private mixed $fieldData,
 		private array $fieldErrors, 
 		private ?string $scopeId = NULL, 
-		private ?string $parentId = NULL
+		private ?string $parentId = NULL,
+		private array $scopeErrors = [],
+		private array $orderErrors = [],
+		private array $deletionErrors = []
 	) {
 	}
 

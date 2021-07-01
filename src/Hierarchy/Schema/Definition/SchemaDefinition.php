@@ -59,13 +59,17 @@ class SchemaDefinition {
             $roots = array_merge($roots, $newRoots);
         }
 
+		array_shift($keys);
+		
 		if(count($keys) < count($this->keys)) {
 			throw new \Exception("cyclic hierarchy");
 		}
 
-		array_shift($keys);
-
 		return $keys;
+	}
+
+	public function validate() {
+		$this->getAllKeyIdsTopological();
 	}
 
 	public function getKeyIdsScopedInside($keyId, $singletons = true, $skipAtoms = false) {
@@ -124,6 +128,10 @@ class SchemaDefinition {
 
 	public function isKeyScoped($keyId) {
 		return $this->keys[$keyId]->isScoped();
+	}
+
+	public function isKeyScopeIsolating($keyId) {
+		return $this->keys[$keyId]->isScopeIsolating();
 	}
 
 	public function isKeyRoot($keyId) {
@@ -247,6 +255,33 @@ class SchemaDefinition {
 	public function getKeyScopeColumn($keyId) {
 		return $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))
 			->deriveSameWithName($this->getKeyScopeColumnName($keyId));
+	}
+
+	public function getKeyIsolationColumn($keyId) {
+		return $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))
+			->deriveSameWithName('_iso_' . $this->getKeyScopeColumnName($keyId));
+	}
+
+	public function getKeyIsolations($keyId) {
+		$scopeIds = [];
+
+		$currentKey = $this->getKeyScopeId($keyId);
+
+		while($currentKey) {
+			if($this->isKeyScoped($currentKey) && $this->isKeyScopeIsolating($currentKey)) {
+				$scopeIds[] = $currentKey;
+			}
+			$currentKey = $this->getKeyScopeId($currentKey);
+		}
+
+		return $scopeIds;
+	}
+
+	public function getKeyIsolationColumns($keyId) {
+		return array_map(
+			fn($iso) => $this->getKeyScopeColumn($iso),
+			$this->getKeyIsolations($keyId)
+		);
 	}
 
 	public function getKeyTableName($keyId) {
