@@ -21,6 +21,53 @@ class RecursiveLoader {
 	private $subSchemas;
 	private $connectionCache = [];
 
+	private array $icons = [ 
+		'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-down-left',
+		'arrow-down-right', 'arrow-left', 'arrow-right', 'arrow-switch', 'arrow-up',
+		'arrow-up-left', 'arrow-up-right', 'beaker', 'bell', 'bell-fill', 'bell-slash',
+		'blocked', 'bold', 'book', 'bookmark', 'bookmark-fill', 'bookmark-slash',
+		'bookmark-slash-fill', 'briefcase', 'broadcast', 'browser', 'bug',
+		'calendar', 'check', 'check-circle', 'check-circle-fill', 'checklist',
+		'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle',
+		'circle-slash', 'clippy', 'clock', 'code', 'code-review', 'code-square',
+		'codescan', 'codescan-checkmark', 'codespaces', 'columns', 'comment',
+		'comment-discussion', 'commit', 'container', 'cpu', 'credit-card',
+		'cross-reference', 'dash', 'database', 'dependabot', 'desktop-download',
+		'device-camera', 'device-camera-video', 'device-desktop', 'device-mobile',
+		'diamond', 'diff', 'diff-added', 'diff-ignored', 'diff-modified', 'diff-removed',
+		'diff-renamed', 'dot', 'dot-fill', 'download', 'duplicate', 'ellipsis',
+		'eye', 'eye-closed', 'file', 'file-badge', 'file-binary', 'file-code',
+		'file-diff', 'file-directory', 'file-directory-fill', 'file-media',
+		'file-submodule', 'file-symlink-file', 'file-zip', 'filter', 'flame',
+		'fold', 'fold-down', 'fold-up', 'gear', 'gift', 'git-branch', 'git-commit',
+		'git-compare', 'git-merge', 'git-pull-request', 'git-pull-request-closed',
+		'git-pull-request-draft', 'globe', 'grabber', 'graph', 'hash', 'heading',
+		'heart', 'heart-fill', 'history', 'home', 'home-fill', 'horizontal-rule',
+		'hourglass', 'hubot', 'image', 'inbox', 'infinity', 'info', 'issue-closed',
+		'issue-draft', 'issue-opened', 'issue-reopened', 'italic', 'kebab-horizontal',
+		'key', 'key-asterisk', 'law', 'light-bulb', 'link', 'link-external',
+		'list-ordered', 'list-unordered', 'location', 'lock', 'logo-gist',
+		'logo-github', 'mail', 'mark-github', 'markdown', 'megaphone', 'mention',
+		'meter', 'milestone', 'mirror', 'moon', 'mortar-board', 'multi-select',
+		'mute', 'no-entry', 'north-star', 'note', 'number', 'organization',
+		'package', 'package-dependencies', 'package-dependents', 'paintbrush',
+		'paper-airplane', 'pencil', 'people', 'person', 'person-add', 'pin',
+		'play', 'plug', 'plus', 'plus-circle', 'project', 'pulse', 'question',
+		'quote', 'reply', 'repo', 'repo-clone', 'repo-forked', 'repo-pull',
+		'repo-push', 'repo-template', 'report', 'rocket', 'rows', 'rss', 'ruby',
+		'screen-full', 'screen-normal', 'search', 'select-single', 'server',
+		'share', 'share-android', 'shield', 'shield-check', 'shield-lock',
+		'shield-x', 'sidebar-collapse', 'sidebar-expand', 'sign-in', 'sign-out',
+		'single-select', 'skip', 'smiley', 'sort-asc', 'sort-desc', 'square',
+		'square-fill', 'squirrel', 'star', 'star-fill', 'stop', 'stopwatch',
+		'strikethrough', 'sun', 'sync', 'tab', 'table', 'tag', 'tasklist',
+		'telescope', 'terminal', 'three-bars', 'thumbsdown', 'thumbsup', 'tools',
+		'trash', 'triangle-down', 'triangle-left', 'triangle-right', 'triangle-up',
+		'typography', 'unfold', 'unlock', 'unmute', 'unverified', 'upload',
+		'verified', 'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill',
+		'zap' 
+	];
+
 	public function __construct(Connection $baseConnection) {
 		$this->baseConnection = $baseConnection;
 
@@ -46,6 +93,7 @@ class RecursiveLoader {
 			'url' => new FieldType\UrlType(),
 			'svg' => new FieldType\SvgType(),
 			'sql' => new FieldType\SqlType(),
+			'icon' => new FieldType\IconType($this->icons),
 
 
 			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
@@ -55,53 +103,6 @@ class RecursiveLoader {
 			'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
 			'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
 		];
-
-		$this->icons =[ 
-			'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-down-left',
-			'arrow-down-right', 'arrow-left', 'arrow-right', 'arrow-switch', 'arrow-up',
-			'arrow-up-left', 'arrow-up-right', 'beaker', 'bell', 'bell-fill', 'bell-slash',
-			'blocked', 'bold', 'book', 'bookmark', 'bookmark-fill', 'bookmark-slash',
-			'bookmark-slash-fill', 'briefcase', 'broadcast', 'browser', 'bug',
-			'calendar', 'check', 'check-circle', 'check-circle-fill', 'checklist',
-			'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle',
-			'circle-slash', 'clippy', 'clock', 'code', 'code-review', 'code-square',
-			'codescan', 'codescan-checkmark', 'codespaces', 'columns', 'comment',
-			'comment-discussion', 'commit', 'container', 'cpu', 'credit-card',
-			'cross-reference', 'dash', 'database', 'dependabot', 'desktop-download',
-			'device-camera', 'device-camera-video', 'device-desktop', 'device-mobile',
-			'diamond', 'diff', 'diff-added', 'diff-ignored', 'diff-modified', 'diff-removed',
-			'diff-renamed', 'dot', 'dot-fill', 'download', 'duplicate', 'ellipsis',
-			'eye', 'eye-closed', 'file', 'file-badge', 'file-binary', 'file-code',
-			'file-diff', 'file-directory', 'file-directory-fill', 'file-media',
-			'file-submodule', 'file-symlink-file', 'file-zip', 'filter', 'flame',
-			'fold', 'fold-down', 'fold-up', 'gear', 'gift', 'git-branch', 'git-commit',
-			'git-compare', 'git-merge', 'git-pull-request', 'git-pull-request-closed',
-			'git-pull-request-draft', 'globe', 'grabber', 'graph', 'hash', 'heading',
-			'heart', 'heart-fill', 'history', 'home', 'home-fill', 'horizontal-rule',
-			'hourglass', 'hubot', 'image', 'inbox', 'infinity', 'info', 'issue-closed',
-			'issue-draft', 'issue-opened', 'issue-reopened', 'italic', 'kebab-horizontal',
-			'key', 'key-asterisk', 'law', 'light-bulb', 'link', 'link-external',
-			'list-ordered', 'list-unordered', 'location', 'lock', 'logo-gist',
-			'logo-github', 'mail', 'mark-github', 'markdown', 'megaphone', 'mention',
-			'meter', 'milestone', 'mirror', 'moon', 'mortar-board', 'multi-select',
-			'mute', 'no-entry', 'north-star', 'note', 'number', 'organization',
-			'package', 'package-dependencies', 'package-dependents', 'paintbrush',
-			'paper-airplane', 'pencil', 'people', 'person', 'person-add', 'pin',
-			'play', 'plug', 'plus', 'plus-circle', 'project', 'pulse', 'question',
-			'quote', 'reply', 'repo', 'repo-clone', 'repo-forked', 'repo-pull',
-			'repo-push', 'repo-template', 'report', 'rocket', 'rows', 'rss', 'ruby',
-			'screen-full', 'screen-normal', 'search', 'select-single', 'server',
-			'share', 'share-android', 'shield', 'shield-check', 'shield-lock',
-			'shield-x', 'sidebar-collapse', 'sidebar-expand', 'sign-in', 'sign-out',
-			'single-select', 'skip', 'smiley', 'sort-asc', 'sort-desc', 'square',
-			'square-fill', 'squirrel', 'star', 'star-fill', 'stop', 'stopwatch',
-			'strikethrough', 'sun', 'sync', 'tab', 'table', 'tag', 'tasklist',
-			'telescope', 'terminal', 'three-bars', 'thumbsdown', 'thumbsup', 'tools',
-			'trash', 'triangle-down', 'triangle-left', 'triangle-right', 'triangle-up',
-			'typography', 'unfold', 'unlock', 'unmute', 'unverified', 'upload',
-			'verified', 'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill',
-			'zap' 
-		]; 
 	}
 
 	public function loadSchema(string $hierarchyName = 'system') {
@@ -360,8 +361,7 @@ class RecursiveLoader {
 						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
-						'enum', false, false, 
-						['values' => $this->icons, 'style' => 'compact', 'explicit' => true]),
+						'icon', false, false),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
 						'color', true, false),
@@ -489,8 +489,7 @@ class RecursiveLoader {
 						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
-						'enum', false, false,  
-						['values' => $this->icons, 'style' => 'compact', 'explicit' => true]),
+						'icon', false, false),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
 						'color', false, false),
@@ -588,7 +587,7 @@ class RecursiveLoader {
 						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
-						'enum', false, false, ['style' => 'compact', 'values' => $this->icons]),
+						'icon', false, false),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
 						'color', false, false),

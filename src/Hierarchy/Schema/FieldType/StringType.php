@@ -39,4 +39,8 @@ class StringType implements FieldTypeInterface {
 		return 'string';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

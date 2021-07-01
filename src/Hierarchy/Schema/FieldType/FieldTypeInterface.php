@@ -16,4 +16,6 @@ interface FieldTypeInterface {
 
 	public function getTemplateName(string $fieldId, array $fieldOptions);
 
+	public function getDefaultOptions();
+
 }

@@ -39,4 +39,8 @@ class ColorType implements FieldTypeInterface {
 		return 'color';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

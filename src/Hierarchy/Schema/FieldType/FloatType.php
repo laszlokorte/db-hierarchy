@@ -37,4 +37,8 @@ class FloatType implements FieldTypeInterface {
 		return 'float';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

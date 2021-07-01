@@ -49,4 +49,8 @@ class BooleanType implements FieldTypeInterface {
 		return 'boolean';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

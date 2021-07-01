@@ -39,4 +39,8 @@ class EmailType implements FieldTypeInterface {
 		return 'email';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

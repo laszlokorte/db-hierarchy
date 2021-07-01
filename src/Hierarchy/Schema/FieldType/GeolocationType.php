@@ -39,4 +39,8 @@ class GeolocationType implements FieldTypeInterface {
 		return 'geolocation';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

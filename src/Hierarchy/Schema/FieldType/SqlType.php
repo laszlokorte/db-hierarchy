@@ -39,4 +39,8 @@ class SqlType implements FieldTypeInterface {
 		return 'sql';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

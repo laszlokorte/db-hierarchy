@@ -37,4 +37,8 @@ class JsonType implements FieldTypeInterface {
 		return 'json';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

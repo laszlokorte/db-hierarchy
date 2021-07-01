@@ -111,10 +111,6 @@ class KeyDefinition {
 		return $this->fields[$fieldId]->getOptions();
 	}
 
-	public function getFieldOption($fieldId, $optionId) {
-		return $this->fields[$fieldId]->getOption($optionId);
-	}
-
 	public function getSummary() {
 		return $this->summary ?? new SummaryDefinition();
 	}

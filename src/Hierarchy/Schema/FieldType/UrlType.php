@@ -39,4 +39,8 @@ class UrlType implements FieldTypeInterface {
 		return 'url';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

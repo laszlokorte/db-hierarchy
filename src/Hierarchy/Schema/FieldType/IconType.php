@@ -5,15 +5,15 @@ namespace App\Hierarchy\Schema\FieldType;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
 
-class DateType implements FieldTypeInterface {
+class IconType implements FieldTypeInterface {
 
 
-	public function __construct() {
-	}
+	public function __construct(private array $icons) {
+	}	
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::DATE), !$required, null)
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::ENUM), !$required, null)
 		];
 	}
 
@@ -34,11 +34,11 @@ class DateType implements FieldTypeInterface {
 	}
 
 	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'date';
+		return 'icon';
 	}
 
 	public function getDefaultOptions() {
-		return [];
+		return ['values' => $this->icons];
 	}
 
 }

@@ -37,5 +37,9 @@ class TimeType implements FieldTypeInterface {
 		return 'time';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 
 }

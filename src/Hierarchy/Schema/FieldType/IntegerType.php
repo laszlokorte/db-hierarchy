@@ -37,4 +37,8 @@ class IntegerType implements FieldTypeInterface {
 		return 'integer';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

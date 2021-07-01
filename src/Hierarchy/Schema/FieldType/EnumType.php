@@ -37,4 +37,8 @@ class EnumType implements FieldTypeInterface {
 		return 'enum';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

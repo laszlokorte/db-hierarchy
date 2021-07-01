@@ -37,4 +37,8 @@ class DateTimeType implements FieldTypeInterface {
 		return 'datetime';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

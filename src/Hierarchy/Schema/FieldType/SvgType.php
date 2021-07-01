@@ -39,4 +39,8 @@ class SvgType implements FieldTypeInterface {
 		return 'svg';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

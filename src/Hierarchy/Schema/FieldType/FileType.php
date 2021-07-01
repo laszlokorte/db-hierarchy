@@ -58,4 +58,8 @@ class FileType implements FieldTypeInterface {
 		return 'file';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

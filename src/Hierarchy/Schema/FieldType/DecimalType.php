@@ -37,4 +37,8 @@ class DecimalType implements FieldTypeInterface {
 		return 'decimal';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

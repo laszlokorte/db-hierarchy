@@ -44,4 +44,8 @@ class RangeType implements FieldTypeInterface {
 		return 'range';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

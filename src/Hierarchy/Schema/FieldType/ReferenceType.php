@@ -46,4 +46,8 @@ class ReferenceType implements FieldTypeInterface {
 		return 'reference';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

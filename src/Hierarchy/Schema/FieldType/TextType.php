@@ -39,4 +39,8 @@ class TextType implements FieldTypeInterface {
 		return 'text';
 	}
 
+	public function getDefaultOptions() {
+		return [];
+	}
+
 }

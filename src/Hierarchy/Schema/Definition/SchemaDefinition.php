@@ -197,11 +197,13 @@ class SchemaDefinition {
 	}
 
 	public function getKeyFieldOptions($keyId, $fieldId) {
-		return $this->keys[$keyId]->getFieldOptions($fieldId);
+		$fieldType = $this->getKeyFieldType($keyId, $fieldId);
+
+		return array_merge($fieldType->getDefaultOptions(), $this->keys[$keyId]->getFieldOptions($fieldId));
 	}
 
 	public function getKeyFieldOption($keyId, $fieldId, $optionId) {
-		return $this->keys[$keyId]->getFieldOption($fieldId, $optionId);
+		return $this->getKeyFieldOptions($keyId, $fieldId)[$optionId]??null;
 	}
 
 	public function getKeyFieldColumns($keyId, $fieldId) {

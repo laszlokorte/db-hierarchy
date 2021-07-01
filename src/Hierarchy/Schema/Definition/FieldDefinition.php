@@ -33,10 +33,6 @@ class FieldDefinition {
 		return $this->options;
 	}
 
-	public function getOption($optionId) {
-		return $this->options[$optionId] ?? null;
-	}
-
 	public function getTypeId() {
 		return $this->typeId;
 	}

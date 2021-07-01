@@ -1,0 +1,29 @@
+{% block field %}
+    {% set currentValue = node is defined ? field.readValueOf(node) : null %}
+    <select class="form-field compact" name="field[{{field.id}}]" value="{{currentValue}}">
+        {% if field.option('explicit') or not field.isRequired %}
+        <option value="">---</option>
+        {% endif %}
+        {% for value in field.option('values') %}
+            <option value="{{value}}" {% if currentValue==value %} selected="selected"{% endif %}>{{value}}</option>
+        {% endfor %}
+    </select>
+{% endblock %}
+
+
+{% block cell %}
+    {% set icon = field.readValueOf(nodeCollection.getNode(nodeId)) %}
+    {% if icon %}
+    <span class="badge" style="background-color: #eee;color:#000"><img class="inline-icon" src="/icons/{{icon}}-16.svg" alt="{{icon}}">
+    {{ icon }}</span>
+    {% endif %}
+{% endblock %}
+
+{% block display %}  
+{% set icon = field.readValueOf(node) %} 
+   
+    {% if icon %}
+     <span class="badge" style="background-color: #eee;color:#000"><img class="inline-icon" src="/icons/{{icon}}-16.svg" alt="{{icon}}">
+    {{ icon }}</span>
+    {% endif %}
+{% endblock %}
