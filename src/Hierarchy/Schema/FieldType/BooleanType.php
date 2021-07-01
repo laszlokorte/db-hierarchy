@@ -19,8 +19,8 @@ class BooleanType implements FieldTypeInterface {
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
 		switch($fieldData) {
-			case 'true': $casted = 1; break;
-			case 'false': $casted = 0; break;
+			case 'true': $casted = true; break;
+			case 'false': $casted = false; break;
 			default: $casted = null; break;
 		}
 		return [$casted];

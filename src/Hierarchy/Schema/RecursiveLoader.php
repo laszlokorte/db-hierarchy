@@ -441,7 +441,7 @@ class RecursiveLoader {
 						['target' => 'hierarchy']),
 					'type' => new FieldDefinition(
 						new LabelDefinition('Type', 'Types'), 
-						'enum', true, false, ['values' => ['permit', 'restrict']]),
+						'enum', true, false, ['values' => ['permit', 'restrict'],'explicit' => true]),
 				], SummaryDefinition::parseSegments('{hierarchy}/{type}')
 			),
 			'collection_permission' => new KeyDefinition(

@@ -50,7 +50,7 @@ class Validator {
 
 			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-			if(empty(array_filter($columnData))) {
+			if(empty(array_filter($columnData, fn($d) => !empty($d) || $d === false))) {
 				$errors[$fieldId][] = 'is required';
 			}
 		}

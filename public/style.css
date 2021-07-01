@@ -1078,6 +1078,6 @@ h1, h2, h3 {
 .state-error > div > .form-choice-list {
     border: 1px solid #a00;
 }
-.state-error > div > .form-choice-list label {
-    color: #a00;
+.state-error > div > .form-choice-list input[checked] + .marker {
+    background: #faa;
 }
