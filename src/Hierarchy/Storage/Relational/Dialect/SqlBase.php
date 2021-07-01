@@ -327,7 +327,7 @@ abstract class SqlBase implements DialectInterface {
 	}
 
 	public function parameterToString(Value\Parameter $parameter) {
-		return ':' . ($parameter->getName());
+		return ':' . substr(md5($parameter->getName()), 0, 5) . preg_replace('/[^a-z]/i', '', $parameter->getName());
 	}
 
 	protected function projectedToString(Value\Projected $projected) {
