@@ -229,7 +229,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			null,
-			['_scope' => 'x'],
+			[],
 			$targetScopeId, 
 			$targetParentId
 		);
@@ -245,7 +245,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			null,
-			['_blocking' => 'x'],
+			[],
 			$scopeId, 
 			$parentId
 		);
@@ -261,7 +261,7 @@ class Validator {
 			$keyId, 
 			$nodeId, 
 			null,
-			['_order' => 'x'],
+			[],
 			$scopeId, 
 			$parentId
 		);

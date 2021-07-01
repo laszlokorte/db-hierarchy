@@ -112,7 +112,7 @@ class RecursiveLoader {
 	public function loadSubSchemas() {
 		if($this->subSchemas === null) {
 			try {
-				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY collection.priority');
+				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
 				$stmt->execute();
 				$rows = $stmt->fetchAll();
 
@@ -342,7 +342,7 @@ class RecursiveLoader {
 					'Hierarchies',
 					'What is a hierarchy?'
 				),
-				null, null, null, [
+				null, null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 
 						'string', true, true
@@ -539,16 +539,16 @@ class RecursiveLoader {
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'parent_name' => new FieldDefinition(
 						new LabelDefinition('Parent Column'), 
-						'string', true, false),
+						'string', false, false),
 					'child_name' => new FieldDefinition(
 						new LabelDefinition('Parent Column'), 
-						'string', true, false),
+						'string', false, false),
 					'depth_name' => new FieldDefinition(
 						new LabelDefinition('Depth Column'), 
-						'string', true, false),
+						'string', false, false),
 					'closure_table_name' => new FieldDefinition(
 						new LabelDefinition('Closure Table Name', null, 'For nested collections an addition table is needed.'), 
-						'string', true, false),
+						'string', false, false),
 					'can_change' => new FieldDefinition(
 						new LabelDefinition('Can change parent'), 
 						'bool', true, false),
