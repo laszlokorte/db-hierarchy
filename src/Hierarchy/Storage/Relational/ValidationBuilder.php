@@ -77,7 +77,7 @@ class ValidationBuilder {
 			}
 
 			$checks[$fieldId] = new BinaryOperation(
-				new Equal(true),
+				new Equal(),
 				new Tuple($columns),
 				new Tuple($params)
 			);
@@ -142,10 +142,10 @@ class ValidationBuilder {
 			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId))
 		);
 
-		$conditions[] = new BinaryOperation(new Equal(), 
-			$idParam,
-			new ColumnReference($tableH2, $this->naming->hierarchyIdColumnName($keyId))
-		);
+		// $conditions[] = new BinaryOperation(new Equal(), 
+		// 	$idParam,
+		// 	new ColumnReference($tableH2, $this->naming->hierarchyIdColumnName($keyId))
+		// );
 
 		foreach ($checks as $fieldId => $check) {
 			$projections[] = new Projection(new Aggregation(new Maximum(), $check), new Identifier($fieldId));

@@ -360,8 +360,8 @@ class RecursiveLoader {
 						'text', false, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
-						'enum', true, false, 
-						['values' => $this->icons, 'style' => 'compact']),
+						'enum', false, false, 
+						['values' => $this->icons, 'style' => 'compact', 'explicit' => true]),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
 						'color', true, false),
@@ -490,16 +490,16 @@ class RecursiveLoader {
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'enum', false, false,  
-						['values' => $this->icons, 'style' => 'compact']),
+						['values' => $this->icons, 'style' => 'compact', 'explicit' => true]),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
-						'string', false, false),
+						'color', false, false),
 					'summary' => new FieldDefinition(
 						new LabelDefinition('Summary Template'), 
 						'string', false, false),
 					'table_name' => new FieldDefinition(
 						new LabelDefinition('Table Name'), 
-						'string', false, false),
+						'string', false, true),
 					'pk_name' => new FieldDefinition(
 						new LabelDefinition('Primary Key Column Name'), 
 						'string', false, false),
@@ -591,7 +591,7 @@ class RecursiveLoader {
 						'enum', false, false, ['style' => 'compact', 'values' => $this->icons]),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
-						'string', false, false),
+						'color', false, false),
 				], SummaryDefinition::parseSegments('{label_singular}')
 			),
 		], $this->fieldTypes);

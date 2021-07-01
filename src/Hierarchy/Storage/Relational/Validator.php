@@ -96,11 +96,15 @@ class Validator {
 			if(!$this->schemaDef->isKeyFieldUnique($keyId,  $fieldId)) {
 				continue;
 			}
+			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+
+			if(empty(array_filter($columnData))) {
+				continue;
+			}
 
 			$fieldsToCheck[$fieldId] = [];
 			$valuesToCheck[$fieldId] = [];
 
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
 				$fieldsToCheck[$fieldId][] = new Parameter($column->getName());
@@ -174,10 +178,14 @@ class Validator {
 				continue;
 			}
 
+			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+
+			if(empty(array_filter($columnData))) {
+				continue;
+			}
+
 			$fieldsToCheck[$fieldId] = [];
 			$valuesToCheck[$fieldId] = [];
-
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
 				$fieldsToCheck[$fieldId][] = new Parameter($column->getName());
