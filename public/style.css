@@ -145,17 +145,11 @@
     padding-top: 0.5em;
     justify-content: end;
     grid-column: 1;
-    margin-right: 1em;
+    padding-right: 1em;
 }
 
 .form-container-label.dense {
     margin-right: 0;
-}
-
-.form-error-container {
-    padding: 1em;
-    background: #fdd;
-    border: 1px solid #f77;
 }
 
 .keyvalue-container {
@@ -758,6 +752,10 @@ body.show-quickform .quickform-inline {
     content: ', ';
 }
 
+.inline-list.error {
+    color: #a00;
+}
+
 .warning-box {
     padding: 1em; 
     border: 1px solid darkred;
@@ -1032,4 +1030,54 @@ h1, h2, h3 {
     vertical-align: middle;
     width: 0.8em;
     height: 0.8em;
+}
+
+.form-error-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    color: #a00;
+    padding-bottom: 1em;
+    border-bottom: 1px solid var(--accent-primary);
+    margin-bottom: 1em;
+}
+
+.error-list {
+    display: flex;
+    gap: 0.3em;
+    flex-direction: row;
+    flex-flow: wrap;
+}
+
+.error-list-label {
+    grid-column: 1;
+    font-weight: bold;
+    page-break-before: always;
+    break-before: always;
+}
+
+.error-list-item {
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+}
+
+.form-error-title {
+    margin: 0;
+}
+
+.form-container-label.state-error {
+    color: #a00;
+    font-weight: bold;
+}
+
+.state-error > div > .form-field {
+    border-color: #a00;
+}
+
+.state-error > div > .form-choice-list {
+    border: 1px solid #a00;
+}
+.state-error > div > .form-choice-list label {
+    color: #a00;
 }

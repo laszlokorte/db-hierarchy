@@ -9,7 +9,8 @@ class LabelDefinition {
 		private $plural = NULL, 
 		private $description = NULL, 
 		private $icon = NULL, 
-		private $color = 'black'
+		private $color = 'black',
+		private $none = 'Empty'
 	) {
 		$this->plural = $plural ?? $singular . 's';
 	}
@@ -20,6 +21,10 @@ class LabelDefinition {
 
 	public function getPlural() {
 		return $this->plural;
+	}
+
+	public function getEmpty() {
+		return $this->none;
 	}
 
 	public function getString($singular = true) {

@@ -1,10 +1,11 @@
 Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), (el) => {
     const oldValue = el.value
-    const isExplicit = el.dataset.explicit == 'true' || !el.required
+    const isExplicit = el.dataset.explicit == true || !el.required
     const expandLimit = el.dataset.expandLimit
     const isExpanded = el.dataset.style === 'expanded'
     const fetchUrl = el.dataset.referenceUrl
     const plural = el.dataset.labelPlural
+    const emptyLabel = el.dataset.empty || 'None'
     const nameAttr = el.getAttribute('name')
     const required = el.required
     const origParent = el.parentNode
@@ -32,7 +33,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
 
         window.fetch(fetchUrl).then((response) => {
             return response.json().then((json) => {
-                if(isExpanded && json['nodes'].length < expandLimit) {
+                if(isExpanded && json['nodes'].length < expandLimit || json['nodes'].length == 0) {
                     const options = document.createDocumentFragment();
 
                     options.appendChild(hidden)
@@ -53,7 +54,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
                         marker.classList.add('marker')
 
                         label.appendChild(input)
-                        label.appendChild(document.createTextNode(`None`))
+                        label.appendChild(document.createTextNode(emptyLabel))
                         label.appendChild(marker)
 
                         li.appendChild(label)
@@ -131,7 +132,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
                     if(isExplicit) {
                         const nullOpt = document.createElement('option')
                         nullOpt.setAttribute('value', '');
-                        nullOpt.appendChild(document.createTextNode(`---`))
+                        nullOpt.appendChild(document.createTextNode(emptyLabel))
                         options.appendChild(nullOpt)
                     }
 

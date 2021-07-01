@@ -14,6 +14,14 @@ class Validation {
 	) {
 	}
 
+	public function getKeyId() {
+		return $this->keyId;
+	}
+
+	public function getNodeId() {
+		return $this->nodeId;
+	}
+
 	public function isValid() {
 		return empty($this->fieldErrors);
 	}

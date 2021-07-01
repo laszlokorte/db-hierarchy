@@ -1,0 +1,15 @@
+{% block field %}
+    <div style="display: flex; justify-items: stretch; gap: 1em">
+        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][start]" value="{{node is defined ? field.readValueOf(node) : ''}}">
+        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][end]" value="{{node is defined ? field.readValueOf(node) : ''}}">
+    </div>
+{% endblock %}
+
+
+{% block cell %}
+    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+{% endblock %}
+
+{% block display %}
+    {{field.readValueOf(node)}}
+{% endblock %}

@@ -1,5 +1,5 @@
 {% block field %}
-    <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{node is defined ? field.readValueOf(node) : ''}}">
+    <input placeholder="http://" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{node is defined ? field.readValueOf(node) : ''}}">
 {% endblock %}
 
 

@@ -1,10 +1,31 @@
+{% if not validation.isValid %}
 <div class="form-error-container">
-	<dl>
+	<h3 class="form-error-title">
+		{% if validation.nodeId %}
+			{{ key.label.singular }} could not be saved.
+		{% else %}
+			{{ key.label.singular }} could not be created.
+		{% endif %}
+	</h3>
+	<dl class="error-list">
 		{% for fieldId in validation.errorFields %}
-		    <dt><label class="form-label" for="field_{{fieldId}}">{{fieldId}}</label></dt>
-		    {% for error in validation.fieldErrors(fieldId) %}
-			    <dd>{{error}}</dd>
-			{% endfor %}
+		    <dt class="error-list-label"><label class="form-label" for="field_{{fieldId}}">
+		    	{% if fieldId == '_scope' %}
+	    			{{key.scopeKey.label.singular}}
+	    		{% elseif fieldId == '_parent' %}
+	    			{{key.label.singular}}
+	    		{% else %}
+	    			{{key.field(fieldId).label.singular}}
+	    		{% endif %}
+		    </label></dt>
+		    <dd class="error-list-item">
+		    <ul class="inline-list">
+		    	{% for error in validation.fieldErrors(fieldId) %}
+			   <li> {{error}}</li>
+				{% endfor %}
+		    </ul>
+			</dd>
 		{% endfor %}
 	</dl>
 </div>
+{% endif %}

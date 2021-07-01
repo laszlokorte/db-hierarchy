@@ -5,7 +5,7 @@
             <dt class="form-container-label form-container-spacer">
             </dt>
             <dd class="form-container-field">
-            {% include 'hierarchy/partials/validation_errors.html.twig' with {validation} only %}
+            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, validation} only %}
             </dd>
         {% endif %}
         <dt class="form-container-label"><label class="form-label" for="target_scope-parent">Move To</label></dt>

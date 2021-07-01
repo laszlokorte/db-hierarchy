@@ -1,6 +1,6 @@
 
 {% if not validation.isValid??true %}
-{% include 'hierarchy/partials/validation_errors.html.twig' with {validation} only %}
+{% include 'hierarchy/partials/validation_errors.html.twig' with {key, validation} only %}
 {% endif %}
 
 <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:node.id}) }}" method="post" accept-charset="utf-8">

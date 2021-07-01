@@ -17,10 +17,10 @@
  <ul class="quicktab-list">
 
     <li class="quicktab-list-item"><a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}) }}" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
-    No
+    {{childKey.label.empty}}
     </a></li>
     <li class="quicktab-list-item"><span for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
-    Yes
+    {{childKey.label.plural}}
     </span></li>
 </ul>
 

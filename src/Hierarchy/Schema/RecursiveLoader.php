@@ -357,10 +357,10 @@ class RecursiveLoader {
 						'string', false, false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', false, false),
+						'text', true, false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
-						'enum', false, false, 
+						'enum', true, false, 
 						['values' => $this->icons, 'style' => 'compact']),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
@@ -369,7 +369,7 @@ class RecursiveLoader {
 			),
 			'setting' => new KeyDefinition(
 				new StorageDefinition('settings'),
-				new LabelDefinition('Settings', 'Settings'),
+				new LabelDefinition('Settings', 'Custom', null, null, null, 'Default'),
 				null, null, new OrderDefinition(singleton: true), [
 					'title' => new FieldDefinition(
 						new LabelDefinition('Title'), 
@@ -402,9 +402,9 @@ class RecursiveLoader {
 						new LabelDefinition(' E-mail'), 
 						'email', false, false),
 					'role' => new FieldDefinition(
-						new LabelDefinition('Role', 'Roles'), 
+						new LabelDefinition('Role', 'Roles', null, null, null, 'None'), 
 						'reference', true, false, 
-						['target' => 'role','style' => 'expanded']),
+						['target' => 'role','style' => 'expanded', 'explicit' => true]),
 				], SummaryDefinition::parseSegments('{login}')
 			),
 			'role' => new KeyDefinition(
@@ -418,6 +418,19 @@ class RecursiveLoader {
 						new LabelDefinition('Admin'), 
 						'bool', true, false),
 				], SummaryDefinition::parseSegments('{title}')
+			),
+			'test' => new KeyDefinition(
+				new StorageDefinition('test'),
+				new LabelDefinition('Field Test', 'Field Tests'),
+				null, null, null, 
+				array_combine(array_keys($this->fieldTypes), 
+					array_map(fn($typeId) => 
+						new FieldDefinition(
+							new LabelDefinition(ucfirst($typeId)), 
+							$typeId, false, false, ['values' => ['x','y','z'], 'target' => 'test'])
+						, array_keys($this->fieldTypes))
+				),
+				SummaryDefinition::parseSegments('{$self/id}')
 			),
 			'hierarchy_permission' => new KeyDefinition(
 				new StorageDefinition('hierarchy_permission'),
@@ -437,7 +450,7 @@ class RecursiveLoader {
 				new ScopeDefinition('role'), null, null, [
 					'collection' => new FieldDefinition(
 						new LabelDefinition('Collection', 'Collections'), 
-						'reference', true, true, 
+						'reference', false, true, 
 						['target' => 'collection']),
 					'type' => new FieldDefinition(
 						new LabelDefinition('Type', 'Types'), 
@@ -494,7 +507,7 @@ class RecursiveLoader {
 			),
 			'scope_definition' => new KeyDefinition(
 				new StorageDefinition('scope_definition'),
-				new LabelDefinition('Scope', 'Scopes'),
+				new LabelDefinition('Scope', 'Yes', null, null, null, 'None'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'scope_key' => new FieldDefinition(
 						new LabelDefinition('Parent', 'Parents'), 
@@ -507,7 +520,7 @@ class RecursiveLoader {
 			),
 			'order_definition' => new KeyDefinition(
 				new StorageDefinition('order_definition'),
-				new LabelDefinition('Order', 'Order'),
+				new LabelDefinition('Order', 'Yes', null, null, null, 'None'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 
 					'is_singleton' => new FieldDefinition(
@@ -520,7 +533,7 @@ class RecursiveLoader {
 			),
 			'reflexivity_definition' => new KeyDefinition(
 				new StorageDefinition('reflexivity_definition'),
-				new LabelDefinition('Reflexivity', 'Reflexivity'),
+				new LabelDefinition('Reflexivity', 'Yes', null, null, null, 'None'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'parent_name' => new FieldDefinition(
 						new LabelDefinition('Parent Column'), 
