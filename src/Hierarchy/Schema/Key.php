@@ -52,10 +52,10 @@ class Key {
 		return new Key($this->def, $this->def->getKeyScopeId($this->keyId));
 	}
 
-	public function getScopeChildKeys($singletons = true) {
+	public function getScopeChildKeys($singletons = true, $skipAtoms = false) {
 		return array_map(
 			fn($k) => new Key($this->def, $k),
-			$this->def->getKeyIdsScopedInside($this->keyId, $singletons)
+			$this->def->getKeyIdsScopedInside($this->keyId, $singletons, $skipAtoms)
 		);
 	}
 
@@ -79,6 +79,10 @@ class Key {
 
 	public function isSingleton() {
 		return $this->def->isKeySingleton($this->keyId);
+	}
+
+	public function isAtomic() {
+		return $this->def->isKeyAtomic($this->keyId);
 	}
 
 	public function getReferencingKeys() {

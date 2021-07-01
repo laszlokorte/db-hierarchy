@@ -164,10 +164,23 @@ class SchemaBuilder {
 						throw new \Exception("Unexpected cascade value");
 				}
 
+				$ownCols = [$ownColumnName];
+				$otherCols = [$targetColumnName];
+
+				if(!$this->quirks->noDeferredFK() &&
+					$this->schemaDef->isKeyScoped($keyId) && 
+					$this->schemaDef->isKeyScoped($targetKeyName) &&
+					$this->schemaDef->getKeyScopeId($keyId) == 
+					$this->schemaDef->getKeyScopeId($targetKeyName)) {
+					
+					//$ownCols[] = $this->nodeOwnScopeColumnName($keyId);
+					//$otherCols[] = $this->nodeOwnScopeColumnName($targetKeyName);
+				}
+
 				$foreignKeys[] = new ForeignKey(
-					[$ownColumnName], 
+					$ownCols, 
 					$targetTableName, 
-					[$targetColumnName],
+					$otherCols,
 					$onDelete
 				);
 			}

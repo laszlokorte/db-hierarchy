@@ -1,7 +1,7 @@
 {% macro walkSubKeys(hierarchy, key) %}
     {% if key.scopeChildKeys(false) %}
     <ul class="block-list small">
-        {% for childKey in key.scopeChildKeys(false) %}
+        {% for childKey in key.scopeChildKeys(false, true) %}
         <li>
         <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: childKey.id}) }}" title="">{{ childKey.label.plural }}</a>
         {{ _self.walkSubKeys(hierarchy, childKey) }}

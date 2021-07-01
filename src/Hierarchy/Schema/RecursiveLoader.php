@@ -112,7 +112,7 @@ class RecursiveLoader {
 	public function loadSubSchemas() {
 		if($this->subSchemas === null) {
 			try {
-				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> ""');
+				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY collection.priority');
 				$stmt->execute();
 				$rows = $stmt->fetchAll();
 
@@ -352,10 +352,10 @@ class RecursiveLoader {
 						'string', false, false),
 					'label_singular' => new FieldDefinition(
 						new LabelDefinition('Label Singular'), 
-						'string', false, false),
+						'string', false, false, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', false, false),
+						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's']),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
 						'text', false, false),
@@ -480,10 +480,10 @@ class RecursiveLoader {
 						new LabelDefinition('Slug'), 'string', true, true),
 					'label_singular' => new FieldDefinition(
 						new LabelDefinition('Label Singular'), 
-						'string', false, false),
+						'string', false, false, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', false, false),
+						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's']),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
 						'text', false, false),
@@ -498,7 +498,7 @@ class RecursiveLoader {
 						'string', false, false),
 					'table_name' => new FieldDefinition(
 						new LabelDefinition('Table Name'), 
-						'string', false, true),
+						'string', true, true, ['autofillBy' => 'slug']),
 					'pk_name' => new FieldDefinition(
 						new LabelDefinition('Primary Key Column Name'), 
 						'string', false, false),
@@ -581,10 +581,10 @@ class RecursiveLoader {
 						'string', false, false),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', false, false),
+						'string', false, false, ['autofillBy' => 'slug']),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', false, false),
+						'text', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's']),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'icon', false, false),
@@ -592,6 +592,26 @@ class RecursiveLoader {
 						new LabelDefinition('Color'), 
 						'color', false, false),
 				], SummaryDefinition::parseSegments('{label_singular}')
+			),
+
+			'collection_extension' => new KeyDefinition(
+				new StorageDefinition('collection_extension'),
+				new LabelDefinition('Extension'),
+				new ScopeDefinition('collection'),  null, null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true),
+				], SummaryDefinition::parseSegments('{slug}')
+			),
+
+			'field_extension' => new KeyDefinition(
+				new StorageDefinition('field_extension'),
+				new LabelDefinition('Extension'),
+				new ScopeDefinition('field'),  null, null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true),
+				], SummaryDefinition::parseSegments('{slug}')
 			),
 		], $this->fieldTypes);
 	}

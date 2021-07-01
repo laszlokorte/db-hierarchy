@@ -198,3 +198,24 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-reference-url]'), 
         })
     }
 }) 
+
+
+
+Array.prototype.forEach.call(document.querySelectorAll('[data-autofill-by]'), (el) => {
+    const source = document.getElementById(el.dataset.autofillBy)
+    const suffix = el.dataset.autofillSuffix??''
+    let active = !el.value
+
+    if(source) {
+        source.addEventListener('input', () => {
+            if(active) {
+                el.value = source.value + suffix
+            }
+        })
+
+        el.addEventListener('input', () => {
+            active = !el.value
+        })
+    }
+
+})

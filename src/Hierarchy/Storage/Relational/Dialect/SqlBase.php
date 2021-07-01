@@ -215,7 +215,7 @@ abstract class SqlBase implements DialectInterface {
 	}
 
 	protected function associativeOperationToString(Value\AssociativeOperation $associativeOperation) {
-		return implode(' ' . $this->operatorSymbol($associativeOperation->getOperator()) . PHP_EOL . $this->i(), array_map(fn($v) => $this->valueToString($v), $associativeOperation->getOperands()));
+		return '(' . implode(' ' . $this->operatorSymbol($associativeOperation->getOperator()) . PHP_EOL . $this->i(), array_map(fn($v) => $this->valueToString($v), $associativeOperation->getOperands())) . ')';
 	}
 
 	protected function operatorSymbol($operator) {
@@ -448,7 +448,7 @@ abstract class SqlBase implements DialectInterface {
 						return 'LAST_VALUE('.$v.')';
 					case Windowing\Value\Lag::class:
 						return 'LAG(' . $v 
-						. (($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'') 
+						. (G($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'') 
 						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'') 
 						. ')';
 					case Windowing\Value\Lead::class:

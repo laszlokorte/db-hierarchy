@@ -68,10 +68,11 @@ class SchemaDefinition {
 		return $keys;
 	}
 
-	public function getKeyIdsScopedInside($keyId, $singletons = true) {
+	public function getKeyIdsScopedInside($keyId, $singletons = true, $skipAtoms = false) {
 		return array_filter(array_keys($this->keys), 
 			fn($k) => $this->isKeyScopedInside($k, $keyId) 
-			&& ($singletons || !$this->isKeySingleton($k)));
+			&& ($singletons || !$this->isKeySingleton($k)) 
+			&& (!$skipAtoms || !$this->isKeyAtomic($k)));
 	}
 
 	public function getKeyIdsScopedInsideAndReflexiveSelf($keyId, $singletons = true) {
@@ -158,6 +159,10 @@ class SchemaDefinition {
 
 	public function getKeyReflexivityTableName($keyId) {
 		return $this->keys[$keyId]->getReflexivityTableName();
+	}
+
+	public function isKeyAtomic($keyId) {
+		return $this->keys[$keyId]->isAtomic();
 	}
 
 	public function getKeyReflexivityParentColumn($keyId) {

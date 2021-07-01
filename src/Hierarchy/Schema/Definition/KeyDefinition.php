@@ -63,6 +63,10 @@ class KeyDefinition {
 		return $this->reflexivity !== NULL;
 	}
 
+	public function isAtomic() {
+		return count($this->fields) < 2;
+	}
+
 	public function getReflexivityTableName() {
 		return $this->reflexivity->deriveTableName($this->getTableName());
 	}
