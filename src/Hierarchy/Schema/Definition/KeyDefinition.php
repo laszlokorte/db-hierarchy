@@ -91,6 +91,10 @@ class KeyDefinition {
 		return $this->storage->getIdColumnName();
 	}
 
+	public function getIdColumnType() {
+		return $this->storage->getIdColumnType();
+	}
+
 	public function getIdColumn() {
 		return $this->storage->getIdColumn();
 	}

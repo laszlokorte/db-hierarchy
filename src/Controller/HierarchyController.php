@@ -156,17 +156,17 @@ class HierarchyController {
     #[ParamConverter('key')]
     #[ParamConverter('field')]
     #[Template()]
-    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, Field $field, ?string $scopeId = null)
+    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, Field $field, $scopeId = null)
     {
         $target = $field->getOption('target');
         $targetKey = $hierarchy->getKey($target);
 
-        $all = $storageConnection->getFetcher()->findAllNodes($key->getId());
+        $all = $storageConnection->getFetcher()->findAllNodes($targetKey->getId());
         return new JsonResponse([
-            'keyId' => $key->getId(),
+            'keyId' => $targetKey->getId(),
             'nodes' => array_map(fn($nodeId) => [
                 'nodeId' => $nodeId,
-                'label' => $key->summarize($all->getNode($nodeId), true),
+                'label' => $targetKey->summarize($all->getNode($nodeId), true),
             ], $all->getIds()),
         ]);
     }

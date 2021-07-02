@@ -3,6 +3,8 @@
 namespace App\Hierarchy\Schema\Definition;
 
 class StorageCoding {
+	public const SERIAL = 'SERIAL';
+	public const UUID = 'UUID';
 	public const STRING = 'STRING';
 	public const TEXT = 'TEXT';
 	public const INTEGER = 'INTEGER';

@@ -15,6 +15,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Unhex;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
@@ -45,7 +46,18 @@ class CommandBuilder  {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
 	}
 
-	public function getCommandForCreateNode(string $keyId, $scopeParam, $parentParam) {
+	private function pkParameter($keyId, $parameter) {
+		switch($this->schemaDef->getKeyIdentityColumnType($keyId)) {
+			case 'serial':
+				return $parameter;
+			case 'uuid':
+				return new FunctionApplication(new Unhex(), [$parameter]);
+			case 'manual':
+				return $parameter;
+		}
+	}
+
+	public function getCommandForCreateNode(string $keyId, $idParam, $scopeParam, $parentParam) {
 		$tableName = $this->naming->nodeTableName($keyId);
 
 		$columns = [];
@@ -53,7 +65,10 @@ class CommandBuilder  {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$values[] = $scopeParam; 
+			$values[] = $this->pkParameter(
+				$this->schemaDef->getKeyScopeId($keyId),
+				$scopeParam
+			); 
 		}
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
@@ -104,7 +119,18 @@ class CommandBuilder  {
 		}
 
 		$columns[] = $this->naming->nodeTablePKName($keyId);
-		$values[] = new DefaultValue();
+
+		switch($this->schemaDef->getKeyIdentityColumnType($keyId)) {
+			case 'serial':
+				$values[] = new DefaultValue();
+				break;
+			case 'uuid':
+				$values[] = new FunctionApplication(new Unhex(), [$idParam]);
+				break;
+			case 'manual':
+				$values[] = $idParam;
+				break;
+		}
 
 		$isolations = $this->schemaDef->getKeyIsolations($keyId);
 
@@ -131,7 +157,11 @@ class CommandBuilder  {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
 				$columns[] = $this->naming->fieldColumnToName($column);
-				$values[] = new Parameter($column->getName());
+				if($column->isReference()) {
+					$values[] = $this->pkParameter($column->getCoding()->getTarget(), new Parameter($column->getName()));
+				} else {
+					$values[] = new Parameter($column->getName());
+				}
 			}
 		}
 

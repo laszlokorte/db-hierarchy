@@ -86,6 +86,13 @@
     color: #aaa;
 }
 
+.sticky-v {
+    position: sticky; 
+    right: 50%;
+    left: 50%;
+    width: max-content;
+}
+
 .data-table-head-cell.sticky-end,
 .data-table-cell.sticky-end,
 .data-table-foot-cell.sticky-end {

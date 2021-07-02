@@ -42,7 +42,13 @@ class Installer {
 			}
 
 			foreach ($this->schmaBuilder->getAllTables() as $t) {
-				$this->connection->executeStatement($this->dialect->createTableToString($t));
+				$this->connection->executeStatement($this->dialect->createTableToString($t, true));
+			}
+
+			foreach ($this->schmaBuilder->getAllTables() as $t) {
+				if($t->hasForeignKeys()) {
+					$this->connection->executeStatement($this->dialect->addForeignKeysTableToString($t));
+				}
 			}
 		}
 

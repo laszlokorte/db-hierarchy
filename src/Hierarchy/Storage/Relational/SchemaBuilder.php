@@ -54,6 +54,7 @@ class SchemaBuilder {
 			$tables[] = $this->buildClosureTable($keyId);
 		}
 
+	
 		return $tables;
 	}
 	public function getViewsFor(string $keyId) {
@@ -93,14 +94,11 @@ class SchemaBuilder {
 
 	private function buildNodeTable($keyId) {
 		$tableName = $this->nodeTableName($keyId);
-		$pkColumn = $this->schemaDef->getKeyIdentityColumn($keyId);
+		$pkColumnDef = $this->schemaDef->getKeyIdentityColumn($keyId);
 		$pkColumnName = $this->nodeTablePKName($keyId);
-
-		$columns = [
-			$this->fieldColumnToTableColumn($pkColumn),
-		];
-
+		$pkColumn = $this->fieldColumnToTableColumn($pkColumnDef, true);
 		
+		$columns = [];
 		$uniques = [];
 		$foreignKeys = [];
 
@@ -164,15 +162,16 @@ class SchemaBuilder {
 				$singletonKey = [];
 				if($this->schemaDef->isKeyScoped($keyId)) {
 					$singletonKey[] = $this->nodeOwnScopeColumnName($keyId);
+				} else {
+					$columns[] = new TableColumn(
+						new Identifier($this->schemaDef->getKeySingletonColumnName($keyId)),
+						'char(1)',
+						true,
+						new Constant('x')
+					);
+					$singletonKey[] = new Identifier($this->schemaDef->getKeySingletonColumnName($keyId));
 				}
 
-				$columns[] = new TableColumn(
-					new Identifier($this->schemaDef->getKeySingletonColumnName($keyId)),
-					'char(1)',
-					true,
-					new Constant('x')
-				);
-				$singletonKey[] = new Identifier($this->schemaDef->getKeySingletonColumnName($keyId));
 
 				$uniques[] = $singletonKey;
 			}
@@ -285,7 +284,7 @@ class SchemaBuilder {
 			);
 		}
 
-		return new CreateTable($tableName, $pkColumnName, $columns, $uniques, $foreignKeys);
+		return new CreateTable($tableName, $pkColumn, $columns, $uniques, $foreignKeys);
 	}
 
 
@@ -302,13 +301,14 @@ class SchemaBuilder {
 		return $fieldType->getColumns($fieldId, $required, $options);
 	}
 
-	private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition) {
+	private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition, $keepSerial = false) {
 		return new TableColumn(
 			$this->fieldColumnToName($columnDefinition),
 			$this->columnCodingToSqlType($columnDefinition->getCoding()),
 			$columnDefinition->isNullable(),
 			$columnDefinition->getDefault() !== null ?
-			new Constant($columnDefinition->getDefault()) : null
+			new Constant($columnDefinition->getDefault()) : null,
+			$keepSerial && $columnDefinition->getCoding() instanceof StorageCoding && $columnDefinition->getCoding()->getType() === 'SERIAL'
 		);
 	}
 
@@ -318,7 +318,16 @@ class SchemaBuilder {
 
 			return $this->columnCodingToSqlType($this->schemaDef->getKeyIdentityColumn($targetKey)->getCoding());
 		} else {
-			return $storageCoding->getType() == 'INTEGER' ? $storageCoding->getType() : 'VARCHAR(120)';
+			switch ($storageCoding->getType()) {
+				case 'INTEGER':
+					return 'INTEGER SIGNED';
+				case 'SERIAL':
+					return 'INTEGER UNSIGNED';
+				case 'UUID':
+					return 'BINARY(16)';
+				default:
+					return 'VARCHAR(120)';
+			}
 		}
 	}
 
@@ -369,9 +378,9 @@ class SchemaBuilder {
 	private function buildClosureTable($keyId) {
 		$scopeColumnNames = [];
 		$pkColumnName = $this->closureTablePkName($keyId);
-
+		$pkColumn = new TableColumn($pkColumnName, self::CLOSURE_TABLE_PK_TYPE, false, null, true);
+		
 		$columns = [
-			new TableColumn($pkColumnName, self::CLOSURE_TABLE_DEPTH_TYPE, false, null),
 		];
 
 		$targetTableName = $this->nodeTableName($keyId);
@@ -431,7 +440,7 @@ class SchemaBuilder {
 			)
 		];
 		
-		return new CreateTable($this->closureTableName($keyId), $pkColumnName, $columns, $uniques, $foreignKeys);
+		return new CreateTable($this->closureTableName($keyId), $pkColumn, $columns, $uniques, $foreignKeys);
 	}
 
 	private function buildHierarchyView($keyId) {

@@ -30,7 +30,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 class MySql extends SqlBase implements DialectInterface {
 	
 
-	protected function tableColumnToString(TableColumn $column, bool $serial) {
+	protected function tableColumnToString(TableColumn $column) {
 		$result = $this->escapeIdentifier($column->getName());
 		$result .= ' ' . $this->dataTypeToString($column->getType());
 
@@ -38,7 +38,7 @@ class MySql extends SqlBase implements DialectInterface {
 			$result .= ' NOT NULL';
 		}
 
-		if($serial) {
+		if($column->isSerial()) {
 			$result .= ' AUTO_INCREMENT';
 		} elseif($column->hasDefault()) {
 			$result .= ' DEFAULT ' . $this->constantToString($column->getDefault());

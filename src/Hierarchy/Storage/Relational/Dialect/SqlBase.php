@@ -317,6 +317,10 @@ abstract class SqlBase implements DialectInterface {
 				return 'COALESCE';
 			case Operator\Function\IfElse::class:
 				return 'IF';
+			case Operator\Function\Unhex::class:
+				return 'UNHEX';
+			case Operator\Function\Hex::class:
+				return 'HEX';
 			case Operator\Function\NullIf::class:
 				return 'NULLIF';
 			case Operator\Function\NamedFunction::class:
@@ -549,24 +553,30 @@ abstract class SqlBase implements DialectInterface {
 		" AS " . PHP_EOL . $this->selectToString($createView->getQuery()) . ";";
 	}
 
-	public function createTableToString(CreateTable $createTable) {
+	public function createTableToString(CreateTable $createTable, $noFk = false) {
 		$indent = "\t";
 		$query = "CREATE TABLE IF NOT EXISTS ";
 		$query .= $this->escapeIdentifier($createTable->getName()) . "(". PHP_EOL;
 			$this->indent();
 
+			$query .= $this->i() . $this->tableColumnToString(
+				$createTable->getPrimaryKey()
+			) . ',' . PHP_EOL;
+
 			foreach($createTable->getColumns() AS $column) {
 				$query .= $this->i() . $this->tableColumnToString(
-					$column,
-					$column->getName() == $createTable->getPrimaryKey()
+					$column
 				) . ',' . PHP_EOL;
 			}
-			$query .= $this->i() . $this->tablePrimaryColumnToString($createTable->getPrimaryKey(), true);
+			$query .= $this->i() . $this->tablePrimaryColumnToString($createTable->getPrimaryKey());
 			foreach($createTable->getUniques() AS $unique) {
 				$query .= ',' . PHP_EOL . $this->i() . $this->uniqueIndexToString($unique);
 			}
-			foreach($createTable->getForeignKeys() AS $fk) {
-				$query .= ',' . PHP_EOL . $this->i() . $this->foreignKeyToString($fk);
+
+			if(!$noFk) {
+				foreach($createTable->getForeignKeys() AS $fk) {
+					$query .= ',' . PHP_EOL . $this->i() . $this->foreignKeyToString($fk);
+				}
 			}
 		$this->outdent();
 		$query .= PHP_EOL . ")" . ";";
@@ -574,7 +584,17 @@ abstract class SqlBase implements DialectInterface {
 		return $query;
 	}
 
-	protected function tableColumnToString(TableColumn $column, bool $serial) {
+	public function addForeignKeysTableToString(CreateTable $createTable) {
+		$query = '';
+
+		foreach($createTable->getForeignKeys() AS $fk) {
+			$query .= 'ALTER TABLE ' . $this->escapeIdentifier($createTable->getName()) . ' ADD ' . $this->foreignKeyToString($fk) . ';' . PHP_EOL;
+		}
+
+		return $query;
+	}
+
+	protected function tableColumnToString(TableColumn $column) {
 		$result = $this->escapeIdentifier($column->getName());
 		$result .= ' ' . $this->dataTypeToString($column->getType());
 
@@ -593,8 +613,8 @@ abstract class SqlBase implements DialectInterface {
 		return $type;
 	}
 
-	protected function tablePrimaryColumnToString(Identifier $columnName, bool $serial) {
-		return sprintf('PRIMARY KEY(%s)', $this->escapeIdentifier($columnName));
+	protected function tablePrimaryColumnToString(TableColumn $column) {
+		return sprintf('PRIMARY KEY(%s)', $this->escapeIdentifier($column->getName()));
 	}
 
 	protected function uniqueIndexToString(array $columnNames) {
@@ -604,8 +624,10 @@ abstract class SqlBase implements DialectInterface {
 		)) .')';
 	}
 
+	private $fkCount = 1;
+
 	protected function foreignKeyToString(ForeignKey $fk) {
-		return 'FOREIGN KEY('. implode(', ', array_map(
+		return 'CONSTRAINT ' . $this->escapeIdentifier(new Identifier('_fk_'.$this->fkCount++)) .  ' FOREIGN KEY ('. implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getOwnColumns()
 		)) .')' . ' REFERENCES ' . $this->escapeIdentifier($fk->getForeignTable()) . 

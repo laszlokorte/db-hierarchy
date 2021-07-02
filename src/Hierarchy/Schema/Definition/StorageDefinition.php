@@ -8,6 +8,7 @@ class StorageDefinition {
 	public function __construct(
 		private string $tableName, 
 		private string $pkColumn = 'id',
+		private string $pkType = 'uuid'
 	) {
 	}
 
@@ -19,7 +20,18 @@ class StorageDefinition {
 		return $this->pkColumn;
 	}
 
+	public function getIdColumnType() {
+		return $this->pkType;
+	}
+
 	public function getIdColumn() {
-		return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::INTEGER), false, null);
+		switch($this->pkType) {
+			case 'serial':
+				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::SERIAL), false, null);
+			case 'uuid':
+				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::UUID), false, null);
+			case 'manual':
+				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::INTEGER), false, null);
+		}
 	}
 }

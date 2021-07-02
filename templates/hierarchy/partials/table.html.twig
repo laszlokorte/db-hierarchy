@@ -99,10 +99,17 @@
             <tbody>
                 <tr class="data-table-empty-row">
                     {% if parent is defined %}
-                    <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">{{key.label.empty}}<br><a href="{{ path('new_child_node', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Add first {{key.label.singular}}</a>
+                    <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) }}">
+                    <div class="sticky-v">
+                        {{key.label.empty}}<br><a href="{{ path('new_child_node', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Add first {{key.label.singular}}</a>
+                    </div>
                     </td>
                     {% else %}
-                    <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) + (not nodeCollection.isScoped and key.isScoped?1:0) }}">{{key.label.empty}}<br><a href="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Add first {{key.label.singular}}</a>
+                    <td class="data-table-empty-cell" colspan="{{ key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) + (not nodeCollection.isScoped and key.isScoped?1:0) }}">
+                    <div class="sticky-v">
+                        
+                    {{key.label.empty}}<br><a href="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Add first {{key.label.singular}}</a>
+                    </div>
                     </td>
                     {% endif %}
                 </tr>

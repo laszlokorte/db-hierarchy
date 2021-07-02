@@ -38,7 +38,7 @@ class HierarchyParamConverter implements ParamConverterInterface {
 				$schema = $this->schemaLoader->loadSchema($schemaSlug);
 
 				if(empty($keyId) || !$schema->hasKey($keyId)) {
-					throw new NotFoundHttpException('Key not defined');
+					throw new NotFoundHttpException('Key not defined:'.$keyId);
 				}
 
 				$request->attributes->set($name, $schema->getKey($keyId));

@@ -111,6 +111,17 @@ class RecursiveLoader {
 
 	public function loadSubSchemas() {
 		if($this->subSchemas === null) {
+			$test = [
+				'slug' => 'test',
+				'label' => new LabelDefinition(
+					'Testing', 
+					'Testing', 
+					null, 
+					'unverified', 
+					'darkred'
+				),
+			];
+
 			try {
 				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
 				$stmt->execute();
@@ -129,8 +140,10 @@ class RecursiveLoader {
 						),
 					];
 				}
+				$this->subSchemas[] = $test;
+
 			} catch(\Exception) {
-				$this->subSchemas = [];
+				$this->subSchemas = [$test];
 			}
 		}
 		
@@ -150,8 +163,10 @@ class RecursiveLoader {
 
 	public function loadDefinition(string $hierarchyName = 'system') {
 		if(empty($this->definitionCache[$hierarchyName])) {
-			 if($hierarchyName === 'system') {
+			if($hierarchyName === 'system') {
 				$this->definitionCache[$hierarchyName] = $this->loadBaseDefinition();
+			} elseif($hierarchyName === 'test') {
+				$this->definitionCache[$hierarchyName] = $this->loadTestDefinition();
 			} else {
 				$this->definitionCache[$hierarchyName] = $this->loadDynamicDefinition($hierarchyName);
 			}
@@ -162,6 +177,8 @@ class RecursiveLoader {
 
 	public function loadHierarchyConnection(string $hierarchyName = 'system') {
 		if($hierarchyName === 'system') {
+			return $this->baseConnection;
+		} elseif($hierarchyName === 'test') {
 			return $this->baseConnection;
 		} else {
 			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
@@ -427,19 +444,6 @@ class RecursiveLoader {
 						'bool', true, false),
 				], SummaryDefinition::parseSegments('{title}')
 			),
-			'test' => new KeyDefinition(
-				new StorageDefinition('test'),
-				new LabelDefinition('Field Test', 'Field Tests'),
-				null, null, null, 
-				array_combine(array_keys($this->fieldTypes), 
-					array_map(fn($typeId) => 
-						new FieldDefinition(
-							new LabelDefinition(ucfirst($typeId)), 
-							$typeId, false, false, ['values' => ['x','y','z'], 'target' => 'test'])
-						, array_keys($this->fieldTypes))
-				),
-				SummaryDefinition::parseSegments('{$self/id}')
-			),
 			'hierarchy_permission' => new KeyDefinition(
 				new StorageDefinition('hierarchy_permission'),
 				new LabelDefinition('Hierarchy Permission', 'Hierarchy Permissions'),
@@ -507,6 +511,9 @@ class RecursiveLoader {
 					'table_name' => new FieldDefinition(
 						new LabelDefinition('Table Name'), 
 						'string', true, true, ['autofillBy' => 'slug']),
+					'pk_type' => new FieldDefinition(
+						new LabelDefinition('Primary Key Type'), 
+						'enum', true, false, ['values' => ['serial','uuid','manual']]),
 					'pk_name' => new FieldDefinition(
 						new LabelDefinition('Primary Key Column Name'), 
 						'string', false, false),
@@ -515,7 +522,7 @@ class RecursiveLoader {
 			'scope_definition' => new KeyDefinition(
 				new StorageDefinition('scope_definition'),
 				new LabelDefinition('Scope', 'Yes', null, null, null, 'None'),
-				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+				new ScopeDefinition('collection', null, true), null, new OrderDefinition(singleton: true), [
 					'scope_key' => new FieldDefinition(
 						new LabelDefinition('Parent', 'Parents'), 
 						'reference', true, false, 
@@ -525,6 +532,9 @@ class RecursiveLoader {
 						'string', false, false),
 					'can_change' => new FieldDefinition(
 						new LabelDefinition('Can change'), 
+						'bool', true, false),
+					'isolating' => new FieldDefinition(
+						new LabelDefinition('Is Isolating'), 
 						'bool', true, false),
 				], SummaryDefinition::parseSegments('{scope_key}')
 			),
@@ -565,7 +575,7 @@ class RecursiveLoader {
 			'field' => new KeyDefinition(
 				new StorageDefinition('field'),
 				new LabelDefinition('Field'),
-				new ScopeDefinition('collection'), null, new OrderDefinition('priority', 'DESC'), [
+				new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 
 						'string', true, true),
@@ -605,7 +615,7 @@ class RecursiveLoader {
 			'collection_extension' => new KeyDefinition(
 				new StorageDefinition('collection_extension'),
 				new LabelDefinition('Extension'),
-				new ScopeDefinition('collection'),  null, null, [
+				new ScopeDefinition('collection', null, true),  null, null, [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 
 						'string', true, true),
@@ -614,17 +624,46 @@ class RecursiveLoader {
 
 			'field_extension' => new KeyDefinition(
 				new StorageDefinition('field_extension'),
-				new LabelDefinition('Extension'),
-				new ScopeDefinition('field'),  null, null, [
+				new LabelDefinition('Field'),
+				new ScopeDefinition('collection_extension'),  null, null, [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 
 						'string', true, true),
+					'field_ref' => new FieldDefinition(
+						new LabelDefinition('Field'), 'reference', true, false, 
+						['target' => 'field']),
 				], SummaryDefinition::parseSegments('{slug}')
+			),
+
+		], $this->fieldTypes);
+	}
+
+	private function loadTestDefinition() {
+		return new SchemaDefinition(
+			new LabelDefinition(
+				'Testing', 
+				'Testing', 
+				null, 
+				'unverified', 
+				'darkred'
+			), [
+			'test' => new KeyDefinition(
+				new StorageDefinition('test'),
+				new LabelDefinition('Field Test', 'Field Tests'),
+				null, null, null, 
+				array_combine(array_keys($this->fieldTypes), 
+					array_map(fn($typeId) => 
+						new FieldDefinition(
+							new LabelDefinition(ucfirst($typeId)), 
+							$typeId, false, false, ['values' => ['x','y','z'], 'target' => 'test'])
+						, array_keys($this->fieldTypes))
+				),
+				SummaryDefinition::parseSegments('{$self/id}')
 			),
 
 			'aa' => new KeyDefinition(
 				new StorageDefinition('aa'),
-				new LabelDefinition('aa'),
+				new LabelDefinition('ScopeTest'),
 				null, null, null, [],
 				SummaryDefinition::parseSegments('aa')
 			),

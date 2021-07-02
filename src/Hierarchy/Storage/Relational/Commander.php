@@ -22,6 +22,16 @@ class Commander {
 
 	}
 
+	private function genUUID() {
+		return sprintf('%04x%04x%04x%04x%04x%04x%04x%04x',
+	        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+	        mt_rand(0, 0xffff),
+	        mt_rand(0, 0x0fff) | 0x4000,
+	        mt_rand(0, 0x3fff) | 0x8000,
+	        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+	    );
+	}
+
 	public function createNode(string $keyId, $fieldData, $scopeId, $parentId) {
 		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
 			throw new \Exception("missing scope");
@@ -31,6 +41,7 @@ class Commander {
 			throw new \Exception($parentId);
 		}
 
+		$idParam = new Parameter('_id');
 		$scopeParam = new Parameter('_scope');
 		$parentParam = new Parameter('_parent');
 
@@ -49,10 +60,28 @@ class Commander {
 			}
 		}
 
-		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $scopeParam, $parentParam);
+		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $idParam, $scopeParam, $parentParam);
 
 		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
+
+		$generatedId = null;
+		switch($this->schemaDef->getKeyIdentityColumnType($keyId)) {
+			case 'uuid':
+				$generatedId = $this->genUUID();
+				$stmt->bindValue(
+					$this->dialect->parameterToString($idParam),
+					$generatedId, \PDO::PARAM_STR
+				);
+				break;
+			case 'manual':
+				$generatedId = 'affecaffee';
+				$stmt->bindValue(
+					$this->dialect->parameterToString($idParam),
+					$generatedId, \PDO::PARAM_STR
+				);
+				break;
+		}
 
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
@@ -81,7 +110,12 @@ class Commander {
 		}
 
     	$stmt->execute();
-    	$newNodeId = $this->connection->lastInsertId();
+
+    	if($generatedId === NULL) {
+    		$newNodeId = $this->connection->lastInsertId();
+    	} else {
+    		$newNodeId = $generatedId;
+    	}
 
     	if($this->schemaDef->isKeyReflexive($keyId)) {
     		$parentParam = new Parameter('_parent');

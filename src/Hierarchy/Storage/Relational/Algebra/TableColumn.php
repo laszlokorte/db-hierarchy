@@ -9,7 +9,8 @@ class TableColumn {
 		private Identifier $name,
 		private string $type,
 		private bool $nullable = true,
-		private ?Constant $default = null
+		private ?Constant $default = null,
+		private bool $serial = false
 	) {
 	}
 
@@ -31,5 +32,9 @@ class TableColumn {
 
 	public function hasDefault() {
 		return $this->default !== NULL;
+	}
+
+	public function isSerial() {
+		return $this->serial;
 	}
 }

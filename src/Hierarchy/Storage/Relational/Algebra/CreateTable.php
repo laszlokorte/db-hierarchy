@@ -5,7 +5,7 @@ namespace App\Hierarchy\Storage\Relational\Algebra;
 class CreateTable {
 	public function __construct(
 		private Identifier $name,
-		private Identifier $primaryKey,
+		private TableColumn $primaryKey,
 		private array $columns,
 		private array $uniques,
 		private array $foreignKeys
@@ -30,5 +30,9 @@ class CreateTable {
 
 	public function getForeignKeys() {
 		return $this->foreignKeys;
+	}
+
+	public function hasForeignKeys() {
+		return !empty($this->foreignKeys);
 	}
 }

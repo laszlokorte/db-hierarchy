@@ -34,11 +34,11 @@ class Sqlite extends SqlBase implements DialectInterface {
 		return sprintf('"%s"', str_replace(['/','"'], '', $identifier->getString()));
 	}
 
-	protected function tablePrimaryColumnToString(Identifier $columnName, bool $serial) {
+	protected function tablePrimaryColumnToString(TableColumn $column) {
 		return sprintf(
 			'PRIMARY KEY(%s%s)', 
-			$this->escapeIdentifier($columnName),
-			$serial ? ' AUTOINCREMENT' : ''
+			$this->escapeIdentifier($column->getName()),
+			$column->isSerial() ? ' AUTOINCREMENT' : ''
 		);
 	}
 

@@ -122,6 +122,10 @@ class Fetcher {
     	$this->commitTransaction();
 		$result = $stmt->fetchAssociative();
 
+		if(!$result) {
+			throw new \Exception('node not found');
+		}
+
     	return new Data\Node($keyId, $nodeId, array_diff_key($result, array_flip(['_scope', '_parent', '_order'])), $result['_scope'], $result['_parent'], $result['_order']);
 	}
 

@@ -35,7 +35,7 @@ class ColumnDefinition {
 		return $this->default;
 	}
 
-	public function deriveSameWithName($columnName) {
+	public function deriveSameWithName($columnName, $keepSerial = false) {
 		return new self($columnName, $this->coding, $this->nullable, $this->default);
 	}
 

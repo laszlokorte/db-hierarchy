@@ -244,6 +244,10 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->getIdColumnName();
 	}
 
+	public function getKeyIdentityColumnType($keyId) {
+		return $this->keys[$keyId]->getIdColumnType();
+	}
+
 	public function getKeyIdentityColumn($keyId) {
 		return $this->keys[$keyId]->getIdColumn();
 	}
