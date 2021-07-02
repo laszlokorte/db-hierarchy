@@ -10,6 +10,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Unhex;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
@@ -21,15 +22,21 @@ class ColumnCoder {
 
 	}
 
-	public function wrapPrimaryKeyParameter($keyId, Parameter $parameter) {
+	public function wrapPrimaryKeyParameter($keyId, Parameter|Constant $parameter) {
 		return $this->encodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $parameter);
 	}
 
-	public function wrapScopeParameter($keyId, Parameter $parameter) {
-		return $this->wrapPrimaryKeyParameter($this->schemaDef->getKeyScopeId($keyId), $parameter);
+	public function wrapScopeParameter($keyId, Parameter|Constant $parameter) {
+		$scopeId = $this->schemaDef->getKeyScopeId($keyId);
+
+		if(!$scopeId) {
+			return $parameter;
+		}
+
+		return $this->wrapPrimaryKeyParameter($scopeId, $parameter);
 	}
 
-	public function wrapParentParameter($keyId, Parameter $parameter) {
+	public function wrapParentParameter($keyId, Parameter|Constant $parameter) {
 		return $this->wrapPrimaryKeyParameter($keyId, $parameter);
 	}
 
@@ -139,7 +146,7 @@ class ColumnCoder {
 		}
 	}
 
-	private function decodeColumnType(string $type, $value) {
+	public function decodeColumnType(string $type, $value) {
 		switch($type) {
 			case 'serial':
 				return $value;
@@ -152,7 +159,10 @@ class ColumnCoder {
 		}
 	}
 
-	private function encodeColumnType($type, $value) {
+	public function encodeColumnType($type, Parameter|Constant $value) {
+		if($value instanceof Constant && $value->isNull()) {
+			return $value;
+		}
 		switch($type) {
 			case 'serial':
 				return $value;

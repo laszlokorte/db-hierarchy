@@ -12,4 +12,8 @@ class Constant implements ValueInterface {
 	public function getValue() {
 		return $this->value;
 	}
+
+	public function isNull() {
+		return $this->value === null;
+	}
 }

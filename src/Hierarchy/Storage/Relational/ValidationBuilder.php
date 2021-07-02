@@ -47,7 +47,7 @@ class ValidationBuilder {
 		
 	}
 
-	public function getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam) {
+	public function getSelectForScopeParentCheck($keyId, Parameter $scopeParam, Parameter $parentParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		return new Select(
 			[new Projection(new Constant(1))],
@@ -58,12 +58,15 @@ class ValidationBuilder {
 					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
 					new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
 				]),
-				new Tuple([$scopeParam, $parentParam])
+				new Tuple([
+					$this->coder->wrapScopeParameter($keyId, $scopeParam), 
+					$this->coder->wrapParentParameter($keyId, $parentParam),
+				])
 			)
 		);
 	}
 
-	public function getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck) {
+	public function getSelectForUniquenessCheckNew($keyId, Parameter $scopeParam, Parameter $parentParam, $fieldsToCheck) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
 		$conditions = [];
@@ -87,14 +90,14 @@ class ValidationBuilder {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$conditions[] = new BinaryOperation(new Equal(), 
-				$scopeParam,
+				$this->coder->wrapScopeParameter($keyId, $scopeParam),
 				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId))
 			);
 		}
 
     	if($this->schemaDef->isKeyReflexive($keyId)) {
 			$conditions[] = new BinaryOperation(new Equal(), 
-				$parentParam,
+				$this->coder->wrapParentParameter($keyId, $parentParam),
 				new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId))
 			);
 		}
@@ -114,7 +117,7 @@ class ValidationBuilder {
 		);
 	}
 
-	public function getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck) {
+	public function getSelectForUniquenessCheckEdit($keyId, Parameter $idParam, Parameter $fieldsToCheck) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$tableH = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h1'));
 		$tableH2 = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h2'));
@@ -138,12 +141,12 @@ class ValidationBuilder {
 		$conditions[] = new AssociativeOperation(new Disjunction(), array_values($checks));
 
 		$conditions[] = new BinaryOperation(new NotEqual(true), 
-			$idParam,
+			$this->coder->wrapPrimaryKeyParameter($idParam),
 			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId))
 		);
 
 		$conditions[] = new BinaryOperation(new Equal(), 
-			$idParam,
+			$this->coder->wrapPrimaryKeyParameter($idParam),
 			new ColumnReference($tableH2, $this->naming->hierarchyIdColumnName($keyId))
 		);
 
