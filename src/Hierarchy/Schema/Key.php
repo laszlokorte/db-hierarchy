@@ -80,6 +80,10 @@ class Key {
 		);
 	}
 
+	public function commonIsolation($otherKey) {
+		return $this->def->getCommonIsolation($this->keyId, $otherKey);
+	}
+
 	public function isNested() {
 		return $this->def->isKeyNested($this->keyId);
 	}

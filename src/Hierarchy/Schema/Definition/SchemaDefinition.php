@@ -262,8 +262,12 @@ class SchemaDefinition {
 			->deriveSameWithName('_iso_' . $this->getKeyScopeColumnName($keyId));
 	}
 
-	public function getKeyIsolations($keyId) {
+	public function getKeyIsolations($keyId, $includeSelf = false) {
 		$scopeIds = [];
+
+		if($includeSelf && $this->isKeyScoped($keyId) && $this->isKeyScopeIsolating($keyId)) {
+			$scopeIds[] = $keyId;
+		}
 
 		$currentKey = $this->getKeyScopeId($keyId);
 
@@ -282,6 +286,25 @@ class SchemaDefinition {
 			fn($iso) => $this->getKeyScopeColumn($iso),
 			$this->getKeyIsolations($keyId)
 		);
+	}
+
+	public function getCommonIsolation($keyA, $keyB) {
+		$isoA = array_reverse($this->getKeyIsolations($keyA, true));	
+		$isoB = array_reverse($this->getKeyIsolations($keyB, true));
+		$commonLength = min(count($isoA), count($isoB));
+
+		$result = null;
+
+
+		for ($i=0; $i < $commonLength; $i++) {
+			if($isoA[$i] === $isoB[$i]) {
+				$result = $isoB[$i];
+			} else {
+				break;
+			}
+		}
+
+		return $result;
 	}
 
 	public function getKeyTableName($keyId) {

@@ -182,14 +182,22 @@ class SchemaBuilder {
 				$ownCols = [$ownColumnName];
 				$otherCols = [$targetColumnName];
 
-				if(!$this->quirks->noDeferredFK() &&
-					$this->schemaDef->isKeyScoped($keyId) && 
-					$this->schemaDef->isKeyScoped($targetKeyName) &&
-					$this->schemaDef->getKeyScopeId($keyId) == 
-					$this->schemaDef->getKeyScopeId($targetKeyName)) {
-					
-					//$ownCols[] = $this->nodeOwnScopeColumnName($keyId);
-					//$otherCols[] = $this->nodeOwnScopeColumnName($targetKeyName);
+				$commonIsolation = $this->schemaDef->getCommonIsolation($keyId, $targetKeyName);
+
+
+				if($commonIsolation) {
+					if($commonIsolation === $keyId) {
+						$otherCols[] = $this->naming->nodeOwnScopeColumnName($keyId);
+						$ownCols[] = $targetColumnName;
+
+					} elseif ($commonIsolation === $targetKeyName) {
+						$otherCols[] = $this->naming->nodeTablePKName($keyId);
+						$ownCols[] = $this->naming->nodeOwnScopeColumnName($keyId);
+					} else {
+						$ownCols[] = new Identifier('iso_'.$commonIsolation);
+						$otherCols[] = new Identifier('iso_'.$commonIsolation);
+					}
+
 				}
 
 				$foreignKeys[] = new ForeignKey(

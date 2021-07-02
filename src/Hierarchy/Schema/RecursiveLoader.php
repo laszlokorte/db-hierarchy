@@ -637,19 +637,19 @@ class RecursiveLoader {
 			'cc' => new KeyDefinition(
 				new StorageDefinition('cc'),
 				new LabelDefinition('cc'),
-				new ScopeDefinition('bb'), null, null, [],
+				new ScopeDefinition('bb',null, true), null, null, [],
 				SummaryDefinition::parseSegments('cc')
 			),
 			'dd' => new KeyDefinition(
 				new StorageDefinition('dd'),
 				new LabelDefinition('dd'),
-				new ScopeDefinition('cc',null, true), null, null, [],
+				new ScopeDefinition('cc', null, true), null, null, [],
 				SummaryDefinition::parseSegments('dd')
 			),
 			'ee' => new KeyDefinition(
 				new StorageDefinition('ee'),
 				new LabelDefinition('ee'),
-				new ScopeDefinition('dd'), null, null, [],
+				new ScopeDefinition('dd',null, true), null, null, [],
 				SummaryDefinition::parseSegments('ee')
 			),
 			'ff' => new KeyDefinition(
@@ -657,6 +657,66 @@ class RecursiveLoader {
 				new LabelDefinition('ff'),
 				new ScopeDefinition('ee',null, true), null, null, [],
 				SummaryDefinition::parseSegments('ff')
+			),
+			'xx' => new KeyDefinition(
+				new StorageDefinition('xx'),
+				new LabelDefinition('xx'),
+				new ScopeDefinition('ff',null, true), null, null, [
+					'zzref' => new FieldDefinition(
+						new LabelDefinition('zzref'), 'reference', true, true, 
+						['target' => 'zz']),
+				],
+				SummaryDefinition::parseSegments('xx')
+			),
+			'yy' => new KeyDefinition(
+				new StorageDefinition('yy'),
+				new LabelDefinition('yy'),
+				new ScopeDefinition('xx',null, true), null, null, [],
+				SummaryDefinition::parseSegments('yy')
+			),
+			'zz' => new KeyDefinition(
+				new StorageDefinition('zz'),
+				new LabelDefinition('zz'),
+				new ScopeDefinition('yy', null, true), null, null, [],
+				SummaryDefinition::parseSegments('zz')
+			),
+			'ww' => new KeyDefinition(
+				new StorageDefinition('ww'),
+				new LabelDefinition('ww'),
+				new ScopeDefinition('zz',null, true), null, null, [],
+				SummaryDefinition::parseSegments('ww')
+			),
+			'uu' => new KeyDefinition(
+				new StorageDefinition('uu'),
+				new LabelDefinition('uu'),
+				new ScopeDefinition('ww', null, true), null, null, [
+					'yyref' => new FieldDefinition(
+						new LabelDefinition('yyref'), 'reference', true, true, 
+						['target' => 'yy']),
+				],
+				SummaryDefinition::parseSegments('uu')
+			),
+			'pp' => new KeyDefinition(
+				new StorageDefinition('pp'),
+				new LabelDefinition('pp'),
+				new ScopeDefinition('ff',null, true), null, null, [],
+				SummaryDefinition::parseSegments('pp')
+			),
+			'qq' => new KeyDefinition(
+				new StorageDefinition('qq'),
+				new LabelDefinition('qq'),
+				new ScopeDefinition('pp',null, true), null, null, [],
+				SummaryDefinition::parseSegments('qq')
+			),
+			'rr' => new KeyDefinition(
+				new StorageDefinition('rr'),
+				new LabelDefinition('rr'),
+				new ScopeDefinition('qq',null, true), null, null, [
+					'uuref' => new FieldDefinition(
+						new LabelDefinition('uuref'), 'reference', true, true, 
+						['target' => 'uu']),
+				],
+				SummaryDefinition::parseSegments('rr')
 			),
 		], $this->fieldTypes);
 	}
