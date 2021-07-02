@@ -5,7 +5,7 @@
     data-label-plural="{{ field.label.plural }}" 
     data-label-empty="{{ field.label.empty }}" 
     data-explicit="{{ field.getOption('explicit') }}" 
-    data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: field.getOption('target')}) }}" 
+    data-reference-url="{{ path('show_node_field_options', {hierarchySlug: hierarchy.slug, keyId: field.key.id, fieldId: field.id}|merge( nodeId is defined ? {scopeId: nodeCollection.getNodeScope(nodeId)}: {})) }}" 
     data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: field.getOption('target')}) }}" 
     class="form-field" 
     type="text" 

@@ -136,12 +136,23 @@ class SchemaBuilder {
 						$pkColumnName
 					];
 				}
-			} else {
-				$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
 			}
 
 			if(!$this->quirks->noDeferredFK()) {
 				$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
+			}
+
+			foreach($this->schemaDef->getReferencingKeys($keyId) AS $sourceKey) {
+
+				$commonIsolation = $this->schemaDef->getCommonIsolation($sourceKey, $keyId);
+
+				if($commonIsolation) {
+					if($commonIsolation[1] === $keyId) {
+						$uniques[] = [$this->naming->nodeOwnScopeColumnName($commonIsolation[1]), $this->nodeTablePKName($keyId)];
+					} else {
+						$uniques[] = [$this->naming->nodeOwnIsolationColumnName($commonIsolation[1]), $this->nodeTablePKName($keyId)];
+					}
+				}
 			}
 
 		}

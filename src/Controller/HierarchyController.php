@@ -150,6 +150,27 @@ class HierarchyController {
         ]);
     }
 
+    #[Route('/{hierarchySlug}/{keyId}({fieldId})/options/{scopeId}', name: 'show_node_field_options', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    #[ParamConverter('key')]
+    #[ParamConverter('field')]
+    #[Template()]
+    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, Field $field, ?string $scopeId = null)
+    {
+        $target = $field->getOption('target');
+        $targetKey = $hierarchy->getKey($target);
+
+        $all = $storageConnection->getFetcher()->findAllNodes($key->getId());
+        return new JsonResponse([
+            'keyId' => $key->getId(),
+            'nodes' => array_map(fn($nodeId) => [
+                'nodeId' => $nodeId,
+                'label' => $key->summarize($all->getNode($nodeId), true),
+            ], $all->getIds()),
+        ]);
+    }
+
     #[Route('/{hierarchySlug}/{keyId}({fieldId})/{nodeId}', name: 'show_node_field', methods: 'GET')]
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
