@@ -66,9 +66,19 @@ class ColumnCoder {
 		if($column->isReference()) {
 			$refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
 
-			return $this->decodeColumnType($refType, new ColumnReference($tableRef, new Identifier($column->getName())));
+			return $this->decodeColumnType($refType, new ColumnReference($tableRef, $this->naming->fieldColumnToName($column)));
 		} else {
-			return $this->decodeColumnType($column->getCoding()->getType(), new ColumnReference($tableRef, new Identifier($column->getName())));
+			return $this->decodeColumnType($column->getCoding()->getType(), new ColumnReference($tableRef, $this->naming->fieldColumnToName($column)));
+		}
+	}
+
+	public function wrapColumnParameter(ColumnDefinition $column, $parameter) {
+		if($column->isReference()) {
+			$refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
+
+			return $this->encodeColumnType($refType, $parameter);
+		} else { 
+			return $this->encodeColumnType($column->getCoding()->getType(), $parameter);
 		}
 	}
 

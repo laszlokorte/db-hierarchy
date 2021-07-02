@@ -46,18 +46,7 @@ class CommandBuilder  {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
 
-	private function pkParameter($keyId, $parameter) {
-		switch($this->schemaDef->getKeyIdentityColumnType($keyId)) {
-			case 'serial':
-				return $parameter;
-			case 'uuid':
-				return new FunctionApplication(new Unhex(), [$parameter]);
-			case 'manual':
-				return $parameter;
-		}
-	}
-
-	public function getCommandForCreateNode(string $keyId, $idParam, $scopeParam, $parentParam) {
+	public function getCommandForCreateNode(string $keyId, Parameter $idParam, Parameter $scopeParam, Parameter $parentParam) {
 		$tableName = $this->naming->nodeTableName($keyId);
 
 		$columns = [];
@@ -65,10 +54,7 @@ class CommandBuilder  {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$values[] = $this->pkParameter(
-				$this->schemaDef->getKeyScopeId($keyId),
-				$scopeParam
-			); 
+			$values[] = $this->coder->wrapScopeParameter($keyId, $scopeParam); 
 		}
 		if($this->schemaDef->isKeyOrdered($keyId)) {
 			$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
@@ -79,7 +65,7 @@ class CommandBuilder  {
 				$orderConditions[] = new BinaryOperation(
 					new Equal(true),
 					new ColumnReference($orderView, $this->naming->normalizedOrderScopeColumnName($keyId)),
-					$scopeParam
+					$this->coder->wrapScopeParameter($keyId, $scopeParam)
 				);
 			}
 
@@ -87,7 +73,7 @@ class CommandBuilder  {
 				$orderConditions[] = new BinaryOperation(
 					new Equal(true),
 					new ColumnReference($orderView, $this->naming->normalizedOrderParentColumnName($keyId)),
-					$parentParam
+					$this->coder->wrapParentParameter($keyId, $parentParam)
 				);
 			}
 			
@@ -150,18 +136,14 @@ class CommandBuilder  {
 			], [], new BinaryOperation(
 				new Equal(), 
 				new ColumnReference($scopeTable, $this->naming->scopeTablePKName($keyId)),
-				$scopeParam
+				$this->coder->wrapScopeParameter($keyId, $scopeParam)
 			)));
 		}
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
 				$columns[] = $this->naming->fieldColumnToName($column);
-				if($column->isReference()) {
-					$values[] = $this->pkParameter($column->getCoding()->getTarget(), new Parameter($column->getName()));
-				} else {
-					$values[] = new Parameter($column->getName());
-				}
+				$values[] = $this->coder->wrapColumnParameter($column, new Parameter($column->getName()));
 			}
 		}
 
@@ -172,7 +154,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForClosureInsert($keyId, $scopeParam, $parentParam, $childParam, $depthParam) {
+	public function getCommandForClosureInsert(string $keyId, Parameter $scopeParam, Parameter $parentParam, Parameter $childParam, Parameter $depthParam) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 
@@ -183,14 +165,14 @@ class CommandBuilder  {
 		];
 
 		$sourceColumns = [
-			$parentParam,
-			$childParam,
+			$this->coder->wrapPrimaryKeyParameter($keyId, $parentParam),
+			$this->coder->wrapPrimaryKeyParameter($keyId, $childParam),
 			$depthParam,
 		];
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$sourceColumns[] = $scopeParam;
+			$sourceColumns[] = $this->coder->wrapScopeParameter($keyId, $scopeParam);
 		}
 
 		return new Insert(
@@ -200,7 +182,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForClosureParentInsert($keyId, $scopeParam, $parentParam, $childParam) {
+	public function getCommandForClosureParentInsert(string $keyId, Parameter $scopeParam, Parameter $parentParam, Parameter $childParam) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 
@@ -214,7 +196,8 @@ class CommandBuilder  {
 
 		$projections = [
 			new Projection(new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId))),
-			new Projection($parentParam),
+			new Projection(
+			$this->coder->wrapPrimaryKeyParameter($keyId, $parentParam)),
 			new Projection(
 				new BinaryOperation(
 					new Addition(),
@@ -228,14 +211,15 @@ class CommandBuilder  {
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$projections[] = new Projection($scopeParam);
+			$projections[] = new Projection(
+			$this->coder->wrapScopeParameter($keyId, $scopeParam));
 		}
 
 
 		$select = new Select($projections, [$closureTable], [], new BinaryOperation(
 			new Equal(),
 			new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
-			$childParam
+			$this->coder->wrapPrimaryKeyParameter($keyId, $childParam)
 		));
 
 		return new Insert(
@@ -245,7 +229,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForUpdateNode(string $keyId, $idParam) {
+	public function getCommandForUpdateNode(string $keyId, Parameter $idParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 
 		$setters = [];
@@ -263,7 +247,7 @@ class CommandBuilder  {
 		$condition = new BinaryOperation(
 			new Equal(),
 			new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
-			$idParam
+			$this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
 		);
 
 		return new Update(
@@ -273,12 +257,13 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForDeleteMultipleNodes(string $keyId, $idParams) {
+	public function getCommandForDeleteMultipleNodes(string $keyId, array $idParams) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 
 		$condition = new ElementOf(
 			new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
-			$idParams
+			array_map(fn($p) => 
+			$this->coder->wrapPrimaryKeyParameter($keyId, $p), $idParams)
 		);
 
 		return new Delete(
@@ -287,18 +272,24 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getCommandForDeleteMultipleNodesClosure(string $keyId, $idParams) {
+	public function getCommandForDeleteMultipleNodesClosure(string $keyId, array $idParams) {
 		$table = new TableReference($this->naming->closureTableName($keyId));
 
 		$condition = new BinaryOperation(
 			new Disjunction(),
 			new ElementOf(
 				new ColumnReference($table, $this->naming->closureParentColumnName($keyId)),
-				$idParams
+				array_map(fn($p) => 
+					$this->coder->wrapPrimaryKeyParameter($keyId, $p),
+					 $idParams
+				)
 			),
 			new ElementOf(
 				new ColumnReference($table, $this->naming->closureChildColumnName($keyId)),
-				$idParams
+				array_map(fn($p) => 
+					$this->coder->wrapPrimaryKeyParameter($keyId, $p),
+					 $idParams
+				)
 			)
 		);
 
@@ -308,18 +299,21 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getSelectForCollectChildByIdReflexive(string $keyId, $idParams) {
+	public function getSelectForCollectChildByIdReflexive(string $keyId, array $idParams) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
 
 		$condition = new ElementOf(
 			new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
-			$idParams
+			array_map(fn($p) => 
+				$this->coder->wrapPrimaryKeyParameter($keyId, $p),
+				$idParams
+			)
 		);
 
 		$projections = [
-			new Projection(new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)), $this->naming->hierarchyIdColumnName($keyId))
+			new Projection($this->coder->wrapClosureChildColumn($keyId, $closureTable), $this->naming->hierarchyIdColumnName($keyId))
 		];
 
 		$joins = [
@@ -332,7 +326,9 @@ class CommandBuilder  {
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(new ColumnReference($nodeTable, new Identifier($column->getName())), new Identifier($column->getName()));
+				$projections[] = new Projection(
+					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+				);
 			}
 		}
 
@@ -343,40 +339,48 @@ class CommandBuilder  {
 		return new Select($projections, [$closureTable], $joins, $condition, $orders);
 	}
 
-	public function getSelectForCollectSelfById(string $keyId, $idParams) {
+	public function getSelectForCollectSelfById(string $keyId, array $idParams) {
 		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
 
 		$condition = new ElementOf(
 			new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)),
-			$idParams
+			array_map(fn($p) => 
+				$this->coder->wrapPrimaryKeyParameter($keyId, $p),
+				$idParams
+			)
 		);
 
 		$projections = [
-			new Projection(new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)), $this->naming->hierarchyIdColumnName($keyId))
+			new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId))
 		];
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(new ColumnReference($nodeTable, new Identifier($column->getName())), new Identifier($column->getName()));
+				$projections[] = new Projection(
+					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+				);
 			}
 		}
 
 		return new Select($projections, [$nodeTable], [], $condition);
 	}
 
-	public function getSelectForCollectChildByScopeReflexive(string $keyId, $idParams) {
+	public function getSelectForCollectChildByScopeReflexive(string $keyId, array $scopeParams) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
 
 		$condition = new ElementOf(
 			new ColumnReference($closureTable, $this->naming->nodeOwnScopeColumnName($keyId)),
-			$idParams
+			array_map(fn($p) => 
+				$this->coder->wrapScopeParameter($keyId, $p),
+				$scopeParams
+			)
 		);
 		
 		$projections = [
-			new Projection(new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)), $this->naming->hierarchyIdColumnName($keyId), $this->naming->hierarchyIdColumnName($keyId))
+			new Projection($this->coder->wrapClosureChildColumn($keyId, $closureTable), $this->naming->hierarchyIdColumnName($keyId))
 		];
 
 		$joins = [
@@ -389,7 +393,9 @@ class CommandBuilder  {
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(new ColumnReference($nodeTable, new Identifier($column->getName())), new Identifier($column->getName()));
+				$projections[] = new Projection(
+					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+				);
 			}
 		}
 
@@ -400,50 +406,58 @@ class CommandBuilder  {
 		return new Select($projections, [$closureTable], $joins, $condition, $orders);
 	}
 
-	public function getSelectForCollectChildByScope(string $keyId, $idParams) {
+	public function getSelectForCollectChildByScope(string $keyId, array $scopeParams) {
 		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
 		$condition = new ElementOf(
 			new ColumnReference($nodeTable, $this->naming->nodeOwnScopeColumnName($keyId)),
-			$idParams
+			array_map(fn($p) => 
+				$this->coder->wrapScopeParameter($keyId, $p),
+				$scopeParams
+			)
 		);
 		
 		$projections = [
-			new Projection(new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)), $this->naming->hierarchyIdColumnName($keyId))
+			new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId))
 		];
 
 
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(new ColumnReference($nodeTable, new Identifier($column->getName())), new Identifier($column->getName()));
+				$projections[] = new Projection(
+					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+				);
 			}
 		}
 
 		return new Select($projections, [$nodeTable], [], $condition);
 	}
 
-	public function getSelectForReferencedNodes(string $keyId, $columns, $idParams) {
+	public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams) {
 		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
 		$conditions = [];
 
+		// TOOODOOOO
 		foreach ($columns as $col) {
 			$conditions[] = new ElementOf(
 				new ColumnReference($nodeTable, $this->naming->fieldColumnToName($col)),
-				$idParams
+				array_map(fn($p) => $this->coder->wrapColumnParameter($col, $p),$idParams)
 			);
 		}
 		
 		$projections = [
-			new Projection(new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)), $this->naming->hierarchyIdColumnName($keyId))
+			new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId))
 		];
 
 
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(new ColumnReference($nodeTable, new Identifier($column->getName())), new Identifier($column->getName()));
+				$projections[] = new Projection(
+					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+				);
 			}
 		}
 
@@ -451,7 +465,7 @@ class CommandBuilder  {
 	}
 
 
-	public function getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam) {
+	public function getSelectForScopeParentCheck(string $keyId, Parameter $scopeParam, Parameter $parentParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		// SELECT 1 FROM %s WHERE %s_id = :scope AND id = :id
 		return new Select(
@@ -463,12 +477,15 @@ class CommandBuilder  {
 					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
 					new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
 				]),
-				new Tuple([$scopeParam, $parentParam])
+				new Tuple([
+					$this->coder->wrapScopeParameter($keyId, $scopeParam), 
+					$this->coder->wrapParentParameter($keyId, $parentParam)
+				])
 			)
 		);
 	}
 
-	public function getSelectForMoveTargetValid($keyId, $idParam, $parentParam) {
+	public function getSelectForMoveTargetValid(string $keyId, Parameter $idParam, Parameter $parentParam) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		// SELECT 1 FROM %s WHERE parent_id = :id AND child_id=:newParent
 		return new Select(
@@ -480,12 +497,15 @@ class CommandBuilder  {
 					new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
 					new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
 				]),
-				new Tuple([$idParam, $parentParam])
+				new Tuple([
+					$this->coder->wrapPrimaryKeyParameter($keyId, $idParam), 
+					$this->coder->wrapParentParameter($keyId, $parentParam)
+				])
 			)
 		);
 	}
 
-	public function getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam) {
+	public function getUpdateForMoveOwnScope(string $keyId, Parameter $idParam, Parameter $scopeParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$scopeTable = new TableReference($this->naming->scopeTablename($keyId), new Identifier('scope'));
 
@@ -522,17 +542,17 @@ class CommandBuilder  {
 			new BinaryOperation(
 				new Equal(), 
 				new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
-				$idParam
+				$this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
 			),
 			new Select($projections, [$scopeTable], [], new BinaryOperation(
 				new Equal(), 
 				new ColumnReference($scopeTable, $this->naming->scopeTablePKName($keyId)),
-				$scopeParam
+				$this->coder->wrapScopeParameter($keyId, $scopeParam)
 			))
 		);
 	}
 
-	public function getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam) {
+	public function getUpdateForMoveClosureScope(string $keyId, Parameter $idParam, Parameter $scopeParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		// UPDATE %s SET %s_id = :parentId WHERE id = :id
@@ -540,7 +560,7 @@ class CommandBuilder  {
 			$table, [
 				new Setter(
 					new ColumnReference($table, $this->naming->nodeOwnScopeColumnName($keyId)),
-					$scopeParam
+					$this->coder->wrapScopeParameter($keyId, $scopeParam)
 				)
 			],
 			new ElementOf(
@@ -552,20 +572,20 @@ class CommandBuilder  {
 				], [$closureTable], [], new BinaryOperation(
 					new Equal(),
 					new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
-					$idParam
+					$this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
 				))
 			)
 		);
 	}
 
-	public function getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam) {
+	public function getUpdateForMoveClosureParents(string $keyId, Parameter $idParam, Parameter $scopeParam) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		return new Update(
 			$closureTable, [
 				new Setter(
 					new ColumnReference($closureTable, $this->naming->nodeOwnScopeColumnName($keyId)),
-					$scopeParam
+					$this->coder->wrapScopeParameter($keyId, $scopeParam)
 				)
 			],
 			new ElementOf(
@@ -577,13 +597,13 @@ class CommandBuilder  {
 				], [$closureTable], [], new BinaryOperation(
 					new Equal(),
 					new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
-					$idParam
+					$this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
 				))
 			)
 		);
 	}
 
-	public function getDeleteForMoveClosureOldParents($keyId, $idParam) {
+	public function getDeleteForMoveClosureOldParents(string $keyId, Parameter $idParam) {
 		
 		// IDEA:
 		// DROP all transitive edges pointing higher than nodeId AND
@@ -613,7 +633,7 @@ class CommandBuilder  {
 				new BinaryOperation(
 					new Equal(), 
 					new ColumnReference($closureTableOk, $this->naming->closureParentColumnName($keyId)),
-					$idParam,
+					$this->coder->wrapPrimaryKeyParameter($keyId, $idParam),
 				),
 				new BinaryOperation(
 					new LessThan(),
@@ -624,7 +644,7 @@ class CommandBuilder  {
 		));
 	}
 
-	public function getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam) {
+	public function getInsertForMoveClosureParents(string $keyId, Parameter $idParam, Parameter $scopeParam, Parameter $parentParam) {
 
 		// INSERT INTO site_closure(child_id, parent_id, depth)
 		// SELECT low.child_id,
@@ -660,14 +680,14 @@ class CommandBuilder  {
 				new ColumnReference($closureTableHigh, $this->naming->closureChildColumnName($keyId)),
 			]),
 			new Tuple([
-				$idParam,
-				$parentParam,
+				$this->coder->wrapPrimaryKeyParameter($keyId, $idParam),
+				$this->coder->wrapParentParameter($keyId, $parentParam),
 			]),
 		);
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$columns[] = $this->naming->nodeOwnScopeColumnName($keyId);
-			$projections[] = new Projection($scopeParam);
+			$projections[] = new Projection($this->coder->wrapScopeParameter($keyId, $scopeParam));
 		}
 
 		$select = new Select($projections, [$closureTableLow, $closureTableHigh], [], $condition);
@@ -675,7 +695,7 @@ class CommandBuilder  {
 		return new Insert($closureTableName, $columns, $select);
 	}
 
-	public function getUpdateforReorderNode($keyId, $idParam, $orderParam) {
+	public function getUpdateforReorderNode(string $keyId, Parameter $idParam, Parameter $orderParam) {
 // UPDATE sorted_tree AS t
 // SET priority=inn.new_order
 // FROM (
@@ -775,7 +795,7 @@ class CommandBuilder  {
 					new ColumnReference($normalizedViewSiblings, $this->naming->normalizedOrderScopeColumnName($keyId)), 
 					new ColumnReference($normalizedViewSiblings, $this->naming->normalizedOrderParentColumnName($keyId))])
 			), 'LEFT')
-		], new BinaryOperation(new Equal(), $idSelf, $idParam)));
+		], new BinaryOperation(new Equal(), $idSelf, $this->coder->wrapPrimaryKeyParameter($keyId, $idParam))));
 	}
 
 
@@ -800,7 +820,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getDeleteForClosureRepair($keyId) {
+	public function getDeleteForClosureRepair(string $keyId) {
 		$closureTable = new TableReference($this->naming->closureTableName($keyId));
 		$invalidView = new TableReference($this->naming->closureInvalidViewName($keyId));
 		$invalidViewId = new ColumnReference($invalidView, $this->naming->closureInvalidIdColumn($keyId));
@@ -815,7 +835,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getInsertForClosureRepair($keyId) {
+	public function getInsertForClosureRepair(string $keyId) {
 		$closureTableName = $this->naming->closureTableName($keyId);
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 
@@ -845,7 +865,7 @@ class CommandBuilder  {
 		);
 	}
 
-	public function getUpdateForOrderRepair($keyId) {
+	public function getUpdateForOrderRepair(string $keyId) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
 		$orderColumn = new ColumnReference($table, $this->naming->orderColumnName($keyId));
