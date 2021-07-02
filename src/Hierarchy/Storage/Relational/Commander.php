@@ -496,7 +496,7 @@ class Commander {
 
 		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
-		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, \PDO::$this->coder->getPrimaryColumnBindingType($keyId));
+		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, \PDO::PARAM_INT);
 
 		$stmt->execute();

@@ -117,7 +117,7 @@ class ValidationBuilder {
 		);
 	}
 
-	public function getSelectForUniquenessCheckEdit($keyId, Parameter $idParam, Parameter $fieldsToCheck) {
+	public function getSelectForUniquenessCheckEdit($keyId, Parameter $idParam, $fieldsToCheck) {
 		$table = new TableReference($this->naming->nodeTableName($keyId));
 		$tableH = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h1'));
 		$tableH2 = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h2'));
@@ -141,12 +141,12 @@ class ValidationBuilder {
 		$conditions[] = new AssociativeOperation(new Disjunction(), array_values($checks));
 
 		$conditions[] = new BinaryOperation(new NotEqual(true), 
-			$this->coder->wrapPrimaryKeyParameter($idParam),
+			$this->coder->wrapPrimaryKeyParameter($keyId, $idParam),
 			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId))
 		);
 
 		$conditions[] = new BinaryOperation(new Equal(), 
-			$this->coder->wrapPrimaryKeyParameter($idParam),
+			$this->coder->wrapPrimaryKeyParameter($keyId, $idParam),
 			new ColumnReference($tableH2, $this->naming->hierarchyIdColumnName($keyId))
 		);
 

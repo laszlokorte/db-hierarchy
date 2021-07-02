@@ -180,6 +180,8 @@ class ColumnCoder {
 				return new FunctionApplication(new Unhex(), [$value]);
 			case 'manual':
 				return $value;
+			default:
+				return $value;
 		}
 	}
 }

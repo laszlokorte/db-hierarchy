@@ -239,7 +239,7 @@ class CommandBuilder  {
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
 				$setters[] = new Setter(
 					new ColumnReference($table, $this->naming->fieldColumnToName($column)),
-					new Parameter($column->getName())
+					$this->coder->wrapColumnParameter($column, new Parameter($column->getName()))
 				);
 			}
 		}
