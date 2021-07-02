@@ -43,7 +43,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Order;
 
 class ValidationBuilder {
 
-	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
+	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 		
 	}
 

@@ -627,7 +627,7 @@ abstract class SqlBase implements DialectInterface {
 	private $fkCount = 1;
 
 	protected function foreignKeyToString(ForeignKey $fk) {
-		return 'CONSTRAINT ' . $this->escapeIdentifier(new Identifier('_fk_'.$this->fkCount++)) .  ' FOREIGN KEY ('. implode(', ', array_map(
+		return 'CONSTRAINT ' . $this->escapeIdentifier(new Identifier('_fk_'.$this->fkCount++.'_'.md5(print_r($fk, true)))) .  ' FOREIGN KEY ('. implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getOwnColumns()
 		)) .')' . ' REFERENCES ' . $this->escapeIdentifier($fk->getForeignTable()) . 

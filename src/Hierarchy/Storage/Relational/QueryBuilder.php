@@ -36,8 +36,6 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Existence;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Tuple;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Hex;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Unhex;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Negation;
@@ -45,45 +43,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\String\Concat;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
 
 class QueryBuilder {
-	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
+	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 		
-	}
-
-	private function pkProjection($keyId, $tableRef, $columnName, $alias = null) {
-		switch($this->schemaDef->getKeyIdentityColumnType($keyId)) {
-			case 'serial':
-				$val = new ColumnReference($tableRef, $columnName);
-				break;
-			case 'uuid':
-				$val = new FunctionApplication(new Hex(), [new ColumnReference($tableRef, $columnName)]);
-				break;
-			case 'manual':
-				$val = new ColumnReference($tableRef, $columnName);
-				break;
-		}
-
-		return new Projection($val, $alias);
-	}
-
-	private function pkParameter($keyId, $parameter) {
-		switch($this->schemaDef->getKeyIdentityColumnType($keyId)) {
-			case 'serial':
-				return $parameter;
-			case 'uuid':
-				return new FunctionApplication(new Unhex(), [$parameter]);
-			case 'manual':
-				return $parameter;
-		}
-	}
-
-	private function readColumn($column, $tableRef) {
-		if($column->isReference()) {
-			$targetKey = $column->getCoding()->getTarget();
-
-			return $this->pkProjection($targetKey, $tableRef, new Identifier($column->getName()), new Identifier($column->getName()));
-		} else {
-			return new Projection(new ColumnReference($tableRef, new Identifier($column->getName())), new Identifier($column->getName()));
-		}
 	}
 
 	public function getSelectForFindNodes(string $keyId, ?ValueInterface $scope, ?ValueInterface $parent) {
@@ -91,10 +52,10 @@ class QueryBuilder {
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 
 		$projections = [];
-		$projections[] = $this->pkProjection($keyId, $tableH, $this->naming->hierarchyIdColumnName($keyId), $this->naming->hierarchyIdColumnName($keyId));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
 
 		$joins = [];
 		$joins[] = new Join($tableH, new BinaryOperation(
@@ -109,7 +70,7 @@ class QueryBuilder {
 			$conditionFragments[] = new BinaryOperation(
 				new Equal(TRUE),
 				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
-				$scope
+				$this->coder->wrapScopeParameter($keyId, $scope)
 			);
 		}
 
@@ -117,7 +78,7 @@ class QueryBuilder {
 			$conditionFragments[] = new BinaryOperation(
 			new Equal(TRUE),
 			new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
-			$parent
+			$this->coder->wrapParentParameter($keyId, $parent)
 		);
 		}
 		
@@ -132,7 +93,7 @@ class QueryBuilder {
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = $this->readColumn($column, $tableN);
+				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
 			}
 		}
 
@@ -161,7 +122,7 @@ class QueryBuilder {
 				new Constant('-'),
 			]),
 		]), new Identifier('_treeIndex'));
-		$projections[] = $this->pkProjection($keyId, $tableH, $this->naming->hierarchyIdColumnName($keyId), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
@@ -177,7 +138,7 @@ class QueryBuilder {
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = $this->readColumn($column, $tableN);
+				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
 			}
 		}
 
@@ -207,7 +168,7 @@ class QueryBuilder {
 				new Constant('-'),
 			]),
 		]), new Identifier('_treeIndex'));
-		$projections[] = $this->pkProjection($keyId, $tableH, $this->naming->hierarchyIdColumnName($keyId), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
@@ -239,7 +200,7 @@ class QueryBuilder {
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = $this->readColumn($column, $tableN);
+				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
 			}
 		}
 
@@ -251,10 +212,10 @@ class QueryBuilder {
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 
 		$projections = [];
-		$projections[] = $this->pkProjection($keyId, $tableH, $this->naming->hierarchyIdColumnName($keyId), $this->naming->hierarchyIdColumnName($keyId));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), $this->naming->hierarchyOrderColumnName($keyId));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
-		$projections[] = new Projection(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), $this->naming->hierarchyScopeColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
 
 		$joins = [];
 		$joins[] = new Join($tableH, new BinaryOperation(
@@ -266,12 +227,12 @@ class QueryBuilder {
 		$condition = new BinaryOperation(
 			new Equal(),
 			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
-			$this->pkParameter($keyId, $idParameter)
+			$this->coder->wrapPrimaryKeyParameter($keyId, $idParameter)
 		);
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = $this->readColumn($column, $tableN);
+				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
 			}
 		}
 
@@ -290,7 +251,7 @@ class QueryBuilder {
 		);
 
 		foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-			$projections[] = $this->readColumn($column, $tableN);
+			$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
 		}
 
 		return new Select($projections, [$tableN], [], $condition);
@@ -323,7 +284,7 @@ class QueryBuilder {
 
 		$projections = [];
 
-		$projections[] = $this->pkProjection($keyId, $tableN, $this->naming->nodeTablePKName($keyId), $this->naming->hierarchyIdColumnName($keyId));
+		$projections[] = new Projection($this->coder->wrapPrimaryColumn($keyId, $tableN), $this->naming->hierarchyIdColumnName($keyId));
 		$projections[] = new Projection(new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)), $this->naming->hierarchyParentColumnName($keyId));
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
@@ -347,7 +308,7 @@ class QueryBuilder {
 
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = $this->readColumn($column, $tableN);
+				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
 			}
 		}
 

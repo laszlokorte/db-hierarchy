@@ -256,6 +256,12 @@ class SchemaDefinition {
 		return $this->keys[$keyId]->getScopeColumnName();
 	}
 
+	public function getKeyScopeColumnType($keyId) {
+		$scopeId = $this->getKeyScopeId($keyId);
+		
+		return $this->keys[$scopeId]->getIdColumnType();
+	}
+
 	public function getKeyScopeColumn($keyId) {
 		return $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))
 			->deriveSameWithName($this->getKeyScopeColumnName($keyId));

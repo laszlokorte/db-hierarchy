@@ -43,7 +43,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Order;
 
 class CommandBuilder  {
 
-	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
+	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
 
 	private function pkParameter($keyId, $parameter) {

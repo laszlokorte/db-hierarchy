@@ -648,14 +648,14 @@ class RecursiveLoader {
 				'darkred'
 			), [
 			'test' => new KeyDefinition(
-				new StorageDefinition('test'),
+				new StorageDefinition('my_test'),
 				new LabelDefinition('Field Test', 'Field Tests'),
 				null, null, null, 
 				array_combine(array_keys($this->fieldTypes), 
 					array_map(fn($typeId) => 
 						new FieldDefinition(
 							new LabelDefinition(ucfirst($typeId)), 
-							$typeId, false, false, ['values' => ['x','y','z'], 'target' => 'test'])
+							$typeId, false, false, ['values' => ['x','y','z'], 'target' => 'aa'])
 						, array_keys($this->fieldTypes))
 				),
 				SummaryDefinition::parseSegments('{$self/id}')

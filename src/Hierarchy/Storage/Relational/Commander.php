@@ -18,7 +18,7 @@ class Commander {
 
 	private $noFk = false;
 
-	public function __construct(private SchemaDefinition $schemaDef, private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
+	public function __construct(private SchemaDefinition $schemaDef, private CommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
@@ -51,8 +51,8 @@ class Commander {
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
-			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, \PDO::PARAM_INT);
-			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, \PDO::PARAM_INT);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, $this->coder->getScopeColumnBindingType($keyId));
+			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$validPositionStmt->execute();
 
 			if(!$validPositionStmt->fetchColumn()) {
@@ -86,7 +86,7 @@ class Commander {
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($scopeParam),
-				$scopeId, \PDO::PARAM_INT
+				$scopeId, $this->coder->getScopeColumnBindingType($keyId)
 			);
 		}
 
@@ -94,7 +94,7 @@ class Commander {
     	if($this->schemaDef->isKeyReflexive($keyId) && $this->schemaDef->isKeyOrdered($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($parentParam),
-				$parentId, \PDO::PARAM_INT
+				$parentId, $this->coder->getPrimaryColumnBindingType($keyId)
 			);
 		}
 
@@ -126,14 +126,14 @@ class Commander {
 			$closureInsert = $this->commandBuilder->getCommandForClosureInsert($keyId, $scopeParam, $parentParam, $childParam, $depthParam);
 			$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsert));
 
-			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId, \PDO::PARAM_INT);
-			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, \PDO::PARAM_INT);
+			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0, \PDO::PARAM_INT);
 
 			if($this->schemaDef->isKeyScoped($keyId)) {
 				$closureStmt->bindValue(
 					$this->dialect->parameterToString($scopeParam),
-					$scopeId, \PDO::PARAM_INT
+					$scopeId, $this->coder->getScopeColumnBindingType($keyId)
 				);
 			}
 
@@ -143,13 +143,13 @@ class Commander {
     			$closureInsertParent = $this->commandBuilder->getCommandForClosureParentInsert($keyId, $scopeParam, $childParam, $parentParam);
 				$closureStmt = $this->connection->prepare($this->dialect->insertToString($closureInsertParent));
 
-    			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, \PDO::PARAM_INT);
-				$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, \PDO::PARAM_INT);
+    			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, $this->coder->getPrimaryColumnBindingType($keyId));
+				$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 
 				if($this->schemaDef->isKeyScoped($keyId)) {
 					$closureStmt->bindValue(
 						$this->dialect->parameterToString($scopeParam),
-						$scopeId, \PDO::PARAM_INT
+						$scopeId, $this->coder->getScopeColumnBindingType($keyId)
 					);
 				}
 
@@ -189,7 +189,7 @@ class Commander {
 
 		$stmt->bindValue(
 			$this->dialect->parameterToString($idParam),
-			$nodeId, \PDO::PARAM_INT
+			$nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
 		);
 		$stmt->execute();
 

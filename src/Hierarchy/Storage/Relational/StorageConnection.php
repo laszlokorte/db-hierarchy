@@ -18,6 +18,7 @@ class StorageConnection {
 		$this->schemaDef = $schemaDef;
 		$this->connection = $connection;
 		$this->naming = new Naming($schemaDef);
+		$this->coder = new ColumnCoder($schemaDef, $this->naming);
 		switch($connection->getDriver()->getName()) {
 			case 'pdo_mysql': $this->dialect = new MySql(); break;
 			case 'pdo_sqlite': $this->dialect = new Sqlite(); break;
@@ -26,11 +27,11 @@ class StorageConnection {
 	}
 
 	public function getCommander() {
-		return new Commander($this->schemaDef, new CommandBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
+		return new Commander($this->schemaDef, new CommandBuilder($this->schemaDef, $this->naming, $this->coder), $this->connection, $this->dialect, $this->coder);
 	}
 
 	public function getFetcher() {
-		return new Fetcher($this->schemaDef, new QueryBuilder($this->schemaDef, $this->naming), $this->connection, $this->dialect);
+		return new Fetcher($this->schemaDef, new QueryBuilder($this->schemaDef, $this->naming, $this->coder), $this->connection, $this->dialect);
 	}
 
 	public function getInstaller() {
@@ -40,7 +41,7 @@ class StorageConnection {
 	public function getValidator() {
 		return new Validator(
 			$this->schemaDef,
-			new ValidationBuilder($this->schemaDef, $this->naming),
+			new ValidationBuilder($this->schemaDef, $this->naming, $this->coder),
 			$this->connection, 
 			$this->dialect
 		);
