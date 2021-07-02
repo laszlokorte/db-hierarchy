@@ -126,6 +126,18 @@ class SchemaBuilder {
 					] : [],
 					[$pkColumnName]
 				);
+
+				foreach ($isolations as $iso) {
+					$uniques[] = [
+						$iso === $this->schemaDef->getKeyScopeId($keyId) ?
+						$this->naming->nodeOwnScopeColumnName($keyId) :
+						$this->naming->nodeOwnIsolationColumnName($iso)
+						,
+						$pkColumnName
+					];
+				}
+			} else {
+				$uniques[] = [$this->nodeOwnScopeColumnName($keyId), $pkColumnName];
 			}
 
 			if(!$this->quirks->noDeferredFK()) {
@@ -186,16 +198,19 @@ class SchemaBuilder {
 
 
 				if($commonIsolation) {
-					if($commonIsolation === $keyId) {
-						$otherCols[] = $this->naming->nodeOwnScopeColumnName($keyId);
-						$ownCols[] = $targetColumnName;
-
-					} elseif ($commonIsolation === $targetKeyName) {
-						$otherCols[] = $this->naming->nodeTablePKName($keyId);
-						$ownCols[] = $this->naming->nodeOwnScopeColumnName($keyId);
+					//dump($keyId . ' to '. $targetKeyName);
+					//dump($commonIsolation);
+					
+					if($commonIsolation[0] === $keyId) {
+						array_unshift($ownCols, $this->naming->nodeOwnScopeColumnName($commonIsolation[0]));
 					} else {
-						$ownCols[] = new Identifier('iso_'.$commonIsolation);
-						$otherCols[] = new Identifier('iso_'.$commonIsolation);
+						array_unshift($ownCols, $this->naming->nodeOwnIsolationColumnName($commonIsolation[0]));
+					}
+
+					if($commonIsolation[1] === $targetKeyName) {
+						array_unshift($otherCols, $this->naming->nodeOwnScopeColumnName($commonIsolation[1]));
+					} else {
+						array_unshift($otherCols, $this->naming->nodeOwnIsolationColumnName($commonIsolation[1]));
 					}
 
 				}

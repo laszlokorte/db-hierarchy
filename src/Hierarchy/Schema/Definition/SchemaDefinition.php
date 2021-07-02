@@ -297,8 +297,8 @@ class SchemaDefinition {
 
 
 		for ($i=0; $i < $commonLength; $i++) {
-			if($isoA[$i] === $isoB[$i]) {
-				$result = $isoB[$i];
+			if( $this->getKeyScopeId($isoA[$i]) === $this->getKeyScopeId($isoB[$i])) {
+				$result = [$isoA[$i], $isoB[$i]];
 			} else {
 				break;
 			}

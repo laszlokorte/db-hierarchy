@@ -19,6 +19,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Order;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison;
 use App\Hierarchy\Storage\Relational\Algebra\Value;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator;
@@ -102,6 +104,14 @@ class MySql extends SqlBase implements DialectInterface {
 			$this->valueToString($binaryOperation->getLeftOperand()) . ', ' . 
 			$this->valueToString($binaryOperation->getRightOperand()) .
 			')';
+		} elseif($binaryOperation->getOperator() instanceof Operator\Comparison\NotEqual) {
+			return $this->unaryOperationToString(
+				new Value\UnaryOperation(new Logic\Negation(), new Value\BinaryOperation(
+					new Comparison\Equal(true),
+					$binaryOperation->getLeftOperand(),
+					$binaryOperation->getRightOperand()
+				))
+			);
 		}
 		
 		return parent::binaryOperationToString($binaryOperation);

@@ -663,7 +663,7 @@ class RecursiveLoader {
 				new LabelDefinition('xx'),
 				new ScopeDefinition('ff',null, true), null, null, [
 					'zzref' => new FieldDefinition(
-						new LabelDefinition('zzref'), 'reference', true, true, 
+						new LabelDefinition('zzref'), 'reference', false, false, 
 						['target' => 'zz']),
 				],
 				SummaryDefinition::parseSegments('xx')
@@ -691,7 +691,7 @@ class RecursiveLoader {
 				new LabelDefinition('uu'),
 				new ScopeDefinition('ww', null, true), null, null, [
 					'yyref' => new FieldDefinition(
-						new LabelDefinition('yyref'), 'reference', true, true, 
+						new LabelDefinition('yyref'), 'reference', false, false, 
 						['target' => 'yy']),
 				],
 				SummaryDefinition::parseSegments('uu')
@@ -713,7 +713,7 @@ class RecursiveLoader {
 				new LabelDefinition('rr'),
 				new ScopeDefinition('qq',null, true), null, null, [
 					'uuref' => new FieldDefinition(
-						new LabelDefinition('uuref'), 'reference', true, true, 
+						new LabelDefinition('uuref'), 'reference', false, false, 
 						['target' => 'uu']),
 				],
 				SummaryDefinition::parseSegments('rr')
