@@ -195,7 +195,7 @@ class RecursiveLoader {
 	}
 
 	private function loadDynamicDefinition($hierarchyName) {
-		$stmt = $this->baseConnection->prepare('SELECT id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
+		$stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
 		$stmt->bindValue('slug', $hierarchyName, \PDO::PARAM_STR);
 		$stmt->execute();
 
@@ -212,6 +212,7 @@ class RecursiveLoader {
 				collection.slug AS slug,
 				collection.table_name AS table_name,
 				collection.pk_name AS pk_name,
+				collection.pk_type AS pk_type,
 				collection.label_singular AS label_singular,
 				collection.label_plural AS label_plural,
 				collection.label_description AS label_description,
@@ -238,9 +239,9 @@ class RecursiveLoader {
 			ON scope_definition.collection_id = collection.id
 			LEFT JOIN collection scope_collection
 			ON scope_definition.scope_key_ref = scope_collection.id
-			WHERE collection.hierarchy_id = :hid AND collection.slug <> ""
+			WHERE collection.hierarchy_id = UNHEX(:hid) AND collection.slug <> ""
 			');
-		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
+		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
 		$keyStmt->execute();
 		$keyRows = $keyStmt->fetchAll();
 
@@ -259,9 +260,9 @@ class RecursiveLoader {
 			FROM field 
 			INNER JOIN collection 
 			ON collection.id = field.collection_id 
-			WHERE collection.hierarchy_id = :hid AND field.slug <> ""
+			WHERE collection.hierarchy_id = UNHEX(:hid) AND field.slug <> ""
 		');
-		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_INT);
+		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
 		$fieldStmt->execute();
 		$fieldRows = $fieldStmt->fetchAll(\PDO::FETCH_GROUP);
 
@@ -290,7 +291,8 @@ class RecursiveLoader {
 			$keys[$keyRow['slug']] = new KeyDefinition(
 				new StorageDefinition(
 					$keyRow['table_name']?:$keyRow['slug'],
-					$keyRow['pk_name']?:'id'
+					$keyRow['pk_name']?:'id',
+					$keyRow['pk_type']
 				),
 				new LabelDefinition(
 					$keyRow['label_singular']?:ucfirst($keyRow['slug']),
@@ -316,9 +318,6 @@ class RecursiveLoader {
 				SummaryDefinition::parseSegments($keyRow['summary'])
 			);
 		}
-
-				dump($keys);
-
 
 		$def = new SchemaDefinition(
 			new LabelDefinition(

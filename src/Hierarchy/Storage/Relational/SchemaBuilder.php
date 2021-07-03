@@ -207,10 +207,7 @@ class SchemaBuilder {
 				$commonIsolation = $this->schemaDef->getCommonIsolation($keyId, $targetKeyName);
 
 
-				if($commonIsolation) {
-					//dump($keyId . ' to '. $targetKeyName);
-					//dump($commonIsolation);
-					
+				if($commonIsolation) {					
 					if($commonIsolation[0] === $keyId) {
 						array_unshift($ownCols, $this->naming->nodeOwnScopeColumnName($commonIsolation[0]));
 					} else {

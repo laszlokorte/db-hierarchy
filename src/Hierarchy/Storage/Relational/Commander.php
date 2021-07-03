@@ -170,30 +170,32 @@ class Commander {
 		$idParam = new Parameter('_id');
 		$update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
 
-		$this->beginTransaction();
-		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
+		if(!$update->isEmpty()) {
+			$this->beginTransaction();
+			$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
-			$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-			$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-			$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
+			foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+				$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+				$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+				$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+				$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
 
-			foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
-				$stmt->bindValue(
-					$this->dialect->parameterToString(new Parameter($column->getName())),
-					$columnData[$ci]
-				);
+				foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
+					$stmt->bindValue(
+						$this->dialect->parameterToString(new Parameter($column->getName())),
+						$columnData[$ci]
+					);
+				}
 			}
+
+			$stmt->bindValue(
+				$this->dialect->parameterToString($idParam),
+				$nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
+			);
+			$stmt->execute();
+
+	    	$this->commitTransaction();
 		}
-
-		$stmt->bindValue(
-			$this->dialect->parameterToString($idParam),
-			$nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
-		);
-		$stmt->execute();
-
-    	$this->commitTransaction();
 	}
 
 	public function deleteNode(string $keyId, $nodeId) {

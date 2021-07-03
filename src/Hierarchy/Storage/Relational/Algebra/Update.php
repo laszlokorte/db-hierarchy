@@ -28,4 +28,8 @@ class Update {
 	public function getSelect() {
 		return $this->selection;
 	}
+
+	public function isEmpty() {
+		return empty($this->setters);
+	}
 }
