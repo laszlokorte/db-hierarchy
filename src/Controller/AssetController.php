@@ -16,8 +16,8 @@ use Twig\Environment;
 
 class AssetController {
 
-	#[Route('/favicon-{hierarchySlug}.svg', name: 'hierarchy_favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchy' => 'system'])]
-    #[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchy' => 'system'])]
+	#[Route('/favicon-{hierarchySlug}.svg', name: 'hierarchy_favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
+    #[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
     #[ParamConverter('schema')]
 	#[Cache(expires: "tomorrow", public: true)]
 	public function favicon(Request $request, Environment $twig, Hierarchy $schema) {

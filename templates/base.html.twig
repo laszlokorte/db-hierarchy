@@ -21,7 +21,7 @@
             {#{{ encore_entry_script_tags('app') }}#}
         {% endblock %}
 
-        <link rel="icon" href="/favicon.svg">
+        <link rel="icon" href="{{path('hierarchy_favicon_svg', {hierarchySlug: hierarchy|default(systemHierarchy).slug})}}">
         {% endblock %}
     </head>
     <body class="html-body">  
