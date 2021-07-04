@@ -80,4 +80,30 @@ class Installer {
 			$this->connection->exec($turnOnFk);
 		}
 	}
+
+	public function getTableDiff() {
+		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'BASE TABLE'");
+		$stmt->execute();
+		$existing = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		$needed = array_map(fn($t) => $t->getName()->getString(), $this->schmaBuilder->getAllTables());
+
+		return [
+			'missing' => array_diff($needed, $existing),
+			'leftOver' => array_diff($existing, $needed),
+			'installed' => array_diff($needed, array_diff($needed, $existing)),
+		];
+	}
+
+	public function getViewDiff() {
+		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'VIEW'");
+		$stmt->execute();
+		$existing = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		$needed = array_map(fn($t) => $t->getName()->getString(), $this->schmaBuilder->getAllViews());
+
+		return [
+			'missing' => array_diff($needed, $existing),
+			'leftOver' => array_diff($existing, $needed),
+			'installed' => array_diff($needed, array_diff($needed, $existing)),
+		];
+	}
 }

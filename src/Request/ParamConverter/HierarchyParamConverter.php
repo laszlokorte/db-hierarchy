@@ -22,14 +22,15 @@ class HierarchyParamConverter implements ParamConverterInterface {
 	function apply(Request $request, ParamConverter $configuration) {
 		try {
 			$name = $configuration->getName();
+			$options = $configuration->getOptions();
 
 			if($configuration->getClass() === StorageConnection::class) {
-				$object = $this->schemaLoader->loadStorageConnection($request->attributes->get('hierarchySlug', 'system'));
+				$object = $this->schemaLoader->loadStorageConnection($request->attributes->get($options['slug'] ?? 'hierarchySlug'));
 
 				$request->attributes->set($name, $object);
 			} elseif($configuration->getClass() === Hierarchy::class) {
 				$name = $configuration->getName();
-				$schema = $this->schemaLoader->loadSchema($request->attributes->get('hierarchySlug', 'system'));
+				$schema = $this->schemaLoader->loadSchema($request->attributes->get($name.'Slug', 'system'));
 
 				$request->attributes->set($name, $schema);
 			} elseif($configuration->getClass() === Key::class) {

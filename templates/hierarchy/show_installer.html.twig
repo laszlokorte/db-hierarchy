@@ -1,0 +1,107 @@
+{% extends 'hierarchy/base.html.twig' %}
+
+{% block html_title -%}
+    Installer - {{ parent() }}
+{%- endblock %}
+
+{% block area_main %}
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,trailing: 'System'} only %}
+
+<h1>Installer</h1>
+
+<ul class="quicktab-list">
+    <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': subHierarchy.slug == hierarchy.slug}) }}" href="{{ path('show_system_installer', {hierarchySlug: hierarchy.slug}) }}">{{hierarchy.label.singular}}</a></li>
+    {% for subSchema in subSchemas %}
+        <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': subHierarchy.slug == subSchema.slug}) }}" href="{{ path('show_system_installer', {hierarchySlug: hierarchy.slug, subHierarchySlug: subSchema.slug}) }}">{{subSchema.label.singular}}</a></li>
+    {% endfor %}
+</ul>
+
+<h2>Schema</h2>
+
+<details class="details">
+    <summary class="details-summary">
+    SQL
+    </summary>
+
+    <textarea contenteditable="false" readonly style="margin: 0; color: #0a0; overflow: scroll;resize: vertical;box-sizing: border-box;height: 50vh;box-sizing: border-box;white-space: pre-wrap; padding: 2em; width: 100%">
+    {{- installer.getSchemaDeclerations -}}
+    </textarea>
+
+</details>
+
+<div style="display: flex; gap: 0.5em">
+    <form action="{{ path('system_install', {hierarchySlug: hierarchy.slug, subHierarchySlug: subHierarchy.slug})}}" method="post" accept-charset="utf-8">
+    <button class="action-button" name="only_views" value="1">Reinstall Views</button>
+    </form>
+    <form style="margin-left: auto;" action="{{ path('system_install', {hierarchySlug: hierarchy.slug, subHierarchySlug: subHierarchy.slug})}}" method="post" accept-charset="utf-8">
+    <button class="action-button danger">Reinstall Schema</button>
+    </form>
+    <form action="{{ path('system_uninstall', {hierarchySlug: hierarchy.slug, subHierarchySlug: subHierarchy.slug})}}" method="post" accept-charset="utf-8">
+    <button class="action-button danger">Uninstall</button>
+    </form>
+</div>
+
+<h2>Installation status</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr">
+        {% set tableDiff = installer.getTableDiff() %}
+        <div>
+            <h3>Installed Tables</h3>
+            <ul class="inline-list">
+                {% for tableName in tableDiff.installed %}
+                    <li class="block-list-item"><code class="badge" style="background-color:#080">{{tableName}}</code></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>
+            <h3>Missing Tables</h3>
+            <ul class="inline-list separator">
+                {% for tableName in tableDiff.missing %}
+                    <li class="block-list-item"><code class="badge" style="background-color:#800">{{tableName}}</code></li>
+                {% else %}
+                    <li>No missing</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>
+            <h3>Left over Tables</h3>
+            <ul class="inline-list">
+                {% for tableName in tableDiff.leftOver %}
+                    <li class="block-list-item"><code class="badge" style="background-color:#eee;color:#000">{{tableName}}</code></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {% set viewDiff = installer.getViewDiff() %}
+        <div>
+        <h3>Installed Views</h3>
+        <ul class="inline-list">
+            {% for viewName in viewDiff.installed %}
+                <li class="block-list-item"><code class="badge" style="background-color:#080">{{viewName}}</code></li>
+            {% endfor %}
+        </ul>            
+        </div>  
+        <div>
+             <h3>Missing Views</h3>
+            <ul class="inline-list separator">
+                {% for viewName in viewDiff.missing %}
+                    <li class="block-list-item"><code class="badge" style="background-color:#800">{{viewName}}</code></li>
+                {% else %}
+                    <li>No missing</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>
+            <h3>Left over Views</h3>
+            <ul class="inline-list">
+                {% for viewName in viewDiff.leftOver %}
+                    <li class="block-list-item"><code class="badge" style="background-color:#eee;color:#000">{{viewName}}</code></li>
+                {% endfor %}
+            </ul>
+        </div>      
+</div>
+
+
+
+{% endblock %}

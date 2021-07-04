@@ -24,13 +24,17 @@
         {% endfor %}
     </ul>
 
+    <ul class="block-list">
+        <li><a href="{{ path('hierarchy_tree', {hierarchySlug: systemHierarchy.slug}) }}">Full Hierarchy</a></li>
+    </ul>
+
+    {% if systemHierarchy == hierarchy %}
     <h2 class="site-section-title">System</h2>
     <ul class="block-list">
-        <li><a href="{{ path('hierarchy_setup', {hierarchySlug: hierarchy.slug}) }}">Show Schema</a></li>
-        <li><a href="{{ path('show_diagnosis', {hierarchySlug: hierarchy.slug}) }}">Diagnosis</a></li>
-        <li><a href="{{ path('hierarchy_tree', {hierarchySlug: hierarchy.slug}) }}">Full Hierarchy</a></li>
-        <li><span onclick="document.body.classList.toggle('show-quickform');window.localStorage.setItem('quickform', 'true'!=window.localStorage.getItem('quickform'))">Toggle Quickform</span></li>
+        <li><a href="{{ path('show_system_installer', {hierarchySlug: systemHierarchy.slug}) }}">Installer</a></li>
+        <li><a href="{{ path('show_health', {hierarchySlug: systemHierarchy.slug}) }}">Health check</a></li>
     </ul>
+    {% endif %}
 
 
     <script>

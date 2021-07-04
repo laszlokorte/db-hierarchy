@@ -43,7 +43,7 @@ class HierarchyController {
         } catch(\Doctrine\DBAL\Exception\DriverException) {
             $session->getFlashBag()->add('error', 'An error occured. Maybe the schema has to be updated');
 
-            return new RedirectResponse($urlGen->generate('show_hierarchy_setup', ['hierarchySlug' => $hierarchy->getSlug()]));
+            return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => 'system', 'subHierarchySlug' => $hierarchy->getSlug()]));
         }
     }
 
@@ -59,81 +59,87 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/{hierarchySlug}/_setup', name: 'show_hierarchy_setup', methods: 'GET')]
-    #[ParamConverter('storageConnection')]
+    #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'show_system_installer', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
+    #[ParamConverter('subHierarchy')]
 	#[Template()]
-    public function showSetup(Hierarchy $hierarchy, StorageConnection $storageConnection)
+    public function showInstaller(Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
     	return [
             'hierarchy' => $hierarchy,
+            'subHierarchy' => $subHierarchy,
     		'installer' => $storageConnection->getInstaller(),
     		'adapter' => new Sqlite(),
     	];
     }
 
-    #[Route('/{hierarchySlug}/_setup', name: 'hierarchy_setup', methods: 'POST')]
-    #[ParamConverter('storageConnection')]
+    #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'system_install', methods: 'POST')]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
-    public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection)
+    public function install(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
         $storageConnection->getInstaller()->createSchema(true, $request->request->get('only_views', false));
 
         $session->getFlashBag()->add('success', 'Schema has been updated.');
 
-        return new RedirectResponse($urlGen->generate('show_hierarchy_setup', ['hierarchySlug' => $hierarchy->getSlug()]));
+        return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-    #[Route('/{hierarchySlug}/_uninstall', name: 'hierarchy_uninstall', methods: 'POST')]
-    #[ParamConverter('storageConnection')]
+    #[Route('/{hierarchySlug}/_uninstall', name: 'system_uninstall', methods: 'POST')]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
-    public function setup(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection)
+    public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
         $storageConnection->getInstaller()->dropSchema();
 
         $session->getFlashBag()->add('success', 'Schema has been removed.');
 
-        return new RedirectResponse($urlGen->generate('show_hierarchy_setup', ['hierarchySlug' => $hierarchy->getSlug()]));
+        return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-    #[Route('/{hierarchySlug}/_diagnosis', name: 'show_diagnosis', methods: 'GET')]
-    #[ParamConverter('storageConnection')]
+    #[Route('/{hierarchySlug}/_health/{subHierarchySlug}', name: 'show_health', methods: 'GET', defaults: ['subHierarchySlug' => 'system'])]
     #[ParamConverter('hierarchy')]
+    #[ParamConverter('subHierarchy')]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
 	#[Template()]
-    public function diagnosis(Hierarchy $hierarchy, StorageConnection $storageConnection)
+    public function showHealth(Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
-    	$diagnosis = $storageConnection->getFetcher()->findAllDefects();
+    	$health = $storageConnection->getFetcher()->findAllDefects();
 
     	return [
             'hierarchy' => $hierarchy,
-    		'diagnosis' => $diagnosis,
+            'subHierarchy' => $subHierarchy,
+    		'health' => $health,
     	];
     }
 
-    #[Route('/{hierarchySlug}/_repair', name: 'repair', methods: 'POST')]
-    #[ParamConverter('storageConnection')]
+    #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}', name: 'repair', methods: 'POST')]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
-    public function repairDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection)
+    #[ParamConverter('subHierarchy')]
+    public function repairAllDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
     	$storageConnection->getCommander()->repairAll();
 
-    	return new RedirectResponse($urlGen->generate('show_diagnosis', ['hierarchySlug' => $hierarchy->getSlug()]));
+    	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-    #[Route('/{hierarchySlug}/_repair/{keyId}', name: 'repair_key', methods: 'POST')]
-    #[ParamConverter('storageConnection')]
+    #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}/{keyId}', name: 'repair_key', methods: 'POST')]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
+    #[ParamConverter('subHierarchy')]
     #[ParamConverter('key')]
-    public function repairKeyDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
+    public function repairKeyDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key)
     {
     	$storageConnection->getCommander()->repairKey($key->getId());
 
-    	return new RedirectResponse($urlGen->generate('show_diagnosis', ['hierarchySlug' => $hierarchy->getSlug()]));
+    	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
 
 
-    #[Route('/{hierarchySlug}_all/{keyId}.json', name: 'list_all_nodes', methods: 'GET')]
+    #[Route('/{hierarchySlug}/_all/{keyId}.json', name: 'list_all_nodes', methods: 'GET')]
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
@@ -156,7 +162,7 @@ class HierarchyController {
     #[ParamConverter('key')]
     #[ParamConverter('field')]
     #[Template()]
-    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, Field $field, $scopeId = null)
+    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $targetKey, Field $field, $scopeId = null)
     {
         $target = $field->getOption('target');
         $targetKey = $hierarchy->getKey($target);

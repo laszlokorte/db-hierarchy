@@ -101,6 +101,7 @@
     position: sticky; 
     right: 0;
     padding-right: 0.5em;
+    padding-left: 2em;
     background-image: linear-gradient(to right, transparent, white 30%);
 }
 
@@ -164,7 +165,7 @@
 .keyvalue-container {
     display: grid;
     gap: 0.5em;
-    grid-template-columns: max-content max-content auto;
+    grid-template-columns: minmax(min-content, max-content) minmax(min-content, 1fr) auto;
     grid-auto-flow: row;
     gap: 1em;
 }
@@ -757,8 +758,9 @@ body.show-quickform .quickform-inline {
     gap: 0.2em;
 }
 
-.inline-list.separator > li:not(:last-child):after {
+.inline-list.separator > li:not(:last-child)::after {
     content: ', ';
+    white-space: pre;
 }
 
 .inline-list.error {
@@ -1017,6 +1019,7 @@ details>.details-summary ~ * {
     display: flex inline;
     gap: 0.3em;
     align-items: center;
+    white-space: nowrap;
 }
 
 .badge:empty {
@@ -1091,4 +1094,13 @@ h1, h2, h3 {
 }
 .state-error > div > .form-choice-list input[checked] + .marker {
     background: #faa;
+}
+
+.action-link {
+    font-size: small;
+    color: var(--accent-primary, #034);
+}
+
+.action-link.soft-warn:hover {
+    color: #a00;
 }

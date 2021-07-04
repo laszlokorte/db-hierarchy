@@ -87,9 +87,9 @@
                                 {% endif %}
                                 <button class="inline-button">X</button>
                             </form>
-                            <a href="{{ path('ask_delete_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId}) }}" title="">Delete</a>
+                            <a class="action-link soft-warn" href="{{ path('ask_delete_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId}) }}" title="">Delete</a>
                             {% endif %}
-                            <a href="{{ path('edit_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId}) }}" title="">Edit</a>
+                            <a class="action-link" href="{{ path('edit_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId}) }}" title="">Edit</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -118,21 +118,23 @@
         <tfoot class="data-table-foot">
             <tr class="data-table-foot-row">
                 {% if parent is defined %}
-                    <td class="data-table-foot-cell sticky-start" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
+                    <td class="data-table-foot-cell sticky-start" colspan="1">
                     {% if listLink??false %}
                         <a href="{{ path('list_child_nodes', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %}
                     </td>
-                    <td class="data-table-foot-cell sticky-end" align="right" colspan="{{key.nestedKeys|length + 2 + (not nodeCollection.isScoped and key.isScoped?1:0) }}" >
+                    <td class="data-table-foot-cell" colspan="{{ key.fields|length + (key.ordered?1:0) + key.nestedKeys|length + (not nodeCollection.isScoped and key.isScoped?1:0) }}"></td>
+                    <td class="data-table-foot-cell sticky-end" align="right" colspan="2" >
                         <a href="{{ path('new_child_node', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">New {{key.label.singular}}</a>
                     </td>
                 {% else %}
-                    <td class="data-table-foot-cell sticky-start" colspan="{{ key.fields|length + 1 + (key.ordered?1:0) }}">
+                    <td class="data-table-foot-cell sticky-start" colspan="1">
                     {% if listLink??false %}
                         <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %} 
                     </td>
-                    <td class="data-table-foot-cell sticky-end" colspan="{{key.nestedKeys|length + 2 + (not nodeCollection.isScoped and key.isScoped?1:0) }}"  align="right">
+                    <td class="data-table-foot-cell" colspan="{{ key.fields|length +  (key.ordered?1:0) + key.nestedKeys|length + (not nodeCollection.isScoped and key.isScoped?1:0) }}"></td>
+                    <td class="data-table-foot-cell sticky-end" colspan="2"  align="right">
                         <a href="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">New {{key.label.singular}}</a>
                     </td>
                 {% endif %}
