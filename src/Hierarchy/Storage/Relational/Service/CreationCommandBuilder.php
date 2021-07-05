@@ -10,4 +10,12 @@ class CreationCommandBuilder  {
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
+
+	// getSelectForScopeParentCheck
+	// getSelectForUniquenessCheckNew
+	// getSelectForScopeParentCheck
+	// getCommandForCreateNode
+	// getCommandForClosureInsert
+	// getCommandForClosureParentInsert
+	// getInsertForClosureRepair
 }

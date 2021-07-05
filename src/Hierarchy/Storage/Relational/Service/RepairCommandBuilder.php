@@ -6,11 +6,13 @@ use App\Hierarchy\Storage\Relational\Naming;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
-class UpdateCommandBuilder  {
+class RepairCommandBuilder  {
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
 
-	// getSelectForUniquenessCheckEdit
-	// getCommandForUpdateNode
+	// getDiagnosableKeys
+	// getDiagnosisQueriesForKey
+	// getRepairableKeys
+	// getCommandForRepairKey
 }

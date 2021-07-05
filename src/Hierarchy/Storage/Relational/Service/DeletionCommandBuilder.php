@@ -10,4 +10,12 @@ class DeletionCommandBuilder  {
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
+
+	// getCommandForDeleteMultipleNodesClosure
+	// getCommandForDeleteMultipleNodes
+	// getSelectForCollectChildByIdReflexive
+	// getSelectForCollectSelfById
+	// getSelectForCollectChildByScopeReflexive
+	// getSelectForCollectChildByScope
+	// getSelectForReferencedNodes
 }

@@ -10,4 +10,6 @@ class OrderingCommandBuilder  {
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
+
+	// getUpdateforReorderNode
 }

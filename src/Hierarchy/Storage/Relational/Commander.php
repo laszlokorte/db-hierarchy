@@ -529,7 +529,6 @@ class Commander {
 			$retriesLeft = self::MAX_REPAIR_RETRIES;
 
 			while($retriesLeft-- > 0) {
-				echo $retriesLeft;
 				switch (get_class($command)) {
 					case Insert::class:
 						$stmt = $this->connection->prepare($this->dialect->insertToString($command));
