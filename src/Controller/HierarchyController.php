@@ -274,28 +274,31 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
-    #[Template('ask_delete_node')]
+    #[Template('hierarchy/ask_delete_node.html.twig')]
     public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
+
     	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
 
-        $validation = $storageConnection->getValidator()->validateDeleteNode($key->getId(), $nodeId);
+        $deletionService = $storageConnection->getDeletionService();
+        $deletion = $deletionService->getDeletionPlan($key->getId(), $nodeId);
 
-        if($validation->isValid()) {
+        if($deletion->isNotBlocked()) {
             try {
-                $storageConnection->getCommander()->deleteNode($key->getId(), $nodeId);
+                $deletionService->performDeletion($deletion);
             } catch(DeletionBlockedException $e) {
+                $session->getFlashBag()->add('error', 'Deletion failed');
+
                 return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
             }
         } else {
-            return new Response($twig->render('hierarchy/ask_delete_node.html.twig', [
+            return [
                 'hierarchy' => $hierarchy,
                 'key' => $key,
                 'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-                'deletionPlan' => $storageConnection->getCommander()->getDeletionPlan($key->getId(), $nodeId),
-                'validation' => $validation,
-            ]));
+                'deletion' => $deletion,
+            ];
         }
         
 
@@ -331,14 +334,15 @@ class HierarchyController {
 	#[Template()]
     public function askDeleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Key $key, $nodeId)
     {
-        $validation = $storageConnection->getValidator()->validateDeleteNode($key->getId(), $nodeId);
+        $deletionService = $storageConnection->getDeletionService();
+        $deletion = $deletionService->getDeletionPlan($key->getId(), $nodeId);
 
 		return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
     		'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-            'deletionPlan' => $storageConnection->getCommander()->getDeletionPlan($key->getId(), $nodeId),
+            'deletion' => $deletion,
     	];
     }
 

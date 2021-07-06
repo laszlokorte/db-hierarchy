@@ -4,42 +4,51 @@ namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
+
+use App\Hierarchy\Data;
 
 use Doctrine\DBAL\Connection;
 
+use App\Hierarchy\Changeset\Deletion;
+
 class DeletionService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, private DeletionCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
-	public function validateDeleteNode(string $keyId, string $nodeId) {
-		$scopeId = null; 
-		$parentId = null;
+	public function getDeletionPlan($keyId, $nodeId) {
+		$cascadingDeletions = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
 
-		// check deletion plan
+        [$referencedLeafs, $referencedInners] = $this->collectReferencedNodesByIds($keyId, [$nodeId]);
+		$cascadingDeletions = array_merge($cascadingDeletions, array_filter($referencedLeafs));
+        $blockers = $referencedInners;
 
-		return new Validation(
-			$keyId, 
-			$nodeId, 
-			null,
-			[],
-			$scopeId, 
-			$parentId
-		);
+        foreach ($cascadingDeletions as $willkey => $rows) {
+			$willIds = array_keys($rows);
+			$referenced = $this->collectReferencedNodesByIds($willkey, $willIds);
+
+			$cascadingDeletions = array_merge($cascadingDeletions, array_filter($referencedLeafs));
+            $blockers = array_merge($blockers, $referencedInners);
+        }
+
+        return new Deletion(
+        	$keyId, $nodeId, 
+        	new Data\MultiCollection(null, null, array_reverse($cascadingDeletions), null, null),
+			new Data\MultiCollection(null, null, array_filter($blockers), null, null)
+        );
 	}
 
-	public function deleteNode(string $keyId, $nodeId) {
-		$deletionPlan = $this->getDeletionPlan($keyId, $nodeId);
-
-		if(!$deletionPlan['blockers']->isEmpty()) {
-			throw new Exception\DeletionBlockedException("can not delete");
+	public function performDeletion(Deletion $deletionPlan) {
+		if(!$deletionPlan->isNotBlocked()) {
+			throw new Exception\DeletionBlockedException("Deletion is blocked");
 		}
 
 		try {
-			$this->beginTransaction();
-			foreach ($deletionPlan['willDelete']->getKeys() as $key) {
-				$nodeIds = $deletionPlan['willDelete']->getNodeIdsFor($key);
+			$this->connection->beginTransaction();
+			foreach ($deletionPlan->getCascadingKeys() as $key) {
+				$nodeIds = $deletionPlan->getCascadingIdsFor($key);
 				if(empty($nodeIds)) {
 					continue;
 				}
@@ -61,36 +70,15 @@ class DeletionService {
 				$stmt = $this->connection->prepare($this->dialect->deleteToString($delete));
 
 				foreach($nodeIdParams AS $i => $p) {
-					$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
+					$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($key));
 				}
 				$stmt->execute();
 			}
-			$this->commitTransaction();
+			$this->connection->commit();
 		} catch(\Exception $e) {
 			$this->connection->rollback();
 			throw $e;
 		}
-	}
-
-	public function getDeletionPlan($keyId, $nodeId) {
-		$willDelete = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
-
-        $referenced = $this->collectReferencedNodesByIds($keyId, [$nodeId]);
-		$willDelete = array_merge($willDelete, array_filter($referenced['leafs']));
-        $blockers = $referenced['inner'];
-
-        foreach ($willDelete as $willkey => $rows) {
-			$willIds = array_keys($rows);
-			$referenced = $this->collectReferencedNodesByIds($willkey, $willIds);
-
-			$willDelete = array_merge($willDelete, array_filter($referenced['leafs']));
-            $blockers = array_merge($blockers, $referenced['inner']);
-        }
-
-        return [
-        	'willDelete' => new Data\MultiCollection(null, null, array_reverse($willDelete), null, null),
-        	'blockers' => new Data\MultiCollection(null, null, array_filter($blockers), null, null),
-        ];
 	}
 
 	private function collectChildNodesByNodeIds(string $keyId, $nodeIds) {
@@ -170,13 +158,11 @@ class DeletionService {
 	}
 
 	private function collectReferencedNodesByIds($keyId, $nodeIds) {
-		$result = [
-			'leafs' => [],
-			'inner' => [],
-		];
+		$leafs = [];
+		$inners = [];
 
 		if(empty($nodeIds)) {
-			return $result;
+			return [[], []];
 		}
 
 		$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
@@ -187,11 +173,7 @@ class DeletionService {
 				continue;
 			}
 
-			if($this->schemaDef->isKeyLeaf($refKey)) {
-				$group = 'leafs';
-			} else {
-				$group = 'inner';
-			}
+			
 
 			$select = $this->commandBuilder->getSelectForReferencedNodes($refKey, $columns, $nodeIdParams);
 
@@ -200,9 +182,14 @@ class DeletionService {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
 			$stmt->execute();
-			$result[$group][$refKey] = $stmt->fetchAllAssociativeIndexed();
+
+			if($this->schemaDef->isKeyLeaf($refKey)) {
+				$leafs[$refKey] = $stmt->fetchAllAssociativeIndexed();
+			} else {
+				$inners[$refKey] = $stmt->fetchAllAssociativeIndexed();
+			}
 		}
 
-		return $result;
+		return [$leafs, $inners];
 	}
 }

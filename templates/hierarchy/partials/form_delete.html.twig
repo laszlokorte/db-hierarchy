@@ -4,18 +4,18 @@
 {% endif %}
 
 <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:node.id}) }}" method="post" accept-charset="utf-8">
-    {% if deletionPlan.willDelete.nodesFor(key.id).count > 1 or deletionPlan.willDelete.getKeys()|length > 1 %}
+    {% if deletion.isCascading %}
         <div class="warning-box">
             <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
             <p>Following nodes will also be deleted:</p>
 
             <dl class="keyvalue-container">
-                {% for keyId in deletionPlan.willDelete.getKeys() %}
+                {% for keyId in deletion.cascadingKeys %}
                     <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.string(hierarchy.getKey(keyId).isSingleton)}}</dt>
                     <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
-                            {% for nodeId in deletionPlan.willDelete.getNodesFor(keyId).getIds() %}
-                                <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletionPlan.willDelete.getNodesFor(keyId).getNode(nodeId))}}</a></li>
+                            {% for nodeId in deletion.cascadingIdsFor(keyId) %}
+                                <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletion.cascadingNodeFor(keyId, nodeId))}}</a></li>
                             {% endfor %}
                         </ul>
                     </dd>
@@ -26,7 +26,7 @@
             <div class="approve-box">This node does not have any child nodes.</div>
         {% endif %}
 
-    {% if not deletionPlan.blockers.isEmpty %}
+    {% if deletion.isBlocked %}
         <div class="warning-box">
             <h3 style="margin: 0">Node can not be deleted.</h3>
 
@@ -35,12 +35,12 @@
             </p>
 
             <dl class="keyvalue-container">
-                {% for keyId in deletionPlan.blockers.keys %}
+                {% for keyId in deletion.blockingKeys %}
                     <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.string(hierarchy.getKey(keyId).isSingleton)}}</dt>
                     <dd class="keyvalue-container-field wide">
                         <ul class="inline-list separator">
-                            {% for nodeId in deletionPlan.blockers.getNodesFor(keyId).getIds() %}
-                                <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletionPlan.blockers.getNodesFor(keyId).getNode(nodeId))}}</a></li>
+                            {% for nodeId in deletion.blockinNodesFor(keyId).getIds() %}
+                                <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletion.blockinNodesFor(keyId, nodeId))}}</a></li>
                             {% endfor %}
                         </ul>
                     </dd>

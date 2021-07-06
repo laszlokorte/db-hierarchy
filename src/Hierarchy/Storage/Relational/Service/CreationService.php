@@ -173,7 +173,7 @@ class CreationService {
 
 		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $idParam, $scopeParam, $parentParam);
 
-		$this->beginTransaction();
+		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
 
 		$generatedId = null;
@@ -272,7 +272,7 @@ class CreationService {
     		));
 		}
 
-    	$this->commitTransaction();
+    	$this->connection->commit();
 
     	return $newNodeId;
 	}

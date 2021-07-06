@@ -2,6 +2,8 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
+use App\Hierarchy\Storage\Relational\Service;
+
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
 use App\Hierarchy\Storage\Relational\Dialect\Sqlite;
@@ -44,6 +46,16 @@ class StorageConnection {
 			new ValidationBuilder($this->schemaDef, $this->naming, $this->coder),
 			$this->connection, 
 			$this->dialect
+		);
+	}
+
+	public function getDeletionService() {
+		return new Service\DeletionService(
+			$this->schemaDef, 
+			new Service\DeletionCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
 		);
 	}
 }
