@@ -65,7 +65,7 @@
 {% endblock %}
 {% block tab_1 %}
 
-    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel_tab: 'child_tab_'~childKey.id~'_list', creation: childKey.newCreation(node)} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel_tab: defaultTabId|default(null), creation: childKey.newCreation(node)} only %}
 {% endblock %}
 {% endembed %}
 {% endfor %}

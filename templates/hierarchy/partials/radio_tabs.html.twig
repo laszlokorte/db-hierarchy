@@ -1,5 +1,7 @@
+{% set sortedTabs = tabs|keys|sort((a,b) => tabs[a].default|default(false) <=> tabs[b].default|default(false)) %}
+{% set defaultTabId = "radio_tab_"~groupId~"_" ~sortedTabs|last   %}
 <div class="tab-container dense">
-    {% for tabIndex, tab in tabs|sort((a,b) => a.default|default(false) <=> b.default|default(false)) %}
+    {% for tabIndex in sortedTabs %}
     <input type="radio" class="tab-container-radio" id="radio_tab_{{groupId}}_{{tabIndex}}" name="radio_tab_{{groupId}}" value="{{tabIndex}}">
     <div class="tab-container-content">
 

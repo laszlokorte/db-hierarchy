@@ -7,6 +7,10 @@ class Creation {
 
 	}
 
+	public function getKeyId() {
+		return $this->keyId;
+	}
+
 	public function hasBeenValidated() {
 		return $this->errors !== null;
 	}

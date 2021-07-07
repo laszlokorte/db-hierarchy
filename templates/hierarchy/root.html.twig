@@ -46,7 +46,7 @@
             <dd class="form-container-buttons">
                 <input type="hidden" name="_then" value="parent">
                 <button name="soft" class="action-button danger">Yes, Delete!</button>
-                <label class="link-button" for="child_tab_{{rootKey.id}}_new" class="quicktab-link">
+                <label class="link-button" for="{{defaultTabId|default(null)}}" class="quicktab-link">
             Cancel
             </label>
             </dd>
@@ -69,7 +69,7 @@
       {% block tab_0 %}
       {% endblock %}
       {% block tab_1 %}
-        {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'root', force_then: true, cancel_tab: 'child_tab_'~rootKey.id~'_list', creation: rootKey.newCreation()} only %}
+        {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'root', force_then: true, cancel_tab: defaultTabId|default(null), creation: rootKey.newCreation()} only %}
       {% endblock %}
     {% endembed %}
 {% endfor %}

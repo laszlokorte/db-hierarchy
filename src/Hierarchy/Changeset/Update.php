@@ -7,6 +7,14 @@ class Update {
 		
 	}
 
+	public function getKeyId() {
+		return $this->keyId;
+	}
+
+	public function getNodeId() {
+		return $this->nodeId;
+	}
+
 	public function hasBeenValidated() {
 		return $this->errors !== null;
 	}
