@@ -1,4 +1,6 @@
-<form action="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId: node.key, nodeId: node.id}) }}" method="post" accept-charset="utf-8">
+{% set key = hierarchy.getKey(movement.keyId) %}
+
+<form action="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId: movement.keyId, nodeId: movement.nodeId}) }}" method="post" accept-charset="utf-8">
 
     <dl class="form-container">
         {% if not movement.isValid %}
@@ -12,7 +14,7 @@
         <dd class="form-container-field">
             <select class="form-select" id="target_scope-parent" name="target_scope-parent">
             {% if not key.scoped %}
-                {% set selected = (null==node.scope and null==node.parent) %}
+                {% set selected = (null==movement.scope and null==movement.parent) %}
                 <option value="/">
                 Root
                 {% if selected %}
@@ -22,15 +24,15 @@
                 {% if selected %}
                     <option disabled>{%- for _ in range(0, 1) -%}
                     {{ '&nbsp;&nbsp;&nbsp;'|raw }}
-                {%- endfor -%}{{key.summarize(node)}} (self)</option>
+                {%- endfor -%}{{key.summarize(node, true)}} (self)</option>
                 {% endif %}
 
                 {% for scope in moveTargets.getScopes(key.id) %}
-                    {{ _self.walkTree(hierarchy, key.id, node, key.id, moveTargets, null, null) }}
+                    {{ _self.walkTree(hierarchy, key.id, movement, key.id, moveTargets, null, null) }}
                 {% endfor %}
             {% else %}
                 {% for scope in moveTargets.getScopes(key.scopeKey.id) %}
-                    {{ _self.walkTree(hierarchy, key.id, node, key.scopeKey.id, moveTargets, scope, null) }}
+                    {{ _self.walkTree(hierarchy, key.id, movement, key.scopeKey.id, moveTargets, scope, null) }}
                 {% endfor %}
             {% endif %}
             </select>
@@ -42,19 +44,19 @@
     </dl>
 </form>
 
-{% macro walkTree(hierarchy, keyId, node, currentKey, h, scope, parent, depth = 0) %}
+{% macro walkTree(hierarchy, keyId, movement, currentKey, h, scope, parent, depth = 0) %}
     {% for n in h.getNodes(currentKey, scope, parent) %}
         {% if keyId == currentKey %}
-            {% set selected = (scope==node.scope and n.id==node.parent) %}
+            {% set selected = (scope==movement.scope and n.id==movement.parent) %}
         {% else %}
-            {% set selected = (n.id==node.scope and null==node.parent) %}
+            {% set selected = (n.id==movement.scope and null==movement.parent) %}
         {% endif %}
         <option {%- if selected %} selected="selected"{% endif %} value="
             {%- if keyId == currentKey %}{{scope}}/{{n.id}}{% else %}{{n.id}}/{% endif -%}
         ">
         {%- for _ in range(0, depth) -%}
             {{ '&nbsp;&nbsp;&nbsp;'|raw }}
-        {%- endfor -%}{{hierarchy.getKey(currentKey).summarize(n)}}
+        {%- endfor -%}{{hierarchy.getKey(currentKey).summarize(n, true)}}
         {% if selected %}
             (current)
         {% endif %}
@@ -62,13 +64,13 @@
         {% if selected %}
             <option disabled>{%- for _ in range(0, depth+1) -%}
             {{ '&nbsp;&nbsp;&nbsp;'|raw }}
-        {%- endfor -%}{{hierarchy.getKey(currentKey).summarize(n)}} (self)</option>
+        {%- endfor -%}{{hierarchy.getKey(currentKey).summarize(n, true)}} (self)</option>
         {% endif %}
         {% for childKey in h.getRootKeys %}
             {% if childKey == currentKey %}
-                {{ _self.walkTree(hierarchy, keyId, node, childKey, h, n.scope, n.id, depth + 1) }}
+                {{ _self.walkTree(hierarchy, keyId, movement, childKey, h, n.scope, n.id, depth + 1) }}
             {% else %}
-                {{ _self.walkTree(hierarchy, keyId, node, childKey, h, n.id, null, depth+1) }}
+                {{ _self.walkTree(hierarchy, keyId, movement, childKey, h, n.id, null, depth+1) }}
             {% endif %}
         {% endfor %}
     {% endfor %}

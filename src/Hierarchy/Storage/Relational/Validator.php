@@ -122,7 +122,7 @@ class Validator {
 			);
 		}
 
-    	if($this->schemaDef->isKeyReflexive($keyId) && $this->schemaDef->isKeyOrdered($keyId)) {
+    	if($this->schemaDef->isKeyReflexive($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($parentParam),
 				$parentId, \PDO::PARAM_INT

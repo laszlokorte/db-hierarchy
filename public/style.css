@@ -438,10 +438,23 @@ span[onclick]:not([class]) {
     cursor: move;
     text-align: center;
     font-weight: bold;
+    min-width: 3ch;
+    background-color: #555;
+    font-size: 0.8rem;
+    justify-items: center;
+    line-height: 1.2;
+    padding: 0.1rem;
+    color: #fff;
+    vertical-align: baseline;
+    border-radius: 2px;
 }
 
-.dragger::before {
+.dragger.sort::before {
     content: '☰';
+}
+
+.dragger.nest::before {
+    content:  '↳';
 }
 
 .dragger.state-dragging {
@@ -909,8 +922,10 @@ details>.details-summary ~ * {
     transform-origin: center;
 }
 
-.stealth-link:hover .site-title-icon svg {
-    transform: rotate(-5deg) scale(1.1) translateZ(0);
+.stealth-link:hover .site-title-icon circle {
+    stroke: currentColor;
+    stroke-width: 1pt;
+    stroke-location: outside;
 }
 
 .site-section-title {

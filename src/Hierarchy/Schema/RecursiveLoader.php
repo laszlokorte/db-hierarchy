@@ -663,7 +663,7 @@ class RecursiveLoader {
 			'aa' => new KeyDefinition(
 				new StorageDefinition('aa'),
 				new LabelDefinition('ScopeTest'),
-				null, null, null, [],
+				null, new ReflexivityDefinition(), null, [],
 				SummaryDefinition::parseSegments('aa')
 			),
 			'bb' => new KeyDefinition(

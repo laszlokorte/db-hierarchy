@@ -32,9 +32,12 @@
             }})
         }
         ">
-            <div style="display: flex;">
+            <div style="display: flex; gap: 0.5ch">
+                {% if key.isOrdered %}
+                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',keyId:key.id, nestId: (scope??'-')~"*"~(parent??'-'), nodeId: node.id, order:node.order} %}
+                {% endif %}
                 {% if key.isNested %}
-                <span class="dragger" 
+                <span class="dragger nest" 
                 data-url="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}"
                 {% if key.isScoped %}
                 data-scope="{{key.scopeKey.id}}"
@@ -50,10 +53,7 @@
                 this.parentNode.parentNode.classList.remove('state-dragging');
                 this.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));document.body.classList.remove('state-dragging')
                 "
-                ></span>&nbsp;
-                {% endif %}
-                {% if key.isOrdered %}
-                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',keyId:key.id, nestId: (scope??'-')~"*"~(parent??'-'), nodeId: node.id, order:node.order} %}
+                ></span>
                 {% endif %}
                 <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}" title="">{{key.summarize(node)}}</a>
             </div>
@@ -90,17 +90,17 @@
         </p>
     {% else %}
         <span data-key="{{key.id}}"
-    ondragover="if(!event.dataTransfer.getData('scope')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
+    ondragover="if(event.dataTransfer.getData('key')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
     ondragleave="this.classList.remove('state-over')"
     ondrop="
-    if(event.dataTransfer.getData('move-url') && (!event.dataTransfer.getData('scope')) {
-        event.stopPropagation()
+    if(event.dataTransfer.getData('move-url') && 'undefined'===event.dataTransfer.getData('scope')) {
+        event.stopPropagation();
         this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));
             event.stopPropagation();
             let fd = new FormData();
             fd.append('target_scope-parent', '/');
             fd.append('_then', 'tree');
-            document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false)
+            document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false);
             fetch(event.dataTransfer.getData('move-url'), {
               method: 'POST',
               body: fd

@@ -1,4 +1,6 @@
-<form action="{{ path('order_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id}) }}" method="post" accept-charset="utf-8">
+{% set key = hierarchy.getKey(ordering.keyId) %}
+
+<form action="{{ path('order_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: ordering.nodeId}) }}" method="post" accept-charset="utf-8">
      <dl class="form-container">
         {% if not ordering.isValid %}
             <dt class="form-container-label form-container-spacer">
@@ -15,7 +17,7 @@
             {% set prevId = 'Top' %}
             <select class="form-select" name="target_order" required="">
                 {% for id in orderTargets.ids %}
-                    {% if id==node.id %}
+                    {% if id==ordering.nodeId %}
                         {% set down = true %}
                         <option disabled="" value="">{{ prevId }}</option>
                         <option value="{{orderTargets.order(id)}}" selected="selected">
