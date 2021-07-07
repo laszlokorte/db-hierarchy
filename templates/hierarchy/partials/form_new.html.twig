@@ -14,19 +14,19 @@
 	{% endif %}
 
 	<dl class="form-container">
-		{% if not validation.isValid??true %}
+		{% if not creation.isValid %}
 			<dt class="form-container-label form-container-spacer">
 			</dt>
 			<dd class="form-container-field">
-	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, validation} only %}
+	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: creation.allErrors} only %}
 	    	</dd>
 		{% endif %}
 
 		{% if parent is not defined and key.isScoped %}
-		<dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid('_scope')??true}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid('_scope')??true}) }}" for="scope">{{key.scopeKey.label.singular}}</label>
+		<dt class="{{ html_classes('form-container-label', {'state-error': creation.hasScopeErrors}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': creation.hasScopeErrors}) }}" for="scope">{{key.scopeKey.label.singular}}</label>
         </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid('_scope')??true}) }}">
+        <dd class="{{ html_classes('form-container-field', {'state-error': creation.hasScopeErrors}) }}">
         <div>
         <input type="hidden" name="scope" value="">
     	<input 
@@ -37,9 +37,9 @@
     required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
       </div>
     	
-    	{% if not validation.isFieldValid('_scope')??true %}
+    	{% if creation.hasScopeErrors %}
     	<ul class="inline-list error">
-    		{% for e in validation.fieldErrors('_scope') %}
+    		{% for e in creation.getScopeErrors() %}
     	    <li>{{e}}</li>
     		{% endfor %}
     	</ul>
@@ -48,10 +48,10 @@
     	</dd>
 		{% endif %}
 		{% if parent is not defined and key.isReflexive %}
-		<dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid('_parent')??true}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid('_parent')??true}) }}" for="parent">Parent {{key.label.singular}}</label>
+		<dt class="{{ html_classes('form-container-label', {'state-error': creation.hasParentErrors}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': creation.hasParentErrors}) }}" for="parent">Parent {{key.label.singular}}</label>
         </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid('_parent')??true}) }}">
+        <dd class="{{ html_classes('form-container-field', {'state-error': creation.hasParentErrors}) }}">
         <div>
         <input type="hidden" name="parent" value="">
     	<input 
@@ -63,9 +63,9 @@
 
         </div>
     	
-    	{% if not validation.isFieldValid('_parent')??true %}
+    	{% if creation.hasParentErrors %}
     	<ul class="inline-list error">
-    		{% for e in validation.fieldErrors('_parent') %}
+    		{% for e in creation.getParentErrors() %}
     	    <li>{{e}}</li>
     		{% endfor %}
     	</ul>
@@ -73,18 +73,18 @@
     	</dd>
 		{% endif %}
 		{% for field in key.fields %}
-        <dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid(field.id)??true}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid(field.id)??true}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
+        <dt class="{{ html_classes('form-container-label', {'state-error': creation.fieldHasErrors(field.id)}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': creation.fieldHasErrors(field.id)}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
         </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid(field.id)??true}) }}">
+        <dd class="{{ html_classes('form-container-field', {'state-error': creation.fieldHasErrors(field.id)}) }}">
         
         <div>
         	{{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
         </div>
     	
-    	{% if not validation.isFieldValid(field.id)??true %}
+    	{% if creation.fieldHasErrors(field.id) %}
     	<ul class="inline-list error">
-    		{% for e in validation.fieldErrors(field.id) %}
+    		{% for e in creation.fieldErrors(field.id) %}
     	    <li>{{e}}</li>
     		{% endfor %}
     	</ul>

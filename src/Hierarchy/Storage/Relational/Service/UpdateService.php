@@ -22,11 +22,11 @@ class UpdateService {
 			$node->getId(),
 			[],
 			[],
-			[]
+			null
 		);
 	}
 
-	public function validateUpdateNode(Node $node, array $fieldData) {
+	public function getValidatedUpdate(Node $node, array $fieldData) {
 		// check empty fields
 		// check unique fields != self
 		$keyId = $node->getKey();
@@ -40,6 +40,7 @@ class UpdateService {
 			$keyId, 
 			$nodeId,
 			$fieldData,
+			$previousData,
 			$errors
 		);
 	}

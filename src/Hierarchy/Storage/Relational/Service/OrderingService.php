@@ -21,11 +21,11 @@ class OrderingService {
 			$node->getKey(),
 			$node->getId(),
 			$node->getOrder(),
-			[]
+			null
 		);
 	}
 
-	public function validateOrderNode(Node $node, $targetPosition) {
+	public function getValidatedOrdering(Node $node, $targetPosition) {
 		$scopeId = null; 
 		$parentId = null;
 

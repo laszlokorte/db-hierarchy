@@ -5,30 +5,28 @@
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
 
-	
-
 	<dl class="form-container">
-		{% if not validation.isValid??true %}
+		{% if not update.isValid %}
 			<dt class="form-container-label form-container-spacer">
 			</dt>
 			<dd class="form-container-field">
-	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, validation} only %}
+	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: update.allErrors} only %}
 	    	</dd>
 		{% endif %}
 
 		{% for field in key.fields %}
-        <dt class="{{ html_classes('form-container-label', {'state-error': not validation.isFieldValid(field.id)??true}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': not validation.isFieldValid(field.id)??true}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
+        <dt class="{{ html_classes('form-container-label', {'state-error': update.fieldHasErrors(field.id)}) }}">
+        <label class="{{ html_classes('form-label', {'state-error': update.fieldHasErrors(field.id)}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
         </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': not validation.isFieldValid(field.id)??true}) }}">
+        <dd class="{{ html_classes('form-container-field', {'state-error': update.fieldHasErrors(field.id)}) }}">
         
         <div>
         	{{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
         </div>
     	
-    	{% if not validation.isFieldValid(field.id)??true %}
+    	{% if update.fieldHasErrors(field.id) %}
     	<ul class="inline-list error">
-    		{% for e in validation.fieldErrors(field.id) %}
+    		{% for e in update.fieldErrors(field.id) %}
     	    <li>{{e}}</li>
     		{% endfor %}
     	</ul>

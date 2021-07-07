@@ -19,7 +19,7 @@
     <li class="quicktab-list-item"><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" for="child_tab_{{key.id}}_new" class="quicktab-link">
     {{key.label.empty}}
     </a></li>
-    <li class="quicktab-list-item"><span for="child_tab_{{key.id}}_list" class="quicktab-link state-active">
+    <li class="quicktab-list-item"><span for="child_tab_{{key.id}}_list" class="quicktab-link state-active need-confirmation">
     {{key.label.plural}}
     </span></li>
 </ul>

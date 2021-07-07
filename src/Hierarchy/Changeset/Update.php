@@ -22,4 +22,16 @@ class Update {
 	public function isValid() {
 		return empty($this->errors);
 	}
+
+	public function fieldHasErrors(string $fieldId) {
+		return !empty($this->errors[$fieldId]);
+	}
+
+	public function getFieldErrors(string $fieldId) {
+		return $this->errors[$fieldId];
+	}
+
+	public function getAllErrors() {
+		return $this->errors;
+	}
 }

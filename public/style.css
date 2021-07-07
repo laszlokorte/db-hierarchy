@@ -2,6 +2,11 @@
     height: 100%;
 }
 
+::selection {
+    background: var(--accent-primary, #034);
+    color: #fff;
+}
+
 .html-body {
     height: 100%;
     margin: 0;
@@ -567,7 +572,6 @@ body.state-dragging .dragger:not(.drag-target) {
     border-color: gray gray white gray;
     text-decoration: none;
     color: #000;
-    box-shadow: 0 -5px 5px -3px -var(-accent-primary)2;
     background-image: none;
 }
 
@@ -598,6 +602,15 @@ body.state-dragging .dragger:not(.drag-target) {
     text-decoration: underline;
 }
 
+.quicktab-link.need-confirmation::after {
+    content: none;
+}
+
+.quicktab-link.need-confirmation {
+    outline: 8px solid #fd07;
+    filter: saturate(100%);
+}
+
 .quicktab-link:hover {
     background-color: #f0f0f0;
 }
@@ -615,7 +628,6 @@ body.state-dragging .dragger:not(.drag-target) {
     background-color: var(--accent-primary);
     text-decoration: none;
     border-radius: 0.2em;
-    filter: saturate(20%);
     cursor: default;
 }
 

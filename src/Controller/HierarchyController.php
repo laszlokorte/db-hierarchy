@@ -369,6 +369,9 @@ class HierarchyController {
 
         $validation = $storageConnection->getValidator()->validateCreateNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
+        $creationService = $storageConnection->getCreationService();
+        $creation = $creationService->getFreshCreation($key->getId());
+
         if($validation->isValid()) {
             $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
@@ -380,7 +383,7 @@ class HierarchyController {
                 'hierarchy' => $hierarchy,
                 'key' => $key,
                 'parentNodes' => new MultiCollection(null, null, [], null, null),
-                'validation' => $validation,
+                'creation' => $creation,
             ]));
         }
 
@@ -578,6 +581,10 @@ class HierarchyController {
 
         $validation = $storageConnection->getValidator()->validateUpdateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $updateService = $storageConnection->getUpdateService();
+        $update = $updateService->getFreshUpdate($node);
+
 		if($validation->isValid()) {
             $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
@@ -588,9 +595,9 @@ class HierarchyController {
             return new Response($twig->render('hierarchy/edit_node.html.twig', [
                 'hierarchy' => $hierarchy,
                 'key' => $key,
-                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'node' => $node,
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-                'validation' => $validation,
+                'update' => $update,
             ]));
         }
 

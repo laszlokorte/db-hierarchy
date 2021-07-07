@@ -27,28 +27,17 @@ class CreationService {
 			$scopeId = $superNode->getId();
 			$parentId = null;
 		}
-		
+
 		return new Creation(
 			$keyId, 
 			$scopeId, 
 			$parentId, 
 			[],
-			[]
+			null
 		);
 	}
 
-	public function validateCreateNode(string $keyId, array $fieldData, ?Node $superNode) {
-		if($superNode === null) {
-			$scopeId = null;
-			$parentId = null;
-		} elseif($superNode->getKey() === $keyId) {
-			$scopeId = $superNode->getScope();
-			$parentId = $superNode->getId();
-		} else {
-			$scopeId = $superNode->getId();
-			$parentId = null;
-		}
-
+	public function getValidatedCreation(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
 		$errors = [];
 
 		$this->validateRequiredField($errors, $keyId, $fieldData);

@@ -1,10 +1,10 @@
 <form action="{{ path('order_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id}) }}" method="post" accept-charset="utf-8">
      <dl class="form-container">
-        {% if not validation.isValid??true %}
+        {% if not ordering.isValid %}
             <dt class="form-container-label form-container-spacer">
             </dt>
             <dd class="form-container-field">
-            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, validation} only %}
+            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: ordering.allErrors} only %}
             </dd>
         {% endif %}
 

@@ -1,9 +1,6 @@
+{% set key = hierarchy.getKey(deletion.keyId) %}
 
-{% if not validation.isValid??true %}
-{% include 'hierarchy/partials/validation_errors.html.twig' with {key, validation} only %}
-{% endif %}
-
-<form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:node.id}) }}" method="post" accept-charset="utf-8">
+<form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:deletion.nodeId}) }}" method="post" accept-charset="utf-8">
     {% if deletion.isCascading %}
         <div class="warning-box">
             <h3 style="margin: 0">Warning: This {{ key.label.singular }} has associated child nodes</h3>
@@ -56,7 +53,7 @@
                 <dt class="form-container-spacer"></dt>
                 <dd class="form-container-buttons">
                     <button class="action-button danger">Yes, Delete!</button>
-                    <a class="link-button" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:node.id}) }}" title="cancel">Cancel</a>
+                    <a class="link-button" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:deletion.nodeId}) }}" title="cancel">Cancel</a>
                 </dd>
             </dl>
     {% endif %}

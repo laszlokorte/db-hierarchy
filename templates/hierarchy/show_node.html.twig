@@ -37,7 +37,7 @@
 
 {% for childId in childNodes.nodesFor(childKey.id).ids %}
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id~'-'~childId, tabs: [
-{label: childKey.label.empty},
+{label: childKey.label.empty, activeClasses: 'need-confirmation'},
 {label: childKey.label.plural, default: true},
 ]} %}
   {% block tab_0 %}

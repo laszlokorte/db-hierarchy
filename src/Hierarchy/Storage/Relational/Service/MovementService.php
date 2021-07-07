@@ -22,11 +22,11 @@ class MovementService {
 			$node->getId(),
 			$node->getScope(),
 			$node->getParent(),
-			[]
+			null
 		);
 	}
 
-	public function validateMoveNode(Node $node, ?string $targetScopeId, ?string $targetParentId) {
+	public function getValidatedMovement(Node $node, ?string $targetScopeId, ?string $targetParentId) {
 		// check target position
 
 		return new Movement(

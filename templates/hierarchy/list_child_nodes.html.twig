@@ -25,7 +25,7 @@
 {% for childId in nodeCollection.ids %}
 
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id~'-'~childId, tabs: [
-{label: childKey.label.empty},
+{label: childKey.label.empty, activeClasses: 'need-confirmation'},
 {label: childKey.label.plural, default: true},
 ]} %}
 {% block head %}
@@ -44,7 +44,7 @@
         <dd class="form-container-buttons">
             <input type="hidden" name="_then" value="list">
             <button name="soft" class="action-button danger">Yes, Delete!</button>
-            <label class="link-button" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+            <label class="link-button" for="{{defaultTabId|default(null)}}" class="quicktab-link">
         Cancel
         </label>
         </dd>

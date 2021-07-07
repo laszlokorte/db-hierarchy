@@ -7,7 +7,7 @@
 
         <ul class="quicktab-list">
             {% for otherTabIndex, otherTab in tabs %}
-            <li class="quicktab-list-item"><label for="radio_tab_{{groupId}}_{{otherTabIndex}}" class="{{html_classes('quicktab-link', {'state-active': tabIndex == otherTabIndex})}}">
+            <li class="quicktab-list-item"><label for="radio_tab_{{groupId}}_{{otherTabIndex}}" class="{{html_classes('quicktab-link', {'state-active': tabIndex == otherTabIndex}, otherTabIndex == tabIndex ? otherTab.activeClasses|default([]) : otherTab.inactiveClasses|default([]))}}">
             {{ otherTab.label }}
             </label></li>
             {% endfor %}

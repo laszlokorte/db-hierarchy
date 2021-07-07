@@ -1,14 +1,14 @@
-{% if not validation.isValid %}
+{% if errors is not empty %}
 <div class="form-error-container">
 	<h3 class="form-error-title">
-		{% if validation.nodeId %}
-			{{ key.label.singular }} could not be saved.
+		{% if message|default(false) %}
+			{{ message }}
 		{% else %}
 			{{ key.label.singular }} could not be created.
 		{% endif %}
 	</h3>
 	<dl class="error-list">
-		{% for fieldId in validation.errorFields %}
+		{% for fieldId, fieldErrors in errors %}
 		    <dt class="error-list-label"><label class="form-label" for="field_{{fieldId}}">
 		    	{% if fieldId == '_scope' %}
 	    			{{key.scopeKey.label.singular}}
@@ -24,7 +24,7 @@
 		    </label></dt>
 		    <dd class="error-list-item">
 		    <ul class="inline-list">
-		    	{% for error in validation.fieldErrors(fieldId) %}
+		    	{% for error in fieldErrors %}
 			   <li> {{error}}</li>
 				{% endfor %}
 		    </ul>

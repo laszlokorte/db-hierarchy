@@ -26,8 +26,8 @@
 {% for nodeId in rootNodes.nodesFor(rootKey.id).ids %}
 
   {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: rootKey.id~'-'~nodeId, tabs: [
-    {label: 'No'},
-    {label: 'Yes'},
+    {label: rootKey.label.empty, activeClasses: 'need-confirmation'},
+    {label: rootKey.label.plural, default: true},
   ]} %}
   {% block head %}
     <li class="quicktab-list-item">
@@ -63,8 +63,8 @@
 
 {% else %}
     {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: rootKey.id, tabs: [
-    {label: 'No', default: true},
-    {label: 'Yes'},
+    {label: rootKey.label.empty, default: true},
+    {label: rootKey.label.plural, activeClasses: 'need-confirmation'},
   ]} %}
       {% block tab_0 %}
       {% endblock %}

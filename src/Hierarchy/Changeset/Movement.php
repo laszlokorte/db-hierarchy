@@ -14,4 +14,8 @@ class Movement {
 	public function isValid() {
 		return empty($this->errors);
 	}
+
+	public function getAllErrors() {
+		return $this->errors;
+	}
 }

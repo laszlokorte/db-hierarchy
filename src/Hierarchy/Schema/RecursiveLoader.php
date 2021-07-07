@@ -407,7 +407,7 @@ class RecursiveLoader {
 					'intro' => new FieldDefinition(
 						new LabelDefinition('Introduction Text'), 
 						'text', false, false),
-				], SummaryDefinition::parseSegments('settings')
+				], SummaryDefinition::parseSegments('Settings')
 			),
 			'account' => new KeyDefinition(
 				new StorageDefinition('account'),

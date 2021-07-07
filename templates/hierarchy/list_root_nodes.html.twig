@@ -21,7 +21,7 @@
 {% for nodeId in nodeCollection.ids %}
 
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: key.id~'-'~nodeId, tabs: [
-{label: key.label.empty},
+{label: key.label.empty, activeClasses: 'need-confirmation'},
 {label: key.label.plural, default: true},
 ]} %}
 {% block head %}
@@ -56,7 +56,7 @@
 
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: key.id, tabs: [
 {label: key.label.empty, default: true},
-{label: key.label.plural},
+{label: key.label.plural, activeClasses: 'need-confirmation'},
 ]} %}
 {% block tab_0 %}
 {% endblock %}
