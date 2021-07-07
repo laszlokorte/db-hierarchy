@@ -6,11 +6,11 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,parentNodes, key} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy,parentNodes, key} only %}
 
 <h1><span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span></h1>
 
-{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'list', childKey} only %}
+{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy,key, node, active: 'list', childKey} only %}
 
 <h2>{{childKey.label.string(childKey.isSingleton)}}</h2>
 
@@ -23,112 +23,63 @@
 {% if childKey.isSingleton %}
 
 {% for childId in nodeCollection.ids %}
-<div class="tab-container dense">
 
-    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list">
-    <div class="tab-container-content">
-        
-        <ul class="quicktab-list">
-            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
-            {{childKey.label.empty}}
-            </label></li>
+{% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id~'-'~childId, tabs: [
+{label: childKey.label.empty},
+{label: childKey.label.plural, default: true},
+]} %}
+{% block head %}
+    <li class="quicktab-list-item">
+        <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: childId}) }}" title="">Details&hellip;</a>
+    </li>
+{% endblock %}
+{% block tab_0 %}
+     <p>
+        Are you sure?
+    </p>
 
-            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
-            {{childKey.label.plural}}
-            </label></li>
-
-            <li class="quicktab-list-item">
-                <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: childId}) }}" title="">Details&hellip;</a>
-            </li>
-        </ul>
-
-        <p>
-            Are you sure?
-        </p>
-
-        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId:childId}) }}" method="post" accept-charset="utf-8">
-        <dl class="form-container">
-            <dt class="form-container-spacer"></dt>
-            <dd class="form-container-buttons">
-                <input type="hidden" name="_then" value="list">
-                <button name="soft" class="action-button danger">Yes, Delete!</button>
-                <label class="link-button" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
-            Cancel
-            </label>
-            </dd>
-        </dl>
-        </form>
-    </div>
-    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab_{{childKey.id}}" value="new" checked>
-    <div class="tab-container-content">
-
-    <ul class="quicktab-list">
-        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
-        {{childKey.label.empty}}
-        </label></li>
-
-        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
-        {{childKey.label.plural}}
-        </label></li>
-        
-        <li class="quicktab-list-item">
-            <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: childId}) }}" title="">Details&hellip;</a>
-        </li>
-    </ul>
-
-
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy: hierarchy,key: childKey, node: nodeCollection.getNode(childId), force_then: true, then: 'list', cancel: true} only %}
-
-    </div>
-</div>
+    <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId:childId}) }}" method="post" accept-charset="utf-8">
+    <dl class="form-container">
+        <dt class="form-container-spacer"></dt>
+        <dd class="form-container-buttons">
+            <input type="hidden" name="_then" value="list">
+            <button name="soft" class="action-button danger">Yes, Delete!</button>
+            <label class="link-button" for="child_tab_{{childKey.id}}_new" class="quicktab-link">
+        Cancel
+        </label>
+        </dd>
+    </dl>
+    </form>
+{% endblock %}
+{% block tab_1 %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: nodeCollection.getNode(childId).newUpdate, force_then: true, then: 'list', cancel: true} only %}
+{% endblock %}
+{% endembed %}
 {% else %}
-<div class="tab-container dense">
-    
-    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_new" name="child_tab_{{childKey.id}}" value="new">
-    <div class="tab-container-content">
 
-    <ul class="quicktab-list">
-        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link">
-        {{childKey.label.empty}}
-        </label></li>
+{% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id, tabs: [
+{label: childKey.label.empty, default: true},
+{label: childKey.label.plural},
+]} %}
+{% block tab_0 %}
+{% endblock %}
+{% block tab_1 %}
 
-        <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link state-active">
-        {{childKey.label.plural}}
-        </label></li>
-    </ul>
-
-
-    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel_tab: 'child_tab_'~childKey.id~'_list'} only %}
-
-    </div>
-
-    <input type="radio" class="tab-container-radio" id="child_tab_{{childKey.id}}_list" name="child_tab_{{childKey.id}}" value="list" checked>
-    <div class="tab-container-content">
-        
-        <ul class="quicktab-list">
-            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_list" class="quicktab-link state-active">
-            {{childKey.label.empty}}
-            </label></li>
-
-            <li class="quicktab-list-item"><label for="child_tab_{{childKey.id}}_new" class="quicktab-link">
-            {{childKey.label.plural}}
-            </label></li>
-        </ul>
-    </div>
-</div>
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel_tab: 'child_tab_'~childKey.id~'_list', creation: childKey.newCreation(node)} only %}
+{% endblock %}
+{% endembed %}
 {% endfor %}
-
 {% else %}
 
 
 
-{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'list', key, node, childKey} only %}
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy,active: 'list', key, node, childKey} only %}
 
-{% include 'hierarchy/partials/table.html.twig' with {hierarchy: hierarchy,nodeCollection, key: childKey, parent: node.pathArgs, then: 'list'} only %}
+{% include 'hierarchy/partials/table.html.twig' with {hierarchy,nodeCollection, key: childKey, parent: node.pathArgs, then: 'list'} only %}
 
 <div class="quickform">
 <h3>Add </h3>
-    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list'} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', creation: childKey.newCreation(node)} only %}
 </div>
 
 {% endif %}

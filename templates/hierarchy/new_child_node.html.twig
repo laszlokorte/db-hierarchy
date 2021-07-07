@@ -6,9 +6,9 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy,key, parentNodes} only %}
 
-<h1><span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span></h1>{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy: hierarchy,key, node, active: 'new', childKey} only %}
+<h1><span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span></h1>{% include 'hierarchy/partials/tabs.html.twig' with {hierarchy,key, node, active: 'new', childKey} only %}
 
 <h2>{{childKey.label.string(childKey.isSingleton)}}</h2>
 
@@ -24,13 +24,13 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}), validation: validation|default(null)} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}), creation} only %}
 
 {% else %}
 
-{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'new', key, node, childKey} only %}
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy,active: 'new', key, node, childKey} only %}
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: childKey, parent: node, then: 'form', validation: validation|default(null)} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'form', creation} only %}
 {% endif %}
 
 

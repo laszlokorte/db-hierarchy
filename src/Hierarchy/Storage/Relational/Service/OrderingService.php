@@ -6,26 +6,36 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 
+use App\Hierarchy\Changeset\Ordering;
+use App\Hierarchy\Data\Node;
+
 use Doctrine\DBAL\Connection;
 
 class OrderingService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, private OrderingCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
-	public function validateOrderNode(string $keyId, string $nodeId, $targetPosition) {
+	public function getFreshOrdering(Node $node) {
+		return new Ordering(
+			$node->getKey(),
+			$node->getId(),
+			$node->getOrder(),
+			[]
+		);
+	}
+
+	public function validateOrderNode(Node $node, $targetPosition) {
 		$scopeId = null; 
 		$parentId = null;
 
 		// check order
 
-		return new Validation(
-			$keyId, 
-			$nodeId, 
-			null,
-			[],
-			$scopeId, 
-			$parentId
+		return new Ordering(
+			$node->getKey(),
+			$node->getId(),
+			$targetPosition,
+			[]
 		);
 	}
 

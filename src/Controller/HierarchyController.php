@@ -162,7 +162,7 @@ class HierarchyController {
     #[ParamConverter('key')]
     #[ParamConverter('field')]
     #[Template()]
-    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $targetKey, Field $field, $scopeId = null)
+    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, Field $field, $scopeId = null)
     {
         $target = $field->getOption('target');
         $targetKey = $hierarchy->getKey($target);
@@ -208,10 +208,13 @@ class HierarchyController {
             }
         }
 
+        $creationService = $storageConnection->getCreationService();
+
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
             'parentNodes' => new MultiCollection(null, null, [], null, null),
+            'creation' => $creationService->getFreshCreation($key->getId()),
     	];
     }
 
@@ -230,12 +233,16 @@ class HierarchyController {
             }
         }
 
+        $creationService = $storageConnection->getCreationService();
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
     		'childKey' => $childKey,
-            'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+            'node' => $node,
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+            'creation' => $creationService->getFreshCreation($key->getId(), $node->getScope(), $node->getParent()),
     	];
     }
 
@@ -262,11 +269,16 @@ class HierarchyController {
 	#[Template()]
     public function editNode(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, $nodeId)
     {
+
+        $updateService = $storageConnection->getUpdateService();
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
-    		'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+    		'node' => $node,
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+            'update' => $updateService->getFreshUpdate($node),
     	];
     }
 
@@ -419,12 +431,18 @@ class HierarchyController {
             throw new NotFoundHttpException(sprintf('%s are not nested', $key->getLabel()->getPlural()));
         }
 
+
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $movementService = $storageConnection->getMovementService();
+        $movement = $movementService->getFreshMovement($node);
+
         return [
             'hierarchy' => $hierarchy,
             'key' => $key,
             'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key->getId(), $nodeId),
-            'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+            'node' => $node,
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+            'movement' => $movement,
         ];
     }
 
@@ -478,12 +496,17 @@ class HierarchyController {
             throw new NotFoundHttpException(sprintf('%s are not ordered', $key->getLabel()->getPlural()));
         }
 
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $orderingService = $storageConnection->getOrderingService();
+        $ordering = $orderingService->getFreshOrdering($node);
+
         return [
             'hierarchy' => $hierarchy,
             'key' => $key,
             'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key->getId(), $nodeId),
-            'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+            'node' => $node,
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+            'ordering' => $ordering,
         ];
     }
 

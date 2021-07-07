@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Data\Node;
+use App\Hierarchy\Changeset\Creation;
 
 class Key {
 	public function __construct(
@@ -101,6 +102,34 @@ class Key {
 			fn($k) => new Key($this->def, $k),
 			$this->def->getReferencingKeys($this->keyId)
 		);
+	}
+
+	public function newCreation(?Node $superNode = null) {
+		if($superNode === null) {
+			return new Creation(
+				$this->keyId, 
+				null, 
+				null, 
+				[],
+				[]
+			);
+		} elseif($superNode->getKey() === $this->keyId) {
+			return new Creation(
+				$this->keyId, 
+				$superNode->getScope(), 
+				$superNode->getId(), 
+				[],
+				[]
+			);
+		} else {
+			return new Creation(
+				$this->keyId, 
+				$superNode->getId(), 
+				null, 
+				[],
+				[]
+			);
+		}
 	}
 
 	public function getSummary() {

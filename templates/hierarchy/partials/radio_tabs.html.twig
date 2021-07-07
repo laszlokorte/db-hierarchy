@@ -1,0 +1,23 @@
+<div class="tab-container dense">
+    {% for tabIndex, tab in tabs|sort((a,b) => a.default|default(false) <=> b.default|default(false)) %}
+    <input type="radio" class="tab-container-radio" id="radio_tab_{{groupId}}_{{tabIndex}}" name="radio_tab_{{groupId}}" value="{{tabIndex}}">
+    <div class="tab-container-content">
+
+        <ul class="quicktab-list">
+            {% for otherTabIndex, otherTab in tabs %}
+            <li class="quicktab-list-item"><label for="radio_tab_{{groupId}}_{{otherTabIndex}}" class="{{html_classes('quicktab-link', {'state-active': tabIndex == otherTabIndex})}}">
+            {{ otherTab.label }}
+            </label></li>
+            {% endfor %}
+
+            {% if block('head') is defined %}
+            {{ block('head') }}
+            {% endif %}
+        </ul>
+
+        {% if block('tab_' ~ tabIndex) is defined %}
+        {{ block('tab_' ~ tabIndex) }}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

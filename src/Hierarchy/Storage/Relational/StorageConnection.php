@@ -58,4 +58,44 @@ class StorageConnection {
 			$this->coder
 		);
 	}
+
+	public function getCreationService() {
+		return new Service\CreationService(
+			$this->schemaDef, 
+			new Service\CreationCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
+		);
+	}
+
+	public function getUpdateService() {
+		return new Service\UpdateService(
+			$this->schemaDef, 
+			new Service\UpdateCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
+		);
+	}
+
+	public function getMovementService() {
+		return new Service\MovementService(
+			$this->schemaDef, 
+			new Service\MovementCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
+		);
+	}
+
+	public function getOrderingService() {
+		return new Service\OrderingService(
+			$this->schemaDef, 
+			new Service\OrderingCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
+		);
+	}
 }

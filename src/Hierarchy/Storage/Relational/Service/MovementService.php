@@ -6,23 +6,35 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 
+use App\Hierarchy\Changeset\Movement;
+use App\Hierarchy\Data\Node;
+
 use Doctrine\DBAL\Connection;
 
 class MovementService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, private MovementCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
-	public function validateMoveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId) {
+	public function getFreshMovement(Node $node) {
+		return new Movement(
+			$node->getKey(),
+			$node->getId(),
+			$node->getScope(),
+			$node->getParent(),
+			[]
+		);
+	}
+
+	public function validateMoveNode(Node $node, ?string $targetScopeId, ?string $targetParentId) {
 		// check target position
 
-		return new Validation(
-			$keyId, 
-			$nodeId, 
-			null,
-			[],
-			$targetScopeId, 
-			$targetParentId
+		return new Movement(
+			$node->getKey(),
+			$node->getId(),
+			$targetScopeId,
+			$targetParentId,
+			[]
 		);
 	}
 

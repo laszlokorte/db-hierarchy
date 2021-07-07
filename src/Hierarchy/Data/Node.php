@@ -2,6 +2,8 @@
 
 namespace App\Hierarchy\Data;
 
+use App\Hierarchy\Changeset\Update;
+
 class Node {
 
 	public function __construct(private string $keyId, private string $nodeId, private array $columns, private ?string $scopeId = NULL, private ?string $parentId = NULL, private ?int $order = null) {
@@ -45,6 +47,16 @@ class Node {
 
 	public function pathArgs() {
 		return ['keyId' => $this->keyId, 'nodeId' => $this->nodeId];
+	}
+
+	public function newUpdate() {
+		return new Update(
+			$this->keyId, 
+			$this->nodeId,
+			[],
+			[],
+			[]
+		);
 	}
 
 }

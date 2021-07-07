@@ -6,29 +6,61 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 
+use App\Hierarchy\Changeset\Creation;
+use App\Hierarchy\Data\Node;
+
 use Doctrine\DBAL\Connection;
 
 class CreationService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, private CreationCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
-	public function validateCreateNode(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
+	public function getFreshCreation(string $keyId, ?Node $superNode = null) {
+		if($superNode === null) {
+			$scopeId = null;
+			$parentId = null;
+		} elseif($superNode->getKey() === $keyId) {
+			$scopeId = $superNode->getScope();
+			$parentId = $superNode->getId();
+		} else {
+			$scopeId = $superNode->getId();
+			$parentId = null;
+		}
 		
+		return new Creation(
+			$keyId, 
+			$scopeId, 
+			$parentId, 
+			[],
+			[]
+		);
+	}
+
+	public function validateCreateNode(string $keyId, array $fieldData, ?Node $superNode) {
+		if($superNode === null) {
+			$scopeId = null;
+			$parentId = null;
+		} elseif($superNode->getKey() === $keyId) {
+			$scopeId = $superNode->getScope();
+			$parentId = $superNode->getId();
+		} else {
+			$scopeId = $superNode->getId();
+			$parentId = null;
+		}
+
 		$errors = [];
 
 		$this->validateRequiredField($errors, $keyId, $fieldData);
 		$this->validateNodePosition($errors, $keyId, $scopeId, $parentId);
 		$this->validateUniquenessForNew($errors, $keyId, $fieldData, $scopeId, $parentId);
 
-
-		return new Validation(
+		return new Creation(
 			$keyId, 
-			null, 
-			$fieldData,
-			$errors, 
 			$scopeId, 
-			$parentId
+			$parentId, 
+			[],
+			$errors
 		);
 	}
 
@@ -63,7 +95,7 @@ class CreationService {
 
 
 		if(!empty($scopeId) && !empty($parentId)) {
-			$selectMoveTargetExists = $this->validationBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
+			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
@@ -105,7 +137,7 @@ class CreationService {
 			}
 		}
 
-		$select = $this->validationBuilder->getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck);
+		$select = $this->commandBuilder->getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
     	if($this->schemaDef->isKeyScoped($keyId)) {

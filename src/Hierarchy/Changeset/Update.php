@@ -3,7 +3,15 @@
 namespace App\Hierarchy\Changeset;
 
 class Update {
-	public function __construct(private $keyId, string private $nodeId, private $columnData, private $previousData, private $errors) {
+	public function __construct(private $keyId, private string $nodeId, private array $columnData, private array $previousData, private ?array $errors) {
 		
+	}
+
+	public function hasBeenValidated() {
+		return $this->errors !== null;
+	}
+
+	public function isValid() {
+		return empty($this->errors);
 	}
 }

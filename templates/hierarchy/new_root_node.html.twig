@@ -6,7 +6,7 @@
 
 {% block area_main %}
 
-{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,key, parentNodes} only %}
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy,key, parentNodes} only %}
 
 <h1>{{key.label.string(key.isSingleton)}}</h1>
 
@@ -24,15 +24,14 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key: key, then: 'list', force_then: true, cancel: path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}), validation: validation|default(null)} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}), creation} only %}
 
 {% else %}
 
-{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy: hierarchy,active: 'new', key} only %}
+{% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy,active: 'new', key} only %}
 
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy: hierarchy,key, then:'root_form', validation: validation|default(null)} only %}
-
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then:'root_form', validation: validation|default(null), 
 
 {% endif %}
 

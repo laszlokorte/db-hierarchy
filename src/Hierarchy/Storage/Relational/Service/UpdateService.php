@@ -6,26 +6,41 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 
+use App\Hierarchy\Changeset\Update;
+use App\Hierarchy\Data\Node;
+
 use Doctrine\DBAL\Connection;
 
 class UpdateService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, private UpdateCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
-	public function validateUpdateNode(string $keyId, string $nodeId, array $fieldData) {
+	public function getFreshUpdate(Node $node) {
+		return new Update(
+			$node->getKey(), 
+			$node->getId(),
+			[],
+			[],
+			[]
+		);
+	}
+
+	public function validateUpdateNode(Node $node, array $fieldData) {
 		// check empty fields
 		// check unique fields != self
+		$keyId = $node->getKey();
+		$nodeId = $node->getId();
 		$errors = [];
 
 		$this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
 		$this->validateRequiredField($errors, $keyId, $fieldData);
 
-		return new Validation(
+		return new Update(
 			$keyId, 
-			$nodeId, 
+			$nodeId,
 			$fieldData,
-			$errors,
+			$errors
 		);
 	}
 
@@ -56,7 +71,7 @@ class UpdateService {
 			}
 		}
 
-		$select = $this->validationBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
+		$select = $this->commandBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
     	$stmt->bindValue(
