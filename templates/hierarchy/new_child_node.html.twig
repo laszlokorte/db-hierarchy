@@ -24,7 +24,7 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: node.id, childKeyId: childKey.id}), creation} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: node.id, childKeyId: childKey.id}), creation} only %}
 
 {% else %}
 

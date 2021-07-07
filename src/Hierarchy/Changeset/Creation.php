@@ -11,6 +11,14 @@ class Creation {
 		return $this->keyId;
 	}
 
+	public function getScope() {
+		return $this->scopeId;
+	}
+
+	public function getParent() {
+		return $this->parentId;
+	}
+
 	public function hasBeenValidated() {
 		return $this->fieldErrors !== null;
 	}

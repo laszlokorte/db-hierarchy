@@ -13,7 +13,12 @@
 
 <nav class="site-nav">
     <a class="stealth-link" href="{{ path('hierarchy_root', {hierarchySlug: hierarchy.slug}) }}" title="">
-        <h1 class="site-title">{{hierarchy.label.singular}}</h1>
+        <h1 class="site-title">
+        <svg class="site-title-icon" viewBox="-15 -15 158 158" width="100" height="100" preserveAspectRatio="xMinYMid meet">
+            {% include 'asset/favicon.svg.twig' with {color: 'currentColor'} only %}
+        </svg>
+        {{hierarchy.label.singular}}
+        </h1>
     </a>
     <ul class="block-list">
         {% for rootKey in hierarchy.rootKeys %}

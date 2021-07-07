@@ -329,6 +329,7 @@
     width: min-content;
     color:  #012;
     white-space: nowrap;
+    position: relative;
 }
 
 .prompt-container {
@@ -871,14 +872,45 @@ details>.details-summary ~ * {
     margin: 0;
     text-decoration: none;
     font-size: 1.4em;
-    background-image: var(--favicon-url);
-    background-repeat: no-repeat;
-    background-size: contain;
     padding-left: 3em;
     min-height: 2.4em;
     display: flex;
     align-items: center;
     flex-flow: wrap;
+    position: relative;
+}
+
+.site-title-icon {
+    float: left;
+    justify-self: start;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    width: 3em;
+    color: var(--accent-primary);
+}
+
+.stealth-link .site-title-icon {
+    transition: opacity 0.1s ease-out;
+    opacity: 0.8;
+    opacity: 1;
+}
+
+.stealth-link:hover .site-title-icon {
+    opacity: 1;
+}
+
+.stealth-link .site-title-icon svg {
+    transition: transform 0.1s ease-out;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    transform-origin: center;
+}
+
+.stealth-link:hover .site-title-icon svg {
+    transform: rotate(-5deg) scale(1.1) translateZ(0);
 }
 
 .site-section-title {

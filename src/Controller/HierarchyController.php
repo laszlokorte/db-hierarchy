@@ -236,13 +236,15 @@ class HierarchyController {
         $creationService = $storageConnection->getCreationService();
         $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
 
+        $creation =  $creationService->getFreshCreation($childKey->getId(), $node);
+
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
     		'childKey' => $childKey,
             'node' => $node,
             'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-            'creation' => $creationService->getFreshCreation($key->getId(), $node->getScope(), $node->getParent()),
+            'creation' => $creation,
     	];
     }
 

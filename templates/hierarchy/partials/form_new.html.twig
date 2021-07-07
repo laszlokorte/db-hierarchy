@@ -4,14 +4,12 @@
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
 
-	{% if parent is defined %}
-	{% if parent.key == key.id %}
-        <input type="hidden" name="scope" value="{{ parent.scope }}">
-        <input type="hidden" name="parent" value="{{ parent.id }}">
-    {% else %}
-        <input type="hidden" name="scope" value="{{ parent.id }}">
+	{% if creation.parent is not empty %}
+        <input type="hidden" name="parent" value="{{ creation.parent }}">
     {% endif %}
-	{% endif %}
+	{% if creation.scope is not empty %}
+        <input type="hidden" name="scope" value="{{ creation.scope }}">
+    {% endif %}
 
 	<dl class="form-container">
 		{% if not creation.isValid %}
@@ -22,7 +20,7 @@
 	    	</dd>
 		{% endif %}
 
-		{% if parent is not defined and key.isScoped %}
+		{% if creation.scope is empty and key.isScoped %}
 		<dt class="{{ html_classes('form-container-label', {'state-error': creation.hasScopeErrors}) }}">
         <label class="{{ html_classes('form-label', {'state-error': creation.hasScopeErrors}) }}" for="scope">{{key.scopeKey.label.singular}}</label>
         </dt>
@@ -47,7 +45,7 @@
 
     	</dd>
 		{% endif %}
-		{% if parent is not defined and key.isReflexive %}
+		{% if creation.parent is empty and key.isReflexive %}
 		<dt class="{{ html_classes('form-container-label', {'state-error': creation.hasParentErrors}) }}">
         <label class="{{ html_classes('form-label', {'state-error': creation.hasParentErrors}) }}" for="parent">Parent {{key.label.singular}}</label>
         </dt>
