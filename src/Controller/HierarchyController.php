@@ -204,7 +204,7 @@ class HierarchyController {
 	#[Template()]
     public function newRootNode(Request $request, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
     {
-        if($key->isSingleton()) {
+        if($key->isSingleton() && !$key->isScoped()) {
             if(!$storageConnection->getFetcher()->findRootNodes($key->getId())->isEmpty()) {
                 return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
             }

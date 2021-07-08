@@ -16,7 +16,7 @@
 
 
 
-{% if key.isSingleton %}
+{% if key.isSingleton and not key.isScoped %}
 
  <ul class="quicktab-list">
 

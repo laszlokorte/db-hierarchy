@@ -39,7 +39,14 @@
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id~'-'~childId, tabs: [
 {label: childKey.label.empty, activeClasses: 'need-confirmation'},
 {label: childKey.label.plural, default: true},
+{label: 'Edit', activeClasses: 'need-confirmation'},
 ]} %}
+
+{% block head %}
+    <li class="quicktab-list-item">
+        <a class="quicktab-link extra" href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: childId}) }}" title="">Details&hellip;</a>
+    </li>
+{% endblock %}
   {% block tab_0 %}
     <p>
         Are you sure?
@@ -58,18 +65,22 @@
     </form>
   {% endblock %}
   {% block tab_1 %}
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: childNodes.nodesFor(childKey.id).getNode(childId).newUpdate} only %}
+    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key: childKey, node: childNodes.nodesFor(childKey.id).getNode(childId)} only %}
+
+  {% endblock %}
+  {% block tab_2 %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: childNodes.nodesFor(childKey.id).getNode(childId).newUpdate, force_then: true, then: 'parent', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 {% endembed %}
 {% else %}
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id, tabs: [
 {label: childKey.label.empty, default: true},
-{label: childKey.label.plural},
+{label: childKey.label.plural, activeClasses: 'need-confirmation'},
 ]} %}
 {% block tab_0 %}
 {% endblock %}
 {% block tab_1 %}
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, creation: childKey.newCreation(node)} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, creation: childKey.newCreation(node), force_then: true, then: 'parent', cancel_tab: defaultTabId|default(null)} only %}
 {% endblock %}
 {% endembed %}
 

@@ -30,6 +30,7 @@
   {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: rootKey.id~'-'~nodeId, tabs: [
     {label: rootKey.label.empty, activeClasses: 'need-confirmation'},
     {label: rootKey.label.plural, default: true},
+    {label: 'Edit', activeClasses: 'need-confirmation'},
   ]} %}
   {% block head %}
     <li class="quicktab-list-item">
@@ -58,7 +59,13 @@
 
   {% block tab_1 %}
       
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: rootNodes.nodesFor(rootKey.id).getNode(nodeId).newUpdate, force_then: true, then: 'root', cancel: true} only %}
+
+    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key:rootKey, node: rootNodes.nodesFor(rootKey.id).getNode(nodeId)} only %}
+  {% endblock %}
+
+  {% block tab_2 %}
+      
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: rootNodes.nodesFor(rootKey.id).getNode(nodeId).newUpdate, force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 
 {% endembed %}

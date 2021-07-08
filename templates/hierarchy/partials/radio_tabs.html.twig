@@ -3,7 +3,7 @@
 <div class="tab-container dense">
     {% for tabIndex in sortedTabs %}
     <input type="radio" class="tab-container-radio" id="radio_tab_{{groupId}}_{{tabIndex}}" name="radio_tab_{{groupId}}" value="{{tabIndex}}">
-    <div class="tab-container-content">
+    <div class="{{ html_classes('tab-container-content', tabs[tabIndex].activeClasses|default([])) }}">
 
         <ul class="quicktab-list">
             {% for otherTabIndex, otherTab in tabs %}

@@ -1043,6 +1043,11 @@ details>.details-summary ~ * {
     grid-column: 1 / span 1;
     grid-row: 1 / span 1;
     max-width: 100%;
+    padding-bottom: 1em;
+}
+
+.tab-container-content.need-confirmation {
+    border-bottom: 1px solid #aaa;
 }
 
 .tab-container-content:last-child {

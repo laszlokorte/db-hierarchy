@@ -46,7 +46,7 @@
 	<dt class="form-container-label form-container-spacer"></dt>
 	<dd class="form-container-buttons">
 	{% if force_then??false %}
-		<button class="form-button primary">Save Changes</button>
+		<button class="form-button primary required">Save Changes</button>
 	{% else %}
 		<button class="form-button primary">Update</button>
 		<button class="form-button" name="_then" value="show">Update and back</button>
@@ -57,6 +57,9 @@
 		{% else %}
 			<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
 		{% endif %}
+	{% endif %}
+	{% if cancel_tab is defined %}
+		<label class="link-button" for="{{ cancel_tab }}" title="">Cancel</label>
 	{% endif %}
 	</dd>
     </dl>

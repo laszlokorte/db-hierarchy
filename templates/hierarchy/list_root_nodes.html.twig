@@ -16,13 +16,14 @@
 {% endif %}
 </h1>
 
-{% if key.isSingleton %}
+{% if key.isSingleton and not key.isScoped %}
 
 {% for nodeId in nodeCollection.ids %}
 
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: key.id~'-'~nodeId, tabs: [
 {label: key.label.empty, activeClasses: 'need-confirmation'},
 {label: key.label.plural, default: true},
+{label: 'Edit', activeClasses: 'need-confirmation'},
 ]} %}
 {% block head %}
     <li class="quicktab-list-item">
@@ -48,7 +49,11 @@
     </form>
 {% endblock %}
 {% block tab_1 %}
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: nodeCollection.getNode(nodeId).newUpdate, force_then: true, then: 'list', cancel: true} only %}
+    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key, node: nodeCollection.getNode(nodeId)} only %}
+
+{% endblock %}
+{% block tab_2 %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: nodeCollection.getNode(nodeId).newUpdate, force_then: true, then: 'list', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
 {% endblock %}
 {% endembed %}
 {% else %}
