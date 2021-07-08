@@ -1,5 +1,5 @@
 <div 
-    class="dragger sort" 
+    class="dragger" 
     draggable="true" 
     data-nest-id="{{keyId}}-{{nestId}}" 
     data-order="{{order}}" 
@@ -26,4 +26,5 @@
             }})  
         }
     ">
+    {% include 'hierarchy/partials/icon.html.twig' with {icon: 'three-bars'} only %}
     </div>

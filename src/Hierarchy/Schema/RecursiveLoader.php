@@ -99,6 +99,17 @@ class RecursiveLoader {
 			'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
 			'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
 		];
+
+		$this->testHierarchy = [
+			'slug' => 'C15BBD3CA3C74843A2E260CF81ED307D',
+			'label' => new LabelDefinition(
+				'Testing', 
+				'Testing', 
+				null, 
+				'checklist', 
+				'darkred'
+			),
+		];
 	}
 
 	public function loadSchema(string $hierarchyName = 'system') {
@@ -107,17 +118,6 @@ class RecursiveLoader {
 
 	public function loadSubSchemas() {
 		if($this->subSchemas === null) {
-			$test = [
-				'slug' => 'test',
-				'label' => new LabelDefinition(
-					'Testing', 
-					'Testing', 
-					null, 
-					'unverified', 
-					'darkred'
-				),
-			];
-
 			try {
 				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
 				$stmt->execute();
@@ -136,10 +136,10 @@ class RecursiveLoader {
 						),
 					];
 				}
-				$this->subSchemas[] = $test;
+				$this->subSchemas[] = $this->testHierarchy;
 
 			} catch(\Exception) {
-				$this->subSchemas = [$test];
+				$this->subSchemas = [$this->testHierarchy];
 			}
 		}
 		
@@ -161,7 +161,7 @@ class RecursiveLoader {
 		if(empty($this->definitionCache[$hierarchyName])) {
 			if($hierarchyName === 'system') {
 				$this->definitionCache[$hierarchyName] = $this->loadBaseDefinition();
-			} elseif($hierarchyName === 'test') {
+			} elseif($hierarchyName === 'C15BBD3CA3C74843A2E260CF81ED307D') {
 				$this->definitionCache[$hierarchyName] = $this->loadTestDefinition();
 			} else {
 				$this->definitionCache[$hierarchyName] = $this->loadDynamicDefinition($hierarchyName);
@@ -174,7 +174,7 @@ class RecursiveLoader {
 	public function loadHierarchyConnection(string $hierarchyName = 'system') {
 		if($hierarchyName === 'system') {
 			return $this->baseConnection;
-		} elseif($hierarchyName === 'test') {
+		} elseif($hierarchyName === 'C15BBD3CA3C74843A2E260CF81ED307D') {
 			return $this->baseConnection;
 		} else {
 			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
@@ -635,14 +635,8 @@ class RecursiveLoader {
 
 	private function loadTestDefinition() {
 		return new SchemaDefinition(
-			new LabelDefinition(
-				'Testing', 
-				'Testing', 
-				null, 
-				'unverified', 
-				'darkred'
-			), [
-			'test' => new KeyDefinition(
+			$this->testHierarchy['label'], [
+			'field_test' => new KeyDefinition(
 				new StorageDefinition('my_test'),
 				new LabelDefinition('Field Test', 'Field Tests'),
 				null, null, null, 

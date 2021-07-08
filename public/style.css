@@ -16,6 +16,7 @@
     align-content: stretch;
     align-items: stretch;
     grid-auto-rows: min-content;
+    overflow-y: scroll;
 }
 
 .data-table-scroller {
@@ -441,21 +442,16 @@ span[onclick]:not([class]) {
     font-weight: bold;
     min-width: 3ch;
     background-color: #555;
-    font-size: 0.8rem;
+    font-size: 1rem;
     justify-items: center;
     line-height: 1.2;
-    padding: 0.1rem;
+    padding: 0.2rem;
     color: #fff;
     vertical-align: baseline;
-    border-radius: 2px;
-}
-
-.dragger.sort::before {
-    content: '☰';
-}
-
-.dragger.nest::before {
-    content:  '↳';
+    border-radius: 0.2em;
+    display: flex inline;
+    align-items: center;
+    justify-content: center;
 }
 
 .dragger.state-dragging {
@@ -475,8 +471,8 @@ span[onclick]:not([class]) {
     opacity: 0.5;
 }
 
-body.state-dragging .dragger:not(.drag-target) {
-    opacity: 0;
+body.state-dragging .dragger:not(.drag-target):not(.state-dragging) {
+    opacity: 0.2;
 }
 
 .drag-target-large:not(.state-dragging) {

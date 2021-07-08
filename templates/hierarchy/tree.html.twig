@@ -37,7 +37,7 @@
                 {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',keyId:key.id, nestId: (scope??'-')~"*"~(parent??'-'), nodeId: node.id, order:node.order} %}
                 {% endif %}
                 {% if key.isNested %}
-                <span class="dragger nest" 
+                <span class="dragger" 
                 data-url="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}"
                 {% if key.isScoped %}
                 data-scope="{{key.scopeKey.id}}"
@@ -53,7 +53,10 @@
                 this.parentNode.parentNode.classList.remove('state-dragging');
                 this.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));document.body.classList.remove('state-dragging')
                 "
-                ></span>
+                >
+                    {% include 'hierarchy/partials/icon.html.twig' with {icon: 'workflow'} only %}
+
+                </span>
                 {% endif %}
                 <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}" title="">{{key.summarize(node)}}</a>
             </div>
