@@ -39,8 +39,8 @@ use App\Hierarchy\Schema\Definition\ReferenceCoding;
 use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class SchemaBuilder {
-	private const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
-	private const CLOSURE_TABLE_DEPTH_TYPE = 'INTEGER';
+	public const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
+	public const CLOSURE_TABLE_DEPTH_TYPE = 'INTEGER';
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private Quirks $quirks) {
 	}
