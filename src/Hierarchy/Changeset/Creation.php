@@ -57,4 +57,8 @@ class Creation {
 			['_scope' => $this->scopeErrors, '_parent' => $this->parentErrors]
 		));
 	}
+
+	public function getColumnValue($columnName) {
+		return $this->columnData[$columnName] ?? null;
+	}
 }

@@ -22,7 +22,7 @@ class UpdateService {
 			$node->getKey(), 
 			$node->getId(),
 			[],
-			[],
+			$node->getColumnValues(),
 			null
 		);
 	}
@@ -37,10 +37,20 @@ class UpdateService {
 		$this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
 		$this->validateRequiredField($errors, $keyId, $fieldData);
 
+		$newColumnData = [];
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+
+			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
+				$newColumnData[$column->getName()] = $columnData[$ci];
+			}
+		}
+
 		return new Update(
 			$keyId, 
 			$nodeId,
-			$fieldData,
+			$newColumnData,
 			$node->getColumnValues(),
 			$errors
 		);

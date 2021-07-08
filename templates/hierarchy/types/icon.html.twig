@@ -1,35 +1,31 @@
 {% block field %}
-    {% set currentValue = node is defined ? field.readValueOf(node) : null %}
-    <select class="form-field compact" name="field[{{field.id}}]" value="{{currentValue}}">
+    <select class="form-field compact" name="field[{{field.id}}]" value="{{fieldValue}}">
         {% if field.option('explicit') or not field.isRequired %}
         <option value="">---</option>
         {% endif %}
         {% for value in field.option('values') %}
-            <option value="{{value}}" {% if currentValue==value %} selected="selected"{% endif %}>{{value}}</option>
+            <option value="{{value}}" {% if fieldValue==value %} selected="selected"{% endif %}>{{value}}</option>
         {% endfor %}
     </select>
 {% endblock %}
 
 
 {% block cell %}
-    {% set icon = field.readValueOf(nodeCollection.getNode(nodeId)) %}
-    {% if icon %}
+    {% if fieldValue %}
     <span class="badge" style="background-color: #eee;color:#000">
     <svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor">
-        <use href="#{{ icon }}-16" />
+        <use href="#{{ fieldValue }}-16" />
     </svg>
-    {{ icon }}</span>
+    {{ fieldValue }}</span>
     {% endif %}
 {% endblock %}
 
 {% block display %}  
-{% set icon = field.readValueOf(node) %} 
-   
-    {% if icon %}
+    {% if fieldValue %}
      <span class="badge" style="background-color: #eee;color:#000">
      <svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor">
-        <use href="#{{ icon }}-16" />
+        <use href="#{{ fieldValue }}-16" />
     </svg>
-    {{ icon }}</span>
+    {{ fieldValue }}</span>
     {% endif %}
 {% endblock %}

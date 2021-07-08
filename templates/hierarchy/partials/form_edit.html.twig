@@ -21,6 +21,7 @@
         <dd class="{{ html_classes('form-container-field', {'state-error': update.fieldHasErrors(field.id)}) }}">
         
         <div>
+        	{% set fieldValue = field.readValueOf(update) %}
         	{{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
         </div>
     	

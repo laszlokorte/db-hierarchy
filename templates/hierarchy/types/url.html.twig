@@ -1,12 +1,12 @@
 {% block field %}
-    <input placeholder="http://" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{node is defined ? field.readValueOf(node) : ''}}">
+    <input placeholder="http://" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{fieldValue}}">
 {% endblock %}
 
 
 {% block cell %}
-    <a href="{{field.readValueOf(nodeCollection.getNode(nodeId))}}" title="">{{field.readValueOf(nodeCollection.getNode(nodeId))}}</a>
+    <a href="{{fieldValue}}" title="">{{fieldValue}}</a>
 {% endblock %}
 
 {% block display %}
-    <a href="{{field.readValueOf(node)}}" title="">{{field.readValueOf(node)}}</a>
+    <a href="{{fieldValue}}" title="">{{fieldValue}}</a>
 {% endblock %}

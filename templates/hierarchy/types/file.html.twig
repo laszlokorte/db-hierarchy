@@ -4,9 +4,9 @@
 
 
 {% block cell %}
-    {{field.readValueOf(nodeCollection.getNode(nodeId)).name|default('')}}
+    {{fieldValue.name|default('')}}
 {% endblock %}
 
 {% block display %}
-    {{field.readValueOf(node).name|default('')}}
+    {{fieldValue.name|default('')}}
 {% endblock %}

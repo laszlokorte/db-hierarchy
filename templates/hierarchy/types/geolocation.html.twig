@@ -1,15 +1,15 @@
 {% block field %}
     <div style="display: flex; justify-items: stretch; gap: 1em">
-        <input placeholder="Lat" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][lat]" value="{{node is defined ? field.readValueOf(node).lat : ''}}">
-        <input placeholder="Long" class="form-field" type="text" name="field[{{field.id}}][log]" value="{{node is defined ? field.readValueOf(node).log : ''}}">
+        <input placeholder="Lat" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][lat]" value="{{fieldValue.lat}}">
+        <input placeholder="Long" class="form-field" type="text" name="field[{{field.id}}][log]" value="{{fieldValue.log}}">
     </div>
 {% endblock %}
 
 
 {% block cell %}
-    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+    {{fieldValue.lat}}/{{fieldValue.log}}
 {% endblock %}
 
 {% block display %}
-    {{field.readValueOf(node)}}
+    {{fieldValue.lat}}/{{fieldValue.log}}
 {% endblock %}

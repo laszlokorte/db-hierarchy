@@ -11,7 +11,7 @@
     type="text" 
     id="field_{{field.id}}" 
     name="field[{{field.id}}][id]" 
-    value="{{node is defined ? field.readValueOf(node).id : ''}}" 
+    value="{{fieldValue.id}}" 
     placeholder="{{field.getOption('target')}} ID" 
     data-style="{{field.getOption('style')}}" 
     data-expand-limit="{{field.getOption('expandLimit')??30}}">
@@ -19,15 +19,13 @@
 {% endblock %}
 
 {% block cell %}
-    {% set val = field.readValueOf(nodeCollection.getNode(nodeId)) %}
-    {% if val.id %}
-        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: val.key, nodeId:val.id}) }}">{{val.id}}</a></span>
+    {% if fieldValue.id %}
+        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: fieldValue.key, nodeId:fieldValue.id}) }}">{{fieldValue.id}}</a></span>
     {% endif %}
 {% endblock %}
 
 {% block display %}
-    {% set val = field.readValueOf(node) %}
-    {% if val.id %}
-        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: val.key, nodeId:val.id}) }}">{{val.id}}</a></span>
+    {% if fieldValue.id %}
+        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: fieldValue.key, nodeId:fieldValue.id}) }}">{{fieldValue.id}}</a></span>
     {% endif %}
 {% endblock %}

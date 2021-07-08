@@ -63,6 +63,7 @@
                         {% endif %}
                         {% for field in key.fields %}
                             <td class="{{ html_classes('data-table-cell', {'empty': not field.hasValue(nodeCollection.getNode(nodeId))}) }}">
+                            {% set fieldValue = field.readValueOf(nodeCollection.getNode(nodeId)) %}
                             {{ block('cell', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
                             </td>
                         {% endfor %}

@@ -47,11 +47,21 @@ class CreationService {
 		$this->validateNodePosition($scopeErrors, $parentErrors, $keyId, $scopeId, $parentId);
 		$this->validateUniquenessForNew($fieldErrors, $keyId, $fieldData, $scopeId, $parentId);
 
+		$allColumnData = [];
+
+		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+
+			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
+				$allColumnData[$column->getName()] = $columnData[$ci];
+			}
+		}
+
 		return new Creation(
 			$keyId, 
 			$scopeId, 
 			$parentId, 
-			[],
+			$allColumnData,
 			$fieldErrors,
 			$scopeErrors,
 			$parentErrors

@@ -4,26 +4,26 @@
             {% if field.option('explicit') or not field.isRequired %}
             <option value="">not set</option>
             {% endif %}
-            <option value="true" {% if node is defined and field.readValueOf(node) == true %} selected{%endif%}>YES</option>
-            <option value="false" {% if node is defined and field.readValueOf(node) == false %} selected{%endif%}>NO</option>
+            <option value="true" {% if fieldValue == true %} selected{%endif%}>YES</option>
+            <option value="false" {% if fieldValue == false %} selected{%endif%}>NO</option>
         </select>
     {% elseif field.option('style') == 'check' and not field.option('explicit') %}
         <ul class="form-choice-list">
         <li class="form-choice-item">
         <input type="hidden" name="field[{{field.id}}]" value="false">
         <label class="form-choice-label">
-        <input type="checkbox" name="field[{{field.id}}]" value="true"  {% if node is defined and field.readValueOf(node) == true %} checked{%endif%}> YES
+        <input type="checkbox" name="field[{{field.id}}]" value="true"  {% if fieldValue == true %} checked{%endif%}> YES
         <i class="marker"></i>
         </label>
         </li>
         </ul>
     {% else %}
         <ul class="form-choice-list">
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="false" id="field_{{field.id}}_true" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == false %} checked{%endif%} {%if field.isRequired%} required{%endif%}> NO<i class="marker"></i></label></li>
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="true" id="field_{{field.id}}_false" name="field[{{field.id}}]" {% if node is defined and field.readValueOf(node) == true %} checked{%endif%} {%if field.isRequired%} required{%endif%}> YES<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="false" id="field_{{field.id}}_true" name="field[{{field.id}}]" {% if fieldValue == false %} checked{%endif%} {%if field.isRequired%} required{%endif%}> NO<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="true" id="field_{{field.id}}_false" name="field[{{field.id}}]" {% if fieldValue == true %} checked{%endif%} {%if field.isRequired%} required{%endif%}> YES<i class="marker"></i></label></li>
 
         {% if field.option('explicit') or not field.isRequired %}
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="" id="field_{{field.id}}_null" name="field[{{field.id}}]" {% if node is not defined or field.readValueOf(node) is null %} checked{%endif%} {%if field.isRequired%} required{%endif%}> Not set<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="" id="field_{{field.id}}_null" name="field[{{field.id}}]" {% if fieldValue is null %} checked{%endif%} {%if field.isRequired%} required{%endif%}> Not set<i class="marker"></i></label></li>
         {% endif %}
         </ul>
     {% endif %}
@@ -31,12 +31,11 @@
 
 
 {% block cell %}
-    {% set v = field.readValueOf(nodeCollection.getNode(nodeId)) %}
-    {% if v is same as(true) %}
+    {% if fieldValue is same as(true) %}
         <span class="badge true">yes</span>
-    {% elseif v is same as(false) %}
+    {% elseif fieldValue is same as(false) %}
         <span class="badge false">no</span>
-    {% elseif v is same as(null) %}
+    {% elseif fieldValue is same as(null) %}
         <span class="badge null">null</span>
     {% else %}
         ???
@@ -44,12 +43,11 @@
 {% endblock %}
 
 {% block display %}
-    {% set v = field.readValueOf(node) %}
-    {% if v is same as(true) %}
+    {% if fieldValue is same as(true) %}
         <span class="badge true">yes</span>
-    {% elseif v is same as(false) %}
+    {% elseif fieldValue is same as(false) %}
         <span class="badge false">no</span>
-    {% elseif v is same as(null) %}
+    {% elseif fieldValue is same as(null) %}
         <span class="badge null">null</span>
     {% else %}
         ???

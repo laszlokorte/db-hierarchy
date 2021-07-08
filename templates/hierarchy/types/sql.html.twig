@@ -1,12 +1,12 @@
 {% block field %}
-    <textarea class="form-field multiline monospace" type="text" id="field_{{field.id}}" name="field[{{field.id}}]">{{node is defined ? field.readValueOf(node) : ''}}</textarea>
+    <textarea class="form-field multiline monospace" type="text" id="field_{{field.id}}" name="field[{{field.id}}]">{{fieldValue}}</textarea>
 {% endblock %}
 
 
 {% block cell %}
-    {{field.readValueOf(nodeCollection.getNode(nodeId))}}
+    {{fieldValue}}
 {% endblock %}
 
 {% block display %}
-    {{field.readValueOf(node)}}
+    {{fieldValue}}
 {% endblock %}

@@ -7,6 +7,10 @@ use App\Hierarchy\Data\Node;
 use App\Hierarchy\Data\NodeField;
 use App\Hierarchy\Data\NodeCollection;
 
+use App\Hierarchy\Changeset\Creation;
+use App\Hierarchy\Changeset\Update;
+
+
 class Field {
 	public function __construct(
 		private SchemaDefinition $def, 
@@ -39,23 +43,23 @@ class Field {
 		return $this->def->getKeyFieldOption($this->keyId, $this->fieldId, $name);
 	}
 
-	public function readValueOf(Node $node) {
+	public function readValueOf(Creation|Update|Node $object) {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
 		
-		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
 	}
 
-	public function readFormattedValueOf(Node $node) {
+	public function readFormattedValueOf(Creation|Update|Node $object) {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
 
-		$fieldData = $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $node->getColumnValue($col->getName()), $this->getColumns()));
+		$fieldData = $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
 		return $type->format($this->fieldId, $options, $fieldData);
 	}
 
-	public function hasValue(Node $node) {
-		$v = $this->readValueOf($node);
+	public function hasValue(Creation|Update|Node $object) {
+		$v = $this->readValueOf($object);
 		return $v !== '' && $v !== null;
 	}
 

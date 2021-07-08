@@ -1,18 +1,17 @@
 {% block field %}
-    {% set currentValue = node is defined ? field.readValueOf(node) : null %}
     {% if field.option('style') == 'compact' %}
-    <select class="form-field compact" name="field[{{field.id}}]" value="{{currentValue}}">
+    <select class="form-field compact" name="field[{{field.id}}]" value="{{fieldValue}}">
         {% if field.option('explicit') or not field.isRequired %}
         <option value="">---</option>
         {% endif %}
         {% for value in field.option('values') %}
-            <option value="{{value}}" {% if currentValue==value %} selected="selected"{% endif %}>{{value}}</option>
+            <option value="{{value}}" {% if fieldValue==value %} selected="selected"{% endif %}>{{value}}</option>
         {% endfor %}
     </select>
     {% else %}
     <ul class="form-choice-list">
         {% for value in field.option('values') %}
-        <li class="form-choice-item"><label class="form-choice-label"><input type="radio" name="field[{{field.id}}]" value="{{value}}" {% if currentValue==value %} checked{% endif %} {%if field.isRequired%} required{%endif%}>{{value}}<i class="marker"></i></label></li>
+        <li class="form-choice-item"><label class="form-choice-label"><input type="radio" name="field[{{field.id}}]" value="{{value}}" {% if fieldValue==value %} checked{% endif %} {%if field.isRequired%} required{%endif%}>{{value}}<i class="marker"></i></label></li>
         {% endfor %}
         {% if field.option('explicit') or not field.isRequired %}
         <li class="form-choice-item"><label class="form-choice-label"><input type="radio" name="field[{{field.id}}]" value="" {%if field.isRequired%} required{%endif%}>None<i class="marker"></i></label></li>
@@ -23,9 +22,9 @@
 
 
 {% block cell %}
-    <span class="badge">{{field.readValueOf(nodeCollection.getNode(nodeId))}}</span>
+    <span class="badge">{{fieldValue}}</span>
 {% endblock %}
 
 {% block display %}
-    <span class="badge">{{field.readValueOf(node)}}</span>
+    <span class="badge">{{fieldValue}}</span>
 {% endblock %}

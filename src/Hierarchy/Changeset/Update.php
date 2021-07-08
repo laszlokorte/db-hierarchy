@@ -34,4 +34,8 @@ class Update {
 	public function getAllErrors() {
 		return $this->errors;
 	}
+
+	public function getColumnValue($columnName) {
+		return $this->columnData[$columnName] ?? $this->previousData[$columnName] ?? null;
+	}
 }
