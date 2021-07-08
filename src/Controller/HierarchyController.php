@@ -209,12 +209,13 @@ class HierarchyController {
         }
 
         $creationService = $storageConnection->getCreationService();
+        $creation = $creationService->getFreshCreation($key->getId());
 
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
             'parentNodes' => new MultiCollection(null, null, [], null, null),
-            'creation' => $creationService->getFreshCreation($key->getId()),
+            'creation' => $creation,
     	];
     }
 
@@ -369,24 +370,41 @@ class HierarchyController {
     	$scope = $request->request->get('scope', NULL);
     	$parent = $request->request->get('parent', NULL);
 
-        $validation = $storageConnection->getValidator()->validateCreateNode($key->getId(), $request->request->get('field', []), $scope, $parent);
+        if($scope || $parent) {
+            $parentKey = $parent === null ? $key->getScopeKey() : $key;
+            $parentId = $parent ?: $scope;
+            $parentNode = $storageConnection->getFetcher()->findNode($parentKey->getId(), $parentId);
+        } else {
+            $parentNode = null;
+        }
 
         $creationService = $storageConnection->getCreationService();
-        $creation = $creationService->getFreshCreation($key->getId());
+        $creation = $creationService->getValidatedCreation($key->getId(), $request->request->get('field', []), $scope, $parent);
 
-        if($validation->isValid()) {
+        if($creation->isValid()) {
             $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
             $session->getFlashBag()->add('success', 'Node Created');
         } else {
-            return new Response($twig->render('hierarchy/new_root_node.html.twig', [
-                'hierarchy' => $hierarchy,
-                'key' => $key,
-                'parentNodes' => new MultiCollection(null, null, [], null, null),
-                'creation' => $creation,
-            ]));
+            if(!$parentNode) {
+                return new Response($twig->render('hierarchy/new_root_node.html.twig', [
+                    'hierarchy' => $hierarchy,
+                    'key' => $key,
+                    'parentNodes' => new MultiCollection(null, null, [], null, null),
+                    'creation' => $creation,
+                ]));
+            } else {
+                return new Response($twig->render('hierarchy/new_child_node.html.twig', [
+                    'hierarchy' => $hierarchy,
+                    'key' => $parentKey,
+                    'childKey' => $key,
+                    'node' => $parentNode,
+                    'parentNodes' => $storageConnection->getFetcher()->findParentNodes($parentKey->getId(), $parentId),
+                    'creation' => $creation,
+                ]));
+            }
         }
 
 		if($then === 'form') {
@@ -463,9 +481,11 @@ class HierarchyController {
 
         list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
 
-        $validation = $storageConnection->getValidator()->validateMoveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $movementService = $storageConnection->getMovementService();
+        $movement = $movementService->getValidatedMovement($node, $scope, $parent);
         
-        if($validation->isValid()) {
+        if($movement->isValid()) {
             $storageConnection->getCommander()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
 
             $session->getFlashBag()->add('success', 'Node Moved');
@@ -474,9 +494,9 @@ class HierarchyController {
                 'hierarchy' => $hierarchy,
                 'key' => $key,
                 'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key->getId(), $nodeId),
-                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'node' => $node,
+                'movement' => $movement,
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-                'validation' => $validation,
             ]));
         }
 
@@ -528,9 +548,11 @@ class HierarchyController {
         
         $target = $request->request->get('target_order');
 
-        $validation = $storageConnection->getValidator()->validateOrderNode($key->getId(), $nodeId, $target);
+        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $orderingService = $storageConnection->getOrderingService();
+        $ordering = $orderingService->getValidatedOrdering($node, $target);
 
-        if($validation->isValid()) {
+        if($ordering->isValid()) {
             $storageConnection->getCommander()->orderNode($key->getId(), $nodeId, $target);
 
             $session->getFlashBag()->add('success', 'Node Reordered');
@@ -539,9 +561,9 @@ class HierarchyController {
                 'hierarchy' => $hierarchy,
                 'key' => $key,
                 'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key->getId(), $nodeId),
-                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
+                'node' => $node,
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-                'validation' => $validation,
+                'ordering' => $ordering,
             ]));
         }
 
@@ -580,14 +602,11 @@ class HierarchyController {
     #[ParamConverter('key')]
     public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
-
-        $validation = $storageConnection->getValidator()->validateUpdateNode($key->getId(), $nodeId, $request->request->get('field', []));
-
         $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
         $updateService = $storageConnection->getUpdateService();
-        $update = $updateService->getFreshUpdate($node);
+        $update = $updateService->getValidatedUpdate($node, $request->request->get('field', []));
 
-		if($validation->isValid()) {
+		if($update->isValid()) {
             $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
 
             $then = $request->request->get('_then', null);

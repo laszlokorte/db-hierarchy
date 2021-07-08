@@ -5,6 +5,7 @@ namespace App\Hierarchy\Storage\Relational\Service;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
 use App\Hierarchy\Changeset\Update;
 use App\Hierarchy\Data\Node;
@@ -40,7 +41,7 @@ class UpdateService {
 			$keyId, 
 			$nodeId,
 			$fieldData,
-			$previousData,
+			$node->getColumnValues(),
 			$errors
 		);
 	}

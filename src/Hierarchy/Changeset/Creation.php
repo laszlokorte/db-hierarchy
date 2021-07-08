@@ -52,9 +52,9 @@ class Creation {
 	}
 
 	public function getAllErrors() {
-		return array_merge(
+		return array_filter(array_merge(
 			$this->fieldErrors, 
 			['_scope' => $this->scopeErrors, '_parent' => $this->parentErrors]
-		);
+		));
 	}
 }

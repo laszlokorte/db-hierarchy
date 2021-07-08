@@ -119,7 +119,7 @@
             <tr class="data-table-foot-row">
                 {% if parent is defined %}
                     {% set totalcols = key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) + (not nodeCollection.isScoped and key.isScoped?1:0) %}
-                    <td class="data-table-foot-cell sticky-start" colspan="{{ min(totalcols, 3)}}">
+                    <td class="data-table-foot-cell sticky-start" colspan="{{ min(totalcols + 2, 3 + 3) - 3}}">
                     {% if listLink??false %}
                         <a href="{{ path('list_child_nodes', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %}
@@ -127,12 +127,12 @@
                     {% if totalcols > 4 %}
                     <td class="data-table-foot-cell" colspan="{{ totalcols - min(totalcols, 6) }}"></td>
                     {% endif %} 
-                    <td class="data-table-foot-cell sticky-end" align="right" colspan="{{ min(totalcols, 3)}}" >
+                    <td class="data-table-foot-cell sticky-end" align="right" colspan="{{ min(totalcols + 2, 3 + 3) - 3}}" >
                         <a href="{{ path('new_child_node', parent|merge({hierarchySlug: hierarchy.slug, childKeyId: key.id})) }}" title="">New {{key.label.singular}}</a>
                     </td>
                 {% else %}
                     {% set totalcols = key.fields|length + key.nestedKeys|length + 3 + (key.ordered?1:0) + (not nodeCollection.isScoped and key.isScoped?1:0) %}
-                    <td class="data-table-foot-cell sticky-start" colspan="{{ min(totalcols, 3)}}">
+                    <td class="data-table-foot-cell sticky-start" colspan="{{ min(totalcols + 2, 3 + 3) - 3}}">
                     {% if listLink??false %}
                         <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Show {{key.label.plural}}</a>
                     {% endif %} 
@@ -140,7 +140,7 @@
                     {% if totalcols > 4 %}
                     <td class="data-table-foot-cell" colspan="{{ totalcols - min(totalcols, 6) }}"></td>
                     {% endif %}
-                    <td class="data-table-foot-cell sticky-end" colspan="{{ min(totalcols, 3)}}"  align="right">
+                    <td class="data-table-foot-cell sticky-end" colspan="{{ min(totalcols + 2, 3 + 3) - 3}}"  align="right">
                         <a href="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">New {{key.label.singular}}</a>
                     </td>
                 {% endif %}

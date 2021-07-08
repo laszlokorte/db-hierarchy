@@ -14,7 +14,10 @@
 {% block cell %}
     {% set icon = field.readValueOf(nodeCollection.getNode(nodeId)) %}
     {% if icon %}
-    <span class="badge" style="background-color: #eee;color:#000"><img class="inline-icon" src="/icons/{{icon}}-16.svg" alt="{{icon}}">
+    <span class="badge" style="background-color: #eee;color:#000">
+    <svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor">
+        <use href="#{{ icon }}-16" />
+    </svg>
     {{ icon }}</span>
     {% endif %}
 {% endblock %}
@@ -23,7 +26,10 @@
 {% set icon = field.readValueOf(node) %} 
    
     {% if icon %}
-     <span class="badge" style="background-color: #eee;color:#000"><img class="inline-icon" src="/icons/{{icon}}-16.svg" alt="{{icon}}">
+     <span class="badge" style="background-color: #eee;color:#000">
+     <svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor">
+        <use href="#{{ icon }}-16" />
+    </svg>
     {{ icon }}</span>
     {% endif %}
 {% endblock %}

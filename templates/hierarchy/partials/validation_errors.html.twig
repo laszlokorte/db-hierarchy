@@ -2,9 +2,9 @@
 <div class="form-error-container">
 	<h3 class="form-error-title">
 		{% if message|default(false) %}
-			{{ message }}
+			{{ key.label.singular }} {{ message }}
 		{% else %}
-			{{ key.label.singular }} could not be created.
+			{{ key.label.singular }} could not be save.
 		{% endif %}
 	</h3>
 	<dl class="error-list">

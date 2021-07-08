@@ -1,12 +1,12 @@
 {% set key = hierarchy.getKey(ordering.keyId) %}
 
-<form action="{{ path('order_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: ordering.nodeId}) }}" method="post" accept-charset="utf-8">
+<form novalidate="" action="{{ path('order_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: ordering.nodeId}) }}" method="post" accept-charset="utf-8">
      <dl class="form-container">
         {% if not ordering.isValid %}
             <dt class="form-container-label form-container-spacer">
             </dt>
             <dd class="form-container-field">
-            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: ordering.allErrors} only %}
+            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: ordering.allErrors, message: 'could not be ordered'} only %}
             </dd>
         {% endif %}
 

@@ -1,13 +1,13 @@
 {% set key = hierarchy.getKey(movement.keyId) %}
 
-<form action="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId: movement.keyId, nodeId: movement.nodeId}) }}" method="post" accept-charset="utf-8">
+<form novalidate="" action="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId: movement.keyId, nodeId: movement.nodeId}) }}" method="post" accept-charset="utf-8">
 
     <dl class="form-container">
         {% if not movement.isValid %}
             <dt class="form-container-label form-container-spacer">
             </dt>
             <dd class="form-container-field">
-            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: movement.allErrors} only %}
+            {% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: movement.allErrors, message: 'could not be moved'} only %}
             </dd>
         {% endif %}
         <dt class="form-container-label"><label class="form-label" for="target_scope-parent">Move To</label></dt>

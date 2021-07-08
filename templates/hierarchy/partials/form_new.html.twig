@@ -16,7 +16,7 @@
 			<dt class="form-container-label form-container-spacer">
 			</dt>
 			<dd class="form-container-field">
-	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: creation.allErrors} only %}
+	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: creation.allErrors, message: 'could not be created'} only %}
 	    	</dd>
 		{% endif %}
 
@@ -28,12 +28,12 @@
         <div>
         <input type="hidden" name="scope" value="">
     	<input 
-    data-label-singular="{{ key.scopeKey.label.singular }}" 
-    data-label-plural="{{ key.scopeKey.label.plural }}" 
-    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" 
+	    data-label-singular="{{ key.scopeKey.label.singular }}" 
+	    data-label-plural="{{ key.scopeKey.label.plural }}" 
+	    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" 
 
-    required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
-      </div>
+	    required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
+	      </div>
     	
     	{% if creation.hasScopeErrors %}
     	<ul class="inline-list error">

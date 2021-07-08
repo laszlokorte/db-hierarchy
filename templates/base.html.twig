@@ -24,7 +24,8 @@
         <link rel="icon" href="{{path('hierarchy_favicon_svg', {hierarchySlug: hierarchy|default(systemHierarchy).slug})}}">
         {% endblock %}
     </head>
-    <body class="html-body">  
+    <body class="html-body">
+        {% include 'asset/icons.html.twig' %}
         {% block html_body %}
 
             {% block area_main %}

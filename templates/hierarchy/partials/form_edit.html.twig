@@ -1,6 +1,6 @@
 {% set key = hierarchy.getKey(update.keyId) %}
 
-<form action="{{ path('update_node',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: update.nodeId}) }}" method="post" accept-charset="utf-8">
+<form novalidate="" action="{{ path('update_node',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: update.nodeId}) }}" method="post" accept-charset="utf-8">
 	{% if then is defined %}
 	<input type="hidden" name="_then" value="{{then}}">
 	{% endif %}
@@ -10,7 +10,7 @@
 			<dt class="form-container-label form-container-spacer">
 			</dt>
 			<dd class="form-container-field">
-	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: update.allErrors} only %}
+	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: update.allErrors, message: 'could not be updated'} only %}
 	    	</dd>
 		{% endif %}
 

@@ -5,6 +5,7 @@ namespace App\Hierarchy\Storage\Relational\Service;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
 use App\Hierarchy\Changeset\Creation;
 use App\Hierarchy\Data\Node;
@@ -38,18 +39,22 @@ class CreationService {
 	}
 
 	public function getValidatedCreation(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
-		$errors = [];
+		$fieldErrors = [];
+		$scopeErrors = [];
+		$parentErrors = [];
 
-		$this->validateRequiredField($errors, $keyId, $fieldData);
-		$this->validateNodePosition($errors, $keyId, $scopeId, $parentId);
-		$this->validateUniquenessForNew($errors, $keyId, $fieldData, $scopeId, $parentId);
+		$this->validateRequiredField($fieldErrors, $keyId, $fieldData);
+		$this->validateNodePosition($scopeErrors, $parentErrors, $keyId, $scopeId, $parentId);
+		$this->validateUniquenessForNew($fieldErrors, $keyId, $fieldData, $scopeId, $parentId);
 
 		return new Creation(
 			$keyId, 
 			$scopeId, 
 			$parentId, 
 			[],
-			$errors
+			$fieldErrors,
+			$scopeErrors,
+			$parentErrors
 		);
 	}
 
@@ -70,13 +75,13 @@ class CreationService {
 		}
 	}
 
-	private function validateNodePosition(array &$errors, string $keyId, ?string $scopeId, ?string $parentId) {
+	private function validateNodePosition(array &$scopeErrors, array &$parentErrors, string $keyId, ?string $scopeId, ?string $parentId) {
 		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
-			$errors['_scope'][] = 'missing scope';
+			$scopeErrors[] = 'is required';
 		}
 
 		if(!$this->schemaDef->isKeyReflexive($keyId) && !empty($parentId)) {
-			$errors['_parent'][] = 'parent id not expected';
+			$parentErrors[] = 'is not expected';
 		}
 
 		$scopeParam = new Parameter('_scope');
@@ -93,7 +98,7 @@ class CreationService {
 			$validPositionStmt->execute();
 
 			if(!$validPositionStmt->fetchColumn()) {
-				$errors['_parent'][] = 'parent and scope not matching';
+				$parentErrors[] = 'is not matching';
 			}
 		}
 	}

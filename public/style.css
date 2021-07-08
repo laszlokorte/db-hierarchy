@@ -142,8 +142,9 @@
 .form-container-info {
     margin: 0;
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: end;
+    padding-top: 0.7em;
 }
 
 .form-container-buttons {
@@ -922,10 +923,10 @@ details>.details-summary ~ * {
     transform-origin: center;
 }
 
-.stealth-link:hover .site-title-icon circle {
-    stroke: currentColor;
+.stealth-link:hover .site-title-icon path[opacity] {
+    opacity: 0.8;
     stroke-width: 1pt;
-    stroke-location: outside;
+    stroke:  white;
 }
 
 .site-section-title {
@@ -1027,7 +1028,8 @@ details>.details-summary ~ * {
 .global-bar {
     position: absolute; 
     inset: 0 0 auto 0;
-    background: #f0f0f0;
+    background: #222;
+    color: #fff;
     display: grid;
     grid-template-columns: 80em;
     justify-content: center;
@@ -1049,14 +1051,19 @@ details>.details-summary ~ * {
 }
 
 .global-tabs-link {
-    color: var(--accent-primary);
+    color: inherit;
     display: block;
     padding: 0.5em 1em;
 }
 
 .global-tabs-link.state-active {
+    color: var(--accent-primary);
     background: white;
     text-decoration: none;
+}
+
+.global-tabs-link.state-active img {
+    filter: none;
 }
 
 [data-prefix]::before {
@@ -1101,8 +1108,8 @@ h1, h2, h3 {
 
 .inline-icon {
     vertical-align: middle;
-    width: 0.8em;
-    height: 0.8em;
+    width: 1em;
+    height: 1em;
 }
 
 .form-error-container {
@@ -1111,7 +1118,7 @@ h1, h2, h3 {
     gap: 0.5em;
     color: #a00;
     padding-bottom: 1em;
-    border-bottom: 1px solid var(--accent-primary);
+    border-bottom: 1px solid #a00;
     margin-bottom: 1em;
 }
 
