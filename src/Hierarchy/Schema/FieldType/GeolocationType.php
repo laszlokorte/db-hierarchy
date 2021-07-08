@@ -15,16 +15,20 @@ class GeolocationType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::TEXT), !$required, null)
+			new ColumnDefinition($fieldId.'_longitude', new StorageCoding(StorageCoding::TEXT), !$required, null),
+			new ColumnDefinition($fieldId.'_latitude', new StorageCoding(StorageCoding::TEXT), !$required, null)
 		];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [$fieldData];
+		return [$fieldData['lon'], $fieldData['lat']];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return $columnData[0];
+		return [
+			'lon' => $columnData[0],
+			'lat' => $columnData[1],
+		];
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {

@@ -144,6 +144,16 @@ class ColumnCoder {
 		return StorageCoding::INTEGER;
 	}
 
+	public function getColumnDefinitionBindingType(ColumnDefinition $column) {
+		if($column->isReference()) {
+			$refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
+
+			return $this->getColumnBindingType($refType);
+		} else { 
+			return $this->getColumnBindingType($column->getCoding()->getType());
+		}
+	}
+
 	private function getColumnBindingType(string $type) {
 		switch($type) {
 			case 'serial':

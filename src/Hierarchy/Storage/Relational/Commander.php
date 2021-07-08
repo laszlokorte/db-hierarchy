@@ -104,7 +104,8 @@ class Commander {
 			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
 				$stmt->bindValue(
 					$this->dialect->parameterToString(new Parameter($column->getName())),
-					$columnData[$ci]
+					$columnData[$ci],
+					$this->coder->getColumnDefinitionBindingType($column)
 				);
 			}
 		}
@@ -183,7 +184,8 @@ class Commander {
 				foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
 					$stmt->bindValue(
 						$this->dialect->parameterToString(new Parameter($column->getName())),
-						$columnData[$ci]
+						$columnData[$ci],
+						$this->coder->getColumnDefinitionBindingType($column)
 					);
 				}
 			}

@@ -1,15 +1,15 @@
 {% block field %}
     <div style="display: flex; justify-items: stretch; gap: 1em">
-        <input placeholder="Lat" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][lat]" value="{{fieldValue.lat}}">
-        <input placeholder="Long" class="form-field" type="text" name="field[{{field.id}}][log]" value="{{fieldValue.log}}">
+        <input placeholder="Latitude" class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][lat]" value="{{fieldValue.lat|default('')}}">
+        <input placeholder="Longitude" class="form-field" type="text" name="field[{{field.id}}][lon]" value="{{fieldValue.lon|default('')}}">
     </div>
 {% endblock %}
 
 
 {% block cell %}
-    {{fieldValue.lat}}/{{fieldValue.log}}
+    {{fieldValue.lat}}/{{fieldValue.lon}}
 {% endblock %}
 
 {% block display %}
-    {{fieldValue.lat}}/{{fieldValue.log}}
+    {{fieldValue.lat}}/{{fieldValue.lon}}
 {% endblock %}

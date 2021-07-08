@@ -26,7 +26,7 @@ class FileType implements FieldTypeInterface {
 		$split = explode(',', $fieldData, 4);
 
 		return [
-			$split[0]??null,
+			$split[0]?:null,
 			$split[1]??null,
 			$split[2]??null,
 			$split[3]??null,

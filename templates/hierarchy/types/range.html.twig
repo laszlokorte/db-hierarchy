@@ -1,7 +1,7 @@
 {% block field %}
-    <div style="display: flex; justify-items: stretch; gap: 1em">
-        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][start]" value="{{fieldValue.start}}">
-        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][end]" value="{{fieldValue.end}}">
+    <div style="display: flex; justify-items: stretch; gap: 0.5em; align-items: center; width: min-content">
+        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][start]" value="{{fieldValue.start}}" placeholder="From">–
+        <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}][end]" value="{{fieldValue.end}}" placeholder="To">
     </div>
 {% endblock %}
 
