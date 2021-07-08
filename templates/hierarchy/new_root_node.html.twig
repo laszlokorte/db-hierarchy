@@ -8,7 +8,11 @@
 
 {% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy,key, parentNodes} only %}
 
-<h1>{{key.label.string(key.isSingleton)}}</h1>
+<h1>{{key.label.string(key.isSingleton)}}
+{%- if key.label.description is not empty -%}
+<i class="icon-link info" aria-label="{{key.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+{% endif %}
+</h1>
 
 
 

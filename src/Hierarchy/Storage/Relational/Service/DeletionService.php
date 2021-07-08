@@ -60,7 +60,7 @@ class DeletionService {
 					$stmtCLosure = $this->connection->prepare($this->dialect->deleteToString($deleteClosure));
 
 					foreach($nodeIdParams AS $i => $p) {
-						$stmtCLosure->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
+						$stmtCLosure->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($key));
 					}
 					$stmtCLosure->execute();
 				}

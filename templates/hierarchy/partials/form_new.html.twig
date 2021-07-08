@@ -91,7 +91,7 @@
     	</dd>
     	{% if field.label.description %}
 	    	<dd class="form-container-info">
-	        <i class="icon-link info" title="{{field.label.description}}" target="_blank">i</i>
+	        <i class="icon-link info" aria-label="{{field.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
 	    	</dd>
     	{% endif %}
     	{% endfor %}
