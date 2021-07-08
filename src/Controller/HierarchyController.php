@@ -118,7 +118,7 @@ class HierarchyController {
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
-    public function repairAllDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
+    public function repairAllDefects(UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
     	$storageConnection->getCommander()->repairAll();
         $session->getFlashBag()->add('success', 'Full schema has been repaired.');
@@ -131,7 +131,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
     #[ParamConverter('key', options: ['slug' => 'subHierarchySlug'])]
-    public function repairKeyDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key)
+    public function repairKeyDefects(UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key)
     {
     	$storageConnection->getCommander()->repairKey($key->getId());
         $session->getFlashBag()->add('success', 'Key has been repaired.');
