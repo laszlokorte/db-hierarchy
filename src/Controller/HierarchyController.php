@@ -121,6 +121,7 @@ class HierarchyController {
     public function repairAllDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
     	$storageConnection->getCommander()->repairAll();
+        $session->getFlashBag()->add('success', 'Full schema has been repaired.');
 
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
@@ -129,10 +130,11 @@ class HierarchyController {
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
-    #[ParamConverter('key')]
+    #[ParamConverter('key', options: ['slug' => 'subHierarchySlug'])]
     public function repairKeyDefects(UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key)
     {
     	$storageConnection->getCommander()->repairKey($key->getId());
+        $session->getFlashBag()->add('success', 'Key has been repaired.');
 
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }

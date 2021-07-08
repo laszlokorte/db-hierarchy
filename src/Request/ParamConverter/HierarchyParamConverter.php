@@ -34,7 +34,7 @@ class HierarchyParamConverter implements ParamConverterInterface {
 
 				$request->attributes->set($name, $schema);
 			} elseif($configuration->getClass() === Key::class) {
-				$schemaSlug = $request->attributes->get('hierarchySlug', 'system');
+				$schemaSlug = $request->attributes->get($options['slug'] ?? 'hierarchySlug', 'system');
 				$keyId = $request->attributes->get($name.'Id');
 				$schema = $this->schemaLoader->loadSchema($schemaSlug);
 
@@ -44,7 +44,7 @@ class HierarchyParamConverter implements ParamConverterInterface {
 
 				$request->attributes->set($name, $schema->getKey($keyId));
 			} elseif($configuration->getClass() === Field::class) {
-				$schemaSlug = $request->attributes->get('hierarchySlug', 'system');
+				$schemaSlug = $request->attributes->get($options['slug'] ?? 'hierarchySlug', 'system');
 				$keyId = $request->attributes->get('keyId');
 				$fieldId = $request->attributes->get($name.'Id');
 				$schema = $this->schemaLoader->loadSchema($schemaSlug);
