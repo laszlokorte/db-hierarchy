@@ -219,3 +219,16 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-autofill-by]'), (e
     }
 
 })
+
+Array.prototype.forEach.call(document.querySelectorAll('.form-field-sum-container'), (el) => {
+    el.addEventListener('input', (evt) => {
+        if(evt.target.classList.contains('nopointer')) {
+            evt.preventDefault();
+            evt.target.checked = evt.target.hasAttribute('checked')
+            alert("a")
+        } else if(evt.target.classList.contains('form-field-sum-radio') && evt.target.checked) {
+            evt.target.nextElementSibling.querySelector('input').focus()
+            console.log(evt.target.nextElementSibling.querySelector('input'))
+        }
+    })
+})

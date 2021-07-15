@@ -365,27 +365,27 @@ class RecursiveLoader {
 				null, null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 
-						'string', true, true
+						'string', true, true, [], false
 					),
 					'dsn' => new FieldDefinition(
 						new LabelDefinition('DSN','DSNs', 'What is?'), 
-						'string', false, false),
+						'string', false, false, [], false),
 					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label Singular'), 
+						new LabelDefinition('Label'), 
 						'string', false, false, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's']),
+						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', false, false),
+						'text', false, false, [], false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'icon', false, false),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
 						'color', true, false),
-				], SummaryDefinition::parseSegments('{label_singular}')
+				], SummaryDefinition::parseSegments('{slug}')
 			),
 			'setting' => new KeyDefinition(
 				new StorageDefinition('settings'),
@@ -484,16 +484,16 @@ class RecursiveLoader {
 				new LabelDefinition('Collection'),
 				new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 'string', true, true),
+						new LabelDefinition('Slug'), 'string', true, true, [], false),
 					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label Singular'), 
+						new LabelDefinition('Label'), 
 						'string', false, false, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's']),
+						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', false, false),
+						'text', false, false, [], false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'icon', false, false),
@@ -502,17 +502,17 @@ class RecursiveLoader {
 						'color', false, false),
 					'summary' => new FieldDefinition(
 						new LabelDefinition('Summary Template'), 
-						'string', false, false),
+						'string', false, false, [], false),
 					'table_name' => new FieldDefinition(
 						new LabelDefinition('Table Name'), 
-						'string', true, true, ['autofillBy' => 'slug']),
+						'string', true, true, ['autofillBy' => 'slug'], false),
 					'pk_type' => new FieldDefinition(
 						new LabelDefinition('Primary Key Type'), 
-						'enum', true, false, ['values' => ['serial','uuid','manual']]),
+						'enum', true, false, ['values' => ['serial','uuid','manual']], false),
 					'pk_name' => new FieldDefinition(
 						new LabelDefinition('Primary Key Column Name'), 
-						'string', false, false),
-				], SummaryDefinition::parseSegments('{$nesting}-{$nesting/label}/{label_singular}')
+						'string', false, false, [], false),
+				], SummaryDefinition::parseSegments('{slug}')
 			),
 			'scope_definition' => new KeyDefinition(
 				new StorageDefinition('scope_definition'),
@@ -573,7 +573,7 @@ class RecursiveLoader {
 				new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 
-						'string', true, true),
+						'string', true, true, [], false),
 					'type' => new FieldDefinition(
 						new LabelDefinition('Type'), 
 						'enum', true, false, 
@@ -582,29 +582,29 @@ class RecursiveLoader {
 					]),
 					'options' => new FieldDefinition(
 						new LabelDefinition('Options'), 
-						'json', false, false),
+						'json', false, false, [], false),
 					'is_required' => new FieldDefinition(
 						new LabelDefinition('Required'), 
-						'bool', true, false),
+						'bool', true, false, [], false),
 					'is_unique' => new FieldDefinition(
 						new LabelDefinition('Unique'), 
-						'bool', true, false),
+						'bool', true, false, [], false),
 					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label Singular'), 
-						'string', false, false),
+						new LabelDefinition('Label'), 
+						'string', false, true, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
 						new LabelDefinition('Label Plural'), 
-						'string', false, false, ['autofillBy' => 'slug']),
+						'string', false, true, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
 					'label_description' => new FieldDefinition(
 						new LabelDefinition('Description'), 
-						'text', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's']),
+						'text', false, false, [], false),
 					'label_icon' => new FieldDefinition(
 						new LabelDefinition('Icon'), 
 						'icon', false, false),
 					'label_color' => new FieldDefinition(
 						new LabelDefinition('Color'), 
 						'color', false, false),
-				], SummaryDefinition::parseSegments('{label_singular}')
+				], SummaryDefinition::parseSegments('{slug}')
 			),
 
 			'collection_extension' => new KeyDefinition(
@@ -659,7 +659,7 @@ class RecursiveLoader {
 			'bb' => new KeyDefinition(
 				new StorageDefinition('bb'),
 				new LabelDefinition('bb'),
-				new ScopeDefinition('aa',null, true), null, null, [],
+				new ScopeDefinition('aa',null, true), new ReflexivityDefinition(), null, [],
 				SummaryDefinition::parseSegments('bb')
 			),
 			'cc' => new KeyDefinition(

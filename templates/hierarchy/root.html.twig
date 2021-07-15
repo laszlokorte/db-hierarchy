@@ -17,7 +17,7 @@
         <h2>
         {{ rootKey.label.string(rootKey.isSingleton) }}
         {%- if rootKey.label.description is not empty -%}
-        <i class="icon-link info" aria-label="{{rootKey.label.description}}" target="_blank">
+        <i class="icon-link info tooltipped" aria-label="{{rootKey.label.description}}" target="_blank">
             {% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}
         </i>
         {% endif %}

@@ -25,8 +25,8 @@ class Key {
 		return new Field($this->def, $this->keyId, $fieldId);
 	}
 
-	public function getFields() {
-		return array_map([$this, 'getField'], $this->def->getKeyFieldIds($this->keyId));
+	public function getFields($all = true) {
+		return array_map([$this, 'getField'], $this->def->getKeyFieldIds($this->keyId, $all));
 	}
 
 	public function getLabel() {

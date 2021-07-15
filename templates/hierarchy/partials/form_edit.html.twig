@@ -33,12 +33,12 @@
     	</ul>
     	{% endif %}
     	<dd class="form-container-info">
-        <a class="icon-link" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: update.nodeId, fieldId: field.id}) }}" aria-label="view in new tab" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'link-external'} only %}</a>
+        <a class="icon-link tooltipped" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: update.nodeId, fieldId: field.id}) }}" aria-label="view in new tab" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'link-external'} only %}</a>
     	</dd>
 
     	{% if field.label.description %}
     	<dd class="form-container-info">
-	        <i class="icon-link info" aria-label="{{field.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+	        <i class="icon-link info tooltipped" aria-label="{{field.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
     	</dd>
     	{% endif %}
 

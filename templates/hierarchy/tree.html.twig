@@ -4,6 +4,9 @@
     {% if h.getNodes(key.id, scope, parent) %}
     <ul class="block-list"
     >
+        {% if scope and not parent %}
+            <li style="background-color: transparent;"><small style="font-weight: bold;">{{key.label.string(key.isSingleton)}}</small></li>
+        {% endif %}
         {% for node in h.getNodes(key.id, scope, parent) %}
             <li data-key="{{key.id}}" data-parent="{{node.id}}" data-scope="{{scope}}"
     ondragover="if((event.dataTransfer.getData('scope')==this.dataset.key||event.dataTransfer.getData('key')==this.dataset.key)) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
@@ -92,7 +95,8 @@
             None
         </p>
     {% else %}
-        <span data-key="{{key.id}}"
+        {% if key.isReflexive %}
+            <span data-key="{{key.id}}"
     ondragover="if(event.dataTransfer.getData('key')==this.dataset.key) {this.classList.add('state-over');event.preventDefault();event.stopPropagation()}" 
     ondragleave="this.classList.remove('state-over')"
     ondrop="
@@ -116,8 +120,11 @@
         }
         "
     >Root</span>
+        {% endif %}
         {{ _self.walkTree(hierarchy, key, hierarchyNodes) }}
     {% endif %}
+{% else %}
+    <p>No Data</p>
 {% endfor %}
 
 {% endblock %}

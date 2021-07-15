@@ -8,13 +8,15 @@ class FieldDefinition {
 	private $unique = false;
 	private $label = NULL;
 	private $options;
+	private $visibleInCollection;
 
-	public function __construct($label, $typeId, $required = FALSE, $unique = FALSE, $options = []) {
+	public function __construct($label, $typeId, $required = FALSE, $unique = FALSE, $options = [], $visibleInCollection = TRUE) {
 		$this->label = $label;
 		$this->typeId = $typeId;
 		$this->required = $required;
 		$this->unique = $unique;
 		$this->options = $options;
+		$this->visibleInCollection = $visibleInCollection;
 	}
 
 	public function getLabel() {
@@ -27,6 +29,10 @@ class FieldDefinition {
 
 	public function isUnique() {
 		return $this->unique;
+	}
+
+	public function isVisibleInCollection() {
+		return $this->visibleInCollection;
 	}
 
 	public function getOptions() {

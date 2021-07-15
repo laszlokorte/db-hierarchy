@@ -1,12 +1,34 @@
 {% block field %}
-    <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{ fieldValue }}"
-    {% if field.getOption('autofillBy') %}
-    data-autofill-by="field_{{ field.getOption('autofillBy') }}"
-    {% endif %}
-    {% if field.getOption('autofillSuffix') %}
-    data-autofill-suffix="{{ field.getOption('autofillSuffix') }}"
-    {% endif %}
-    >
+    <div class="form-field-sum-container">
+        <input class="form-field-sum-radio" type="radio" id="field_has_value_{{field.id}}_1" name="field_has_value[{{field.id}}]" value="1" {% if fieldValue is not null %} checked{% endif %}>
+        <div class="form-field-sum-content">
+            <input class="form-field" type="text" id="field_{{field.id}}" name="field[{{field.id}}]" value="{{ fieldValue }}"
+            {% if field.getOption('autofillBy') %}
+            data-autofill-by="field_{{ field.getOption('autofillBy') }}"
+            {% endif %}
+            {% if field.getOption('autofillSuffix') %}
+            data-autofill-suffix="{{ field.getOption('autofillSuffix') }}"
+            {% endif %}
+            >
+
+            <label class="form-choice-label" for="field_has_value_{{field.id}}_0">
+            <input  tabindex="-1" class="nopointer" type="checkbox"> None
+            <i class="marker"></i>
+            </label>
+        </div>
+
+        <input class="form-field-sum-radio" type="radio" id="field_has_value_{{field.id}}_0" name="field_has_value[{{field.id}}]" value="0">
+        <div class="form-field-sum-content">
+
+            <label style="flex-grow: 1" for="field_has_value_{{field.id}}_1">
+            <input tabindex="-1" class="nopointer form-field" type="text" name="field[{{field.id}}]" value="" disabled>
+            </label>
+            <label class="form-choice-label" for="field_has_value_{{field.id}}_1">
+            <input tabindex="-1" class="nopointer" type="checkbox" checked> None
+            <i class="marker"></i>
+            </label>
+        </div>
+    </div>
 {% endblock %}
 
 

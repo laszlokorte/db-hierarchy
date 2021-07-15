@@ -27,6 +27,10 @@ class Field {
 		return new Key($this->def, $this->keyId);
 	}
 
+	public function getType() {
+		return $this->def->getKeyFieldTypeId($this->keyId, $this->fieldId);
+	}
+
 	public function getLabel() {
 		return $this->def->getKeyFieldLabel($this->keyId, $this->fieldId);
 	}

@@ -8,7 +8,10 @@
 
 {% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy,key, parentNodes} only %}
 
-<h1><span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span></h1>
+<h1>
+<span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span>
+</h1>
+
 
 {% include 'hierarchy/partials/tabs.html.twig' with {hierarchy,key, node, active: 'show'} only %}
 

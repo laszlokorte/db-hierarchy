@@ -1,15 +1,21 @@
-
-	
 <dl class="keyvalue-container">
+    {% if not key.isSingleton %}
+    <dt class="keyvalue-container-label">
+    <span class="keyvalue-label">ID</span>
+    </dt>
+    <dd class="keyvalue-container-field">
+    <span class="type-id">{{ node.id }}</span>
+    </dd>
+    {% endif %}
 	{% for field in key.fields %}
     <dt class="keyvalue-container-label">
-    <span class="keyvalue-label" for="field_{{field.id}}">{{field.label.singular}}</span>
+    <span class="keyvalue-label">{{field.label.singular}}</span>
     </dt>
     <dd class="{{ html_classes('keyvalue-container-field', {'empty': not field.hasValue(node)}) }}">
     {% set fieldValue = field.readValueOf(node) %}
     {{ block('display', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
 	</dd><dd class="keyvalue-container-field">
-    <a class="icon-link"aria-label="view in new tab" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, fieldId: field.id}) }}" target="_blank">
+    <a class="icon-link tooltipped" aria-label="view in new tab" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id, fieldId: field.id}) }}" target="_blank">
     	{% include 'hierarchy/partials/icon.html.twig' with {icon: 'link-external'} only %}
     </a>
 	</dd>

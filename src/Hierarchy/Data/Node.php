@@ -54,7 +54,7 @@ class Node {
 			$this->keyId, 
 			$this->nodeId,
 			[],
-			[],
+			$this->columns,
 			[]
 		);
 	}

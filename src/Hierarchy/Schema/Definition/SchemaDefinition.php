@@ -189,8 +189,15 @@ class SchemaDefinition {
 		return $this->keyExists($keyId) && $this->keys[$keyId]->fieldExists($fieldId);
 	}
 
-	public function getKeyFieldIds($keyId) {
-		return $this->keys[$keyId]->getFieldIds();
+	public function getKeyFieldIds($keyId, $all = true) {
+		if($all) {
+			return $this->keys[$keyId]->getFieldIds();
+		} else {
+			return array_filter(
+				$this->keys[$keyId]->getFieldIds(), 
+				fn($fieldId) => $this->keys[$keyId]->isFieldVisibleInCollection($fieldId)
+			);
+		}
 	}
 
 	public function getKeyFieldLabel($keyId, $fieldId) {

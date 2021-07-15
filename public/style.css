@@ -48,6 +48,22 @@
     font-style: italic;
 }
 
+.type-id.compact {
+    display: block;
+    max-width: 5em;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+.type-id.compact:hover {
+    overflow-x: visible;
+    position: relative;
+}
+
+.type-id.compact::first-line {
+    background-color: white;
+}
+
 .data-table-cell.empty {
     text-align: left;
     color: #aaa;
@@ -134,6 +150,14 @@
 
 .form-container-field {
     margin: 0;
+    display: flex;
+    justify-content: flex-start;
+    justify-items: flex-start;
+    gap: 1em;
+}
+
+.form-container-field > div:not([class]) {
+    flex-grow: 1;
 }
 
 .form-container-label:not(.form-container-spacer)::after {
@@ -260,14 +284,20 @@
     height: 100%;
 }
 
-.icon-link[aria-label]:not([aria-label=""])::after {
+.tooltipped {
+    position: relative;
+}
+
+.tooltipped[aria-label]:not([aria-label=""])::after {
     content: attr(aria-label);
     position: absolute;
     left: 100%;
     margin-left: 0.5em;
+    top: 50%;
+    transform: translateY(-50%);
     background: #333e;
     width: max-content;
-    max-width: 50wv;
+    max-width: 50vw;
     font-size: 1rem;
     font-family: sans-serif;
     font-weight: normal;
@@ -278,11 +308,19 @@
     opacity: 0;
     color:  #333e;
     transition: opacity 100ms ease-out, color 250ms ease-out;
+    isolation: isolate;
 }
 
-.icon-link[aria-label]:not([aria-label=""]):hover::after,
-.icon-link[aria-label]:not([aria-label=""]):focus-visible::after,
-.icon-link[aria-label]:not([aria-label=""]):active::after {
+.tooltipped.vertical[aria-label]:not([aria-label=""])::after {
+    left: -50%;
+    margin-left: auto;
+    bottom: 100%;
+    margin-bottom: 0.5em;
+}
+
+.tooltipped[aria-label]:not([aria-label=""]):hover::after,
+.tooltipped[aria-label]:not([aria-label=""]):focus-visible::after,
+.tooltipped[aria-label]:not([aria-label=""]):active::after {
     opacity: 1;
     color:  white;
     transition: opacity 200ms ease-out, color 150ms 50ms ease-out;
@@ -564,7 +602,7 @@ body.state-dragging .dragger:not(.drag-target):not(.state-dragging) {
 .tab-list {
     display: flex;
     list-style: none;
-    align-items: stretch;
+    align-items: baseline;
     padding: 0;
     margin: 0;
     gap:  0.5em;
@@ -766,17 +804,33 @@ body.show-quickform .quickform-inline {
     color: #fff;
 }
 
-.form-field {
+.form-field-container {
+    display: flex;
+    gap: 1em;
+    align-items: baseline;
+}
+
+.form-field-sequence {
+    display: flex;
+    gap: 1em;
+    align-items: baseline;
+}
+
+.form-field-sequence > * {
+    flex-shrink: 1;
+}
+
+.form-field:not([type=color]) {
     padding:  0.5em;
-    display: block;
+    display: inline-block;
     width: 100%;
     box-sizing: border-box;
-    min-width: 15em;
+    flex-basis: 15em;
+    flex-grow: 1;
     font: inherit;
     border:  1px solid #aaa;
     border-radius: 0.1em;
     line-height: 1.4;
-    font: inherit;
 }
 
 .form-field.monospace {
@@ -788,12 +842,61 @@ body.show-quickform .quickform-inline {
 
 .form-field.compact {
     width: min-content;
+    flex-grow: 0;
+}
+
+.form-field:disabled {
+    background-image: repeating-linear-gradient(
+        45deg,
+        #ddd,
+        #ddd 10px,
+        #f0f0f0 10px,
+        #f0f0f0 20px
+      );;
 }
 
 .form-field.multiline {
     resize: vertical;
     min-height: 10em;
     padding: 1em;
+}
+
+.form-field-sum-container {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+}
+
+.form-field-sum-radio {
+    display: none;
+}
+
+.form-field-sum-content {
+    display: none;
+    flex-basis: 100%;
+    justify-content: stretch;
+    justify-items: stretch;
+    gap: 0.5em;
+}
+
+.form-field-sum-content .form-choice-label {
+    user-select: none;
+}
+
+.form-field-sum-content:last-child {
+    display: flex;
+}
+
+.form-field-sum-radio:checked ~ .form-field-sum-content:last-child {
+    display:  none;
+}
+
+.form-field-sum-radio:checked + .form-field-sum-content {
+    display: flex !important;
+}
+
+.nopointer {
+    pointer-events: none;
 }
 
 .form-select {
@@ -987,9 +1090,10 @@ details>.details-summary ~ * {
 
 .form-choice-label {
     padding: 0.5em 0.7em 0.5em 0.3em;
-    display: block;
+    display: flex;
     cursor: pointer;
     position: relative;
+    align-items: center;
 }
 
 .form-choice-info {
@@ -1001,25 +1105,29 @@ details>.details-summary ~ * {
     border-radius: 0.1em;
 }
 
-.form-choice-label > input:hover + .marker {
+.form-choice-label > input:hover ~ .marker {
     background: #ddd6;
     position: absolute;
     inset: 0;
     z-index: -1;
 }
 
-.form-choice-label > input:active + .marker {
+.form-choice-label > input:active ~ .marker {
     background: #d1d1d1;
     position: absolute;
     inset: 0;
     z-index: -1;
 }
 
-.form-choice-label > input:checked + .marker {
+.form-choice-label > input:checked ~ .marker {
     background: #ddd;
     position: absolute;
     inset: 0;
     z-index: -1;
+}
+
+.form-choice-label > * {
+    cursor: pointer;
 }
 
 .tab-container {
@@ -1195,7 +1303,7 @@ h1, h2, h3 {
 .state-error > div > .form-choice-list {
     border: 1px solid #a00;
 }
-.state-error > div > .form-choice-list input[checked] + .marker {
+.state-error > div > .form-choice-list input[checked] ~ .marker {
     background: #faa;
 }
 

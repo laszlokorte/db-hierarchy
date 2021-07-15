@@ -20,7 +20,7 @@
 
 {% block cell %}
     {% if fieldValue.id %}
-        <span class="type-id"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: fieldValue.key, nodeId:fieldValue.id}) }}">{{fieldValue.id}}</a></span>
+        <span class="type-id compact"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: fieldValue.key, nodeId:fieldValue.id}) }}">{{fieldValue.id}}</a></span>
     {% endif %}
 {% endblock %}
 

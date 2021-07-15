@@ -10,7 +10,7 @@
 
 <h1>{{key.label.string(key.isSingleton)}}
 {%- if key.label.description is not empty -%}
-<i class="icon-link info" aria-label="{{key.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+<i class="icon-link info tooltipped" aria-label="{{key.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
 {% endif %}
 </h1>
 
@@ -37,6 +37,32 @@
 
 {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy,then:'root_form', creation} only %}
 
+{{ form_start(creationForm) }}
+
+{{ form_errors(creationForm) }}
+
+<dl class="form-container">
+   {% for field in creationForm.fields %}
+       <dt class="form-container-label">{{ form_label(field) }}</dt>
+       <dd class="form-container-field">
+       {{ form_widget(field) }}
+       {{ form_errors(field) }}
+       </dd>
+       {% if field.vars.help is not empty %}
+       <dd class="form-container-info">
+       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       </dd>
+       {% endif %}
+   {% endfor %}
+   <dt class="form-container-label form-container-spacer"></dt>
+   <dd class="form-container-buttons">
+      {% for field in creationForm.buttons %}
+          {{ form_widget(field) }}
+      {% endfor %}
+   </dd>
+</dl>
+
+{{ form_end(creationForm) }}
 
 {% endif %}
 

@@ -24,7 +24,7 @@ class StringType implements FieldTypeInterface {
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return $columnData[0];
+		return $columnData[0] ?? '';
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {

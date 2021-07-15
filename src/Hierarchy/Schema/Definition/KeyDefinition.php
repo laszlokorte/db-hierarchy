@@ -115,6 +115,10 @@ class KeyDefinition {
 		return $this->fields[$fieldId]->isUnique();
 	}
 
+	public function isFieldVisibleInCollection($fieldId) {
+		return $this->fields[$fieldId]->isVisibleInCollection();
+	}
+
 	public function getFieldTypeId($fieldId) {
 		return $this->fields[$fieldId]->getTypeId();
 	}
