@@ -7,7 +7,7 @@ use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 
 use App\Hierarchy\Changeset\Movement;
-use App\Hierarchy\Data\Node;
+use App\Hierarchy\Data;
 
 use Doctrine\DBAL\Connection;
 
@@ -16,7 +16,7 @@ class MovementService {
 
 	}
 
-	public function getFreshMovement(Node $node) {
+	public function getFreshMovement(Data\Node $node) {
 		return new Movement(
 			$node->getKey(),
 			$node->getId(),
@@ -26,7 +26,7 @@ class MovementService {
 		);
 	}
 
-	public function getValidatedMovement(Node $node, ?string $targetScopeId, ?string $targetParentId) {
+	public function getValidatedMovement(Data\Node $node, ?string $targetScopeId, ?string $targetParentId) {
 		// check target position
 
 		return new Movement(
@@ -44,13 +44,16 @@ class MovementService {
 		$rootKeyIds = [];
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$idParam = new Parameter('_id');
-			$select = $this->queryBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
+			$select = $this->commandBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
 
-			$this->beginTransaction();
+
+			$this->connection->beginTransaction();
+
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 			$stmt->execute();
-	    	$this->commitTransaction();
+
+
 
 			$groupedRows[$keyId] = $stmt->fetchAll(\PDO::FETCH_GROUP);
 			$rootKeyIds[] = $keyId;
@@ -59,12 +62,13 @@ class MovementService {
 		if($this->schemaDef->isKeyScoped($keyId)) {
 			$scope = $this->schemaDef->getKeyScopeId($keyId);
 
-			$select = $this->queryBuilder->getSelectForFindHierarchy($scope, null, null);
+			$select = $this->commandBuilder->getSelectForFindHierarchy($scope, null, null);
 
-			$this->beginTransaction();
+			
+			$this->connection->beginTransaction();
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->execute();
-	    	$this->commitTransaction();
+			$this->connection->commit();
 
 			$groupedRows[$scope] = $stmt->fetchAll(\PDO::FETCH_GROUP);
 			$rootKeyIds[] = $scope;
@@ -118,8 +122,9 @@ class MovementService {
 		}
 
 
-		$this->beginTransaction(true);
 
+		$this->connection->beginTransaction();
+		
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
 
@@ -184,6 +189,6 @@ class MovementService {
 
 		}
 
-		$this->commitTransaction();
+		$this->connection->commit();
 	}
 }

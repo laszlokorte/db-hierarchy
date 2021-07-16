@@ -12,7 +12,7 @@ use App\Hierarchy\Data\Node;
 use Doctrine\DBAL\Connection;
 
 class OrderingService {
-	public function __construct(private SchemaDefinition $schemaDef, private OrderingCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, private OrderingCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder, private QueryService $queryService) {
 
 	}
 
@@ -40,17 +40,7 @@ class OrderingService {
 	}
 
 	public function findNodeSiblings(string $keyId, string $nodeId) {
-		$directParent = $this->findNodeDirectParent($keyId, $nodeId);
-
-		$self = $this->findNode($keyId, $nodeId);
-
-		if(!empty($self->hasParent())) {
-			return $this->findNodeChildren($keyId, $self->getParent(), $keyId);
-		} else if($self->hasScope()) {
-			return $this->findNodeChildren($this->schemaDef->getKeyScopeId($keyId), $self->getScope(), $keyId);
-		} else {
-			return $this->findRootNodes($keyId);
-		}
+		return $this->queryService->findNodeSiblings($keyId, $nodeId);
 	}
 
 	public function orderNode(string $keyId, $nodeId, $targetPosition) {

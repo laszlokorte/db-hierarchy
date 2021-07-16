@@ -73,7 +73,7 @@
     {%- endif -%}
 
     
-    <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field', 'compact')})} -%}
+    <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} {% if multiple %} multiple="multiple"{% endif %}>
         {%- if placeholder is not none -%}

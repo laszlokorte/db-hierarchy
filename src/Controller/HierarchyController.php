@@ -522,6 +522,7 @@ class HierarchyController {
             [], 
             [
                 'key' => $key, 
+                'nodeId' => $nodeId, 
                 'storageConnection' => $storageConnection,
                 'action' => $urlGen->generate('move_node', [
                     'hierarchySlug' => $hierarchy->getSlug(), 
@@ -551,6 +552,7 @@ class HierarchyController {
                 'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key->getId(), $nodeId),
                 'node' => $node,
                 'movement' => $movement,
+                'movementForm' => $movementForm->createView(),
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
             ];
         }
@@ -588,6 +590,7 @@ class HierarchyController {
             [], 
             [
                 'key' => $key, 
+                'nodeId' => $nodeId, 
                 'storageConnection' => $storageConnection,
                 'action' => $urlGen->generate('order_node', [
                     'hierarchySlug' => $hierarchy->getSlug(), 
@@ -619,6 +622,7 @@ class HierarchyController {
                 'node' => $node,
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
                 'ordering' => $ordering,
+                'orderForm' => $orderForm->createView(),
             ];
         }
 

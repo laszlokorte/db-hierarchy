@@ -291,8 +291,6 @@ class Fetcher {
 	}
 
 	public function findNodeSiblings(string $keyId, string $nodeId) {
-		$directParent = $this->findNodeDirectParent($keyId, $nodeId);
-
 		$self = $this->findNode($keyId, $nodeId);
 
 		if(!empty($self->hasParent())) {

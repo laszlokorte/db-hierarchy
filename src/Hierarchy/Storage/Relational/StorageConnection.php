@@ -49,6 +49,16 @@ class StorageConnection {
 		);
 	}
 
+	public function getQueryService() {
+		return new Service\QueryService(
+			$this->schemaDef, 
+			new Service\QueryCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
+		);
+	}
+
 	public function getDeletionService() {
 		return new Service\DeletionService(
 			$this->schemaDef, 
@@ -95,7 +105,8 @@ class StorageConnection {
 			new Service\OrderingCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
 			$this->connection, 
 			$this->dialect,
-			$this->coder
+			$this->coder,
+			$this->getQueryService()
 		);
 	}
 }

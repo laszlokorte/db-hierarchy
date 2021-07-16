@@ -18,11 +18,15 @@ class DeleteNodeType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-    	$builder
-    		->add('delete', SubmitType::class, [
-    			'label' => 'Yes, Delete!', 
-    			'attr' => ['class' => 'action-button danger']
-    		]);
+        $buttons = $builder->create('buttons', ActionType::class);
+
+        $buttons
+            ->add('delete', SubmitType::class, [
+                'label' => 'Yes, Delete!', 
+                'attr' => ['class' => 'action-button danger']
+            ]);
+
+        $builder->add($buttons);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

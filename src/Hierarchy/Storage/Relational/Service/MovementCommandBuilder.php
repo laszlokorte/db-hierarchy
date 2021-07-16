@@ -6,6 +6,20 @@ use App\Hierarchy\Storage\Relational\Naming;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
+use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
+use App\Hierarchy\Storage\Relational\Algebra\Select;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\Order;
+use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\String\Concat;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 
 class MovementCommandBuilder  {
 

@@ -16,4 +16,29 @@
 
 {% include 'hierarchy/partials/form_ordering.html.twig' with {hierarchy: hierarchy, orderTargets, ordering} only %}
 
+{{ form_start(orderForm) }}
+
+{{ form_errors(orderForm) }}
+
+<dl class="form-container">
+  <dt class="form-container-label">{{ form_label(orderForm.new_position) }}</dt>
+   <dd class="form-container-field">
+   {{ form_widget(orderForm.new_position) }}
+   {{ form_errors(orderForm.new_position) }}
+   </dd>
+   {% if orderForm.new_position.vars.help is not empty %}
+   <dd class="form-container-info">
+   <i class="icon-link info tooltipped" aria-label="{{orderForm.new_position.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+   </dd>
+   {% endif %}
+   <dt class="form-container-label form-container-spacer"></dt>
+   <dd class="form-container-buttons">
+      {% for field in orderForm.buttons %}
+          {{ form_widget(field) }}
+      {% endfor %}
+   </dd>
+</dl>
+
+{{ form_end(orderForm) }}
+
 {% endblock %}

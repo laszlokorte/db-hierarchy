@@ -21,6 +21,7 @@ class KeyFieldsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $key = $options['key'];
+        $storageConnection = $options['storageConnection'];
         
         foreach ($key->getFields() as $field) {
             switch($field->getType()) {
@@ -47,8 +48,11 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\ChoiceType::class, [
                         'label' => $field->getLabel()->getString(),
-                        'choice_loader' => new CallbackChoiceLoader(function() {
-                            return [1,2,3];
+                        'choice_loader' => new CallbackChoiceLoader(function() use ($field, $storageConnection) {
+                            $target = $field->getOption('target');
+
+                            $all = $storageConnection->getFetcher()->findAllNodes($target);
+                            return $all->getIds();
                         }),
                     ]);
                     break;
@@ -86,7 +90,8 @@ class KeyFieldsType extends AbstractType
                 case "enum":
                     $builder
                     ->add($field->getId(), Type\ChoiceType::class, [
-                        'label' => $field->getLabel()->getString(), 
+                        'label' => $field->getLabel()->getString(),
+                        'expanded' => $field->getOption('style') != 'compact',
                         'choices'  => array_combine(
                             $field->getOption('values'),
                             $field->getOption('values')
