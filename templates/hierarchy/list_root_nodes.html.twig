@@ -31,29 +31,15 @@
     </li>
 {% endblock %}
 {% block tab_0 %}
-    <p>
-        Are you sure?
-    </p>
-
-    <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: key.id, nodeId:nodeId}) }}" method="post" accept-charset="utf-8">
-    <dl class="form-container">
-        <dt class="form-container-spacer"></dt>
-        <dd class="form-container-buttons">
-            <input type="hidden" name="_then" value="list">
-            <button name="soft" class="action-button danger">Yes, Delete!</button>
-            <label class="link-button" for="{{defaultTabId|default(null)}}" class="quicktab-link">
-        Cancel
-        </label>
-        </dd>
-    </dl>
-    </form>
+    
+    {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, key.id, nodeId), cancel_tab: defaultTabId|default(null)} only %}
 {% endblock %}
 {% block tab_1 %}
     {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key, node: nodeCollection.getNode(nodeId)} only %}
 
 {% endblock %}
 {% block tab_2 %}
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: nodeCollection.getNode(nodeId).newUpdate, force_then: true, then: 'list', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, key.id, nodeId), force_then: true, then: 'list', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
 {% endblock %}
 {% endembed %}
 {% else %}
@@ -66,7 +52,7 @@
 {% block tab_0 %}
 {% endblock %}
 {% block tab_1 %}
-    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel_tab: defaultTabId|default(null), creation: key.newCreation()} only %}
+    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel_tab: defaultTabId|default(null), creationForm: creationForm(hierarchy, key.id)} only %}
 {% endblock %}
 {% endembed %}
 {% endfor %}
@@ -80,7 +66,7 @@
 
 <div class="quickform">
 <h3>New</h3>
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then:'root_list', creation: key.newCreation()} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then:'root_list', creationForm: creationForm(hierarchy, key.id)} only %}
 </div>
 {% endif %}
 

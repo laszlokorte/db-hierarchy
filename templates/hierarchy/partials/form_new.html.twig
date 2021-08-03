@@ -1,120 +1,51 @@
-{% set key = hierarchy.getKey(creation.keyId) %}
-<form novalidate="" action="{{ path('create_node',{hierarchySlug: hierarchy.slug, keyId: key.id}) }}" method="post" accept-charset="utf-8">
-	{% if then is defined %}
-	<input type="hidden" name="_then" value="{{then}}">
-	{% endif %}
 
-	{% if creation.parent is not empty %}
-        <input type="hidden" name="parent" value="{{ creation.parent }}">
-    {% endif %}
-	{% if creation.scope is not empty %}
-        <input type="hidden" name="scope" value="{{ creation.scope }}">
-    {% endif %}
+{{ form_start(creationForm) }}
 
-	<dl class="form-container">
-		{% if not creation.isValid %}
-			<dt class="form-container-label form-container-spacer">
-			</dt>
-			<dd class="form-container-field">
-	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: creation.allErrors, message: 'could not be created'} only %}
-	    	</dd>
+{{ form_errors(creationForm) }}
+
+<dl class="form-container">
+   {% if creationForm._nesting is defined %}
+      <dt class="form-container-label">{{ form_label(creationForm._nesting) }}</dt>
+       <dd class="form-container-field">
+       {{ form_widget(creationForm._nesting) }}
+       {{ form_errors(creationForm._nesting) }}
+       </dd>
+       {% if creationForm._nesting.vars.help is not empty %}
+       <dd class="form-container-info">
+       <i class="icon-link info tooltipped" aria-label="{{creationForm._nesting.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       </dd>
+       {% endif %}
+   {% endif %}
+
+   {% for field in creationForm.fields %}
+       <dt class="form-container-label">{{ form_label(field) }}</dt>
+       <dd class="form-container-field">
+       {{ form_widget(field) }}
+       {{ form_errors(field) }}
+       </dd>
+       {% if field.vars.help is not empty %}
+       <dd class="form-container-info">
+       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       </dd>
+       {% endif %}
+   {% endfor %}
+   <dt class="form-container-label form-container-spacer"></dt>
+   <dd class="form-container-buttons">
+      {% for field in creationForm.buttons %}
+          {{ form_widget(field) }}
+      {% endfor %}
+      
+		{% if cancel is defined %}
+			{% if cancel is same as(true) %}
+				<button class="link-button" type="reset">Reset</button>
+			{% else %}
+				<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
+			{% endif %}
 		{% endif %}
-
-		{% if creation.scope is empty and key.isScoped %}
-		<dt class="{{ html_classes('form-container-label', {'state-error': creation.hasScopeErrors}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': creation.hasScopeErrors}) }}" for="scope">{{key.scopeKey.label.singular}}</label>
-        </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': creation.hasScopeErrors}) }}">
-        <div>
-        <input type="hidden" name="scope" value="">
-    	<input 
-	    data-label-singular="{{ key.scopeKey.label.singular }}" 
-	    data-label-plural="{{ key.scopeKey.label.plural }}" 
-	    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" 
-
-	    required="required" data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id}) }}" class="form-field" type="text" id="scope" name="scope" value="" placeholder="{{key.scopeKey.label.singular}} ID" data-style="expanded" data-expand-limit="10">
-	      </div>
-    	
-    	{% if creation.hasScopeErrors %}
-    	<ul class="inline-list error">
-    		{% for e in creation.getScopeErrors() %}
-    	    <li>{{e}}</li>
-    		{% endfor %}
-    	</ul>
-    	{% endif %}
-
-    	</dd>
+		{% if cancel_tab is defined %}
+			<label class="link-button" for="{{ cancel_tab }}" title="">Cancel</label>
 		{% endif %}
-		{% if creation.parent is empty and key.isReflexive %}
-		<dt class="{{ html_classes('form-container-label', {'state-error': creation.hasParentErrors}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': creation.hasParentErrors}) }}" for="parent">Parent {{key.label.singular}}</label>
-        </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': creation.hasParentErrors}) }}">
-        <div>
-        <input type="hidden" name="parent" value="">
-    	<input 
-    data-label-singular="{{ key.label.singular }}" 
-    data-label-plural="{{ key.label.plural }}" 
-    data-new-url="{{ path('new_root_node', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" 
+   </dd>
+</dl>
 
-     data-explicit="false" data-reference-url="{{ path('list_all_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" class="form-field" type="text" id="parent" name="parent" value="" placeholder="{{key.label.singular}} ID" data-style="expanded" data-expand-limit="10">
-
-        </div>
-    	
-    	{% if creation.hasParentErrors %}
-    	<ul class="inline-list error">
-    		{% for e in creation.getParentErrors() %}
-    	    <li>{{e}}</li>
-    		{% endfor %}
-    	</ul>
-    	{% endif %}
-    	</dd>
-		{% endif %}
-		{% for field in key.fields %}
-        <dt class="{{ html_classes('form-container-label', {'state-error': creation.fieldHasErrors(field.id)}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': creation.fieldHasErrors(field.id)}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
-        </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': creation.fieldHasErrors(field.id)}) }}">
-        
-        <div>
-        	{% set fieldValue = field.readValueOf(creation) %}
-        	{{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
-        </div>
-    	
-    	{% if creation.fieldHasErrors(field.id) %}
-    	<ul class="inline-list error">
-    		{% for e in creation.fieldErrors(field.id) %}
-    	    <li>{{e}}</li>
-    		{% endfor %}
-    	</ul>
-    	{% endif %}
-
-    	</dd>
-    	{% if field.label.description %}
-	    	<dd class="form-container-info">
-	        <i class="icon-link info tooltipped" aria-label="{{field.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
-	    	</dd>
-    	{% endif %}
-    	{% endfor %}
-
-	<dt class="form-container-label form-container-spacer"></dt>
-	<dd class="form-container-buttons">
-	{% if force_then??false %}
-		<button class="form-button primary required">Confirm</button>
-	{% else %}
-		<button class="form-button primary" name="_then" value="new">Create and show</button>
-		<button class="form-button">Create (stay here)</button>
-	{% endif %}
-	{% if cancel is defined %}
-		{% if cancel is same as(true) %}
-			<button class="link-button" type="reset">Reset</button>
-		{% else %}
-			<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
-		{% endif %}
-	{% endif %}
-	{% if cancel_tab is defined %}
-		<label class="link-button" for="{{ cancel_tab }}" title="">Cancel</label>
-	{% endif %}
-	</dd>
-    </dl>
-</form>
+{{ form_end(creationForm) }}

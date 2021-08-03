@@ -23,7 +23,7 @@
         {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key, node} only %}
   {% endblock %}
   {% block tab_1 %}
-     {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: node.newUpdate} only %}
+     {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, key.id, node.id)} only %}
   {% endblock %}
 {% endembed %}
 
@@ -51,28 +51,16 @@
     </li>
 {% endblock %}
   {% block tab_0 %}
-    <p>
-        Are you sure?
-    </p>
 
-    <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId:childId}) }}" method="post" accept-charset="utf-8">
-    <dl class="form-container">
-        <dt class="form-container-spacer"></dt>
-        <dd class="form-container-buttons">
-            <button name="soft" class="action-button danger">Yes, Delete!</button>
-            <label class="link-button" for="{{defaultTabId|default(null)}}" class="quicktab-link">
-        Cancel
-        </label>
-        </dd>
-    </dl>
-    </form>
+
+    {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, childKey.id, childId), cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
   {% block tab_1 %}
     {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key: childKey, node: childNodes.nodesFor(childKey.id).getNode(childId)} only %}
 
   {% endblock %}
   {% block tab_2 %}
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: childNodes.nodesFor(childKey.id).getNode(childId).newUpdate, force_then: true, then: 'parent', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, childKey.id, childId), force_then: true, then: 'parent', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 {% endembed %}
 {% else %}
@@ -83,7 +71,7 @@
 {% block tab_0 %}
 {% endblock %}
 {% block tab_1 %}
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, creation: childKey.newCreation(node), force_then: true, then: 'parent', cancel_tab: defaultTabId|default(null)} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, creationForm: childCreationForm(hierarchy, key.id, node.id, childKey.id), force_then: true, then: 'parent', cancel_tab: defaultTabId|default(null)} only %}
 {% endblock %}
 {% endembed %}
 
@@ -99,7 +87,7 @@
 {% include 'hierarchy/partials/table.html.twig' with {hierarchy,nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
 {% endblock %}
 {% block tab_1 %}
- {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, creation: childKey.newCreation(node)} only %}
+ {% include 'hierarchy/partials/form_new.html.twig' with {creationForm: childCreationForm(hierarchy, key.id, node.id, childKey.id)} only %}
 {% endblock %}
 {% endembed %}
 {% endif %}

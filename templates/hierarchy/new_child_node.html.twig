@@ -24,19 +24,13 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: node.id, childKeyId: childKey.id}), creation} only %}
-
-{{ form(creationForm) }}
-
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: childKey.id, nodeId: node.id, childKeyId: childKey.id}), creationForm} only %}
 
 {% else %}
 
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy,active: 'new', key, node, childKey} only %}
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'form', creation} only %}
-
-{{ form(creationForm) }}
-
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'form', creationForm} only %}
 
 {% endif %}
 

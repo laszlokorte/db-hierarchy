@@ -28,54 +28,15 @@
     </span></li>
 </ul>
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}), creation} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'list', force_then: true, cancel: path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}), creationForm} only %}
 
 {% else %}
 
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy,active: 'new', key} only %}
 
 
-{% include 'hierarchy/partials/form_new.html.twig' with {hierarchy,then:'root_form', creation} only %}
+{% include 'hierarchy/partials/form_new.html.twig' with {creationForm} only %}
 
-{{ form_start(creationForm) }}
-
-{{ form_errors(creationForm) }}
-
-<dl class="form-container">
-   {% if creationForm._nesting is defined %}
-      <dt class="form-container-label">{{ form_label(creationForm._nesting) }}</dt>
-       <dd class="form-container-field">
-       {{ form_widget(creationForm._nesting) }}
-       {{ form_errors(creationForm._nesting) }}
-       </dd>
-       {% if creationForm._nesting.vars.help is not empty %}
-       <dd class="form-container-info">
-       <i class="icon-link info tooltipped" aria-label="{{creationForm._nesting.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
-       </dd>
-       {% endif %}
-   {% endif %}
-
-   {% for field in creationForm.fields %}
-       <dt class="form-container-label">{{ form_label(field) }}</dt>
-       <dd class="form-container-field">
-       {{ form_widget(field) }}
-       {{ form_errors(field) }}
-       </dd>
-       {% if field.vars.help is not empty %}
-       <dd class="form-container-info">
-       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
-       </dd>
-       {% endif %}
-   {% endfor %}
-   <dt class="form-container-label form-container-spacer"></dt>
-   <dd class="form-container-buttons">
-      {% for field in creationForm.buttons %}
-          {{ form_widget(field) }}
-      {% endfor %}
-   </dd>
-</dl>
-
-{{ form_end(creationForm) }}
 
 {% endif %}
 

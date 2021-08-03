@@ -22,7 +22,7 @@ class CreateChildNodeType extends AbstractType
         $key = $options['key'];
 
         $builder->add(
-            $builder->create('field', KeyFieldsType::class, [
+            $builder->create('fields', KeyFieldsType::class, [
                 'by_reference' => false, 
                 'label' => false,
                 'key' => $options['key'],
@@ -43,8 +43,6 @@ class CreateChildNodeType extends AbstractType
             ]);
 
         $builder->add($buttons);
-
-
     }
 
     public function configureOptions(OptionsResolver $resolver): void

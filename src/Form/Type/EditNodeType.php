@@ -6,10 +6,9 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type;
 
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
@@ -21,18 +20,29 @@ class EditNodeType extends AbstractType
     	$key = $options['key'];
 
         $builder->add(
-            $builder->create('field', KeyFieldsType::class, [
+            $builder->create('fields', KeyFieldsType::class, [
                 'by_reference' => false, 
                 'label' => false,
                 'key' => $options['key'],
                 'storageConnection' => $options['storageConnection'],
             ])
         );
-        $builder
-            ->add('update', SubmitType::class, [
-                'label' => 'Update', 
+        
+        $buttons = $builder->create('buttons', ActionType::class, [
+            'label' => false,
+        ]);
+
+        $buttons
+            ->add('create', Type\SubmitType::class, [
+                'label' => 'Create', 
                 'attr' => ['class' => 'form-button primary']
+            ])
+            ->add('create_stay', Type\SubmitType::class, [
+                'label' => 'Create (stay here)', 
+                'attr' => ['class' => 'form-button']
             ]);
+
+        $builder->add($buttons);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -39,22 +39,9 @@
   {% endblock %}
 
   {% block tab_0 %}
-      <p>
-            Are you sure?
-        </p>
+      
+    {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, rootKey.id, nodeId), cancel_tab: defaultTabId|default(null)} only %}
 
-        <form action="{{ path('delete_node',{hierarchySlug: hierarchy.slug, keyId: rootKey.id, nodeId:nodeId}) }}" method="post" accept-charset="utf-8">
-        <dl class="form-container">
-            <dt class="form-container-spacer"></dt>
-            <dd class="form-container-buttons">
-                <input type="hidden" name="_then" value="parent">
-                <button name="soft" class="action-button danger">Yes, Delete!</button>
-                <label class="link-button" for="{{defaultTabId|default(null)}}" class="quicktab-link">
-            Cancel
-            </label>
-            </dd>
-        </dl>
-        </form>
   {% endblock %}
 
   {% block tab_1 %}
@@ -65,7 +52,7 @@
 
   {% block tab_2 %}
       
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, update: rootNodes.nodesFor(rootKey.id).getNode(nodeId).newUpdate, force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, rootKey.id, nodeId), force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 
 {% endembed %}
@@ -78,7 +65,7 @@
       {% block tab_0 %}
       {% endblock %}
       {% block tab_1 %}
-        {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'root', force_then: true, cancel_tab: defaultTabId|default(null), creation: rootKey.newCreation()} only %}
+        {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'root', force_then: true, cancel_tab: defaultTabId|default(null), creationForm: creationForm(hierarchy, rootKey.id)} only %}
       {% endblock %}
     {% endembed %}
 {% endfor %}
@@ -93,7 +80,7 @@
                 {% include 'hierarchy/partials/table.html.twig' with {hierarchy,key: rootKey, nodeCollection: rootNodes.nodesFor(rootKey.id), then: 'parent', listLink: true} only %}
               {% endblock %}
               {% block tab_1 %}
-                    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'parent', creation: rootKey.newCreation()} only %}
+                    {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'parent', creationForm: creationForm(hierarchy, rootKey.id)} only %}
               {% endblock %}
             {% endembed %}
         {% endif %}

@@ -27,11 +27,35 @@ class OrderNodeType extends AbstractType
             'choice_loader' => new CallbackChoiceLoader(function() use ($key, $storageConnection, $nodeId) {
                 $orderTargets = $storageConnection->getOrderingService()->findNodeSiblings($key->getId(), $nodeId);
 
-                return array_combine(
-                    $orderTargets->getIds(),
-                    $orderTargets->getIds()
-                );
+                $choices = [];
+                $down = false;
+                $prevId = 'Top';
+
+                foreach ($orderTargets->getIds() as $i => $id) {
+                    if($nodeId === $id) {
+                        $down = true;
+                        $choices[] = (object)['label' => $prevId, 'value' => $prevId, 'disabled' => true];
+                        $choices[] = (object)['label' => '(Current Position)', 'value' => $orderTargets->getOrder($id)];
+                    } elseif($down) {
+                        $choices[] = (object)['label' => $id, 'value' => $id.'_', 'disabled' => true];
+                        $choices[] = (object)['label' => 'pute here', 'value' => $orderTargets->getOrder($id)];
+                    } else {
+                        $choices[] = (object)['label' => $prevId, 'value' => '_'.$id, 'disabled' => true];
+                        $choices[] = (object)['label' => 'pute here', 'value' => $orderTargets->getOrder($id)];
+                    }
+                    $prevId = $id;
+                }
+                
+                $choices[] = (object)['label' => 'Bottom', 'value' => 'bottom', 'disabled' => true];
+
+                return $choices;
             }),
+
+            'choice_label' => function($entry) { return $entry ? $entry->label : null; },
+            'choice_value' => function($entry) { return $entry ? $entry->value : null; },
+            'choice_attr' => function($key, $val, $index) {
+                return $key->disabled??false ? ['disabled' => 'disabled'] : [];
+            },
         ]);
 
         $buttons = $builder->create('buttons', ActionType::class);

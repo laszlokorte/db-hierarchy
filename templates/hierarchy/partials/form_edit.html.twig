@@ -1,67 +1,50 @@
-{% set key = hierarchy.getKey(update.keyId) %}
+{{ form_start(editForm) }}
 
-<form novalidate="" action="{{ path('update_node',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: update.nodeId}) }}" method="post" accept-charset="utf-8">
-	{% if then is defined %}
-	<input type="hidden" name="_then" value="{{then}}">
-	{% endif %}
+{{ form_errors(editForm) }}
 
-	<dl class="form-container">
-		{% if not update.isValid %}
-			<dt class="form-container-label form-container-spacer">
-			</dt>
-			<dd class="form-container-field">
-	       	{% include 'hierarchy/partials/validation_errors.html.twig' with {key, errors: update.allErrors, message: 'could not be updated'} only %}
-	    	</dd>
+<dl class="form-container">
+   {% if editForm._nesting is defined %}
+      <dt class="form-container-label">{{ form_label(editForm._nesting) }}</dt>
+       <dd class="form-container-field">
+       {{ form_widget(editForm._nesting) }}
+       {{ form_errors(editForm._nesting) }}
+       </dd>
+       {% if editForm._nesting.vars.help is not empty %}
+       <dd class="form-container-info">
+       <i class="icon-link info tooltipped" aria-label="{{editForm._nesting.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       </dd>
+       {% endif %}
+   {% endif %}
+
+   {% for field in editForm.fields %}
+       <dt class="form-container-label">{{ form_label(field) }}</dt>
+       <dd class="form-container-field">
+       {{ form_widget(field) }}
+       {{ form_errors(field) }}
+       </dd>
+       {% if field.vars.help is not empty %}
+       <dd class="form-container-info">
+       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       </dd>
+       {% endif %}
+   {% endfor %}
+   <dt class="form-container-label form-container-spacer"></dt>
+   <dd class="form-container-buttons">
+      {% for field in editForm.buttons %}
+          {{ form_widget(field) }}
+      {% endfor %}
+      
+		{% if cancel is defined %}
+			{% if cancel is same as(true) %}
+				<button class="link-button" type="reset">Reset</button>
+			{% else %}
+				<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
+			{% endif %}
 		{% endif %}
-
-		{% for field in key.fields %}
-        <dt class="{{ html_classes('form-container-label', {'state-error': update.fieldHasErrors(field.id)}) }}">
-        <label class="{{ html_classes('form-label', {'state-error': update.fieldHasErrors(field.id)}) }}" for="field_{{field.id}}">{{field.label.singular}}</label>
-        </dt>
-        <dd class="{{ html_classes('form-container-field', {'state-error': update.fieldHasErrors(field.id)}) }}">
-        
-        <div>
-        	{% set fieldValue = field.readValueOf(update) %}
-        	{{ block('field', 'hierarchy/types/'~ field.templateName ~'.html.twig') }}
-        </div>
-    	
-    	{% if update.fieldHasErrors(field.id) %}
-    	<ul class="inline-list error">
-    		{% for e in update.fieldErrors(field.id) %}
-    	    <li>{{e}}</li>
-    		{% endfor %}
-    	</ul>
-    	{% endif %}
-    	<dd class="form-container-info">
-        <a class="icon-link tooltipped" href="{{ path('show_node_field',{hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: update.nodeId, fieldId: field.id}) }}" aria-label="view in new tab" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'link-external'} only %}</a>
-    	</dd>
-
-    	{% if field.label.description %}
-    	<dd class="form-container-info">
-	        <i class="icon-link info tooltipped" aria-label="{{field.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
-    	</dd>
-    	{% endif %}
-
-    	{% endfor %}
-
-	<dt class="form-container-label form-container-spacer"></dt>
-	<dd class="form-container-buttons">
-	{% if force_then??false %}
-		<button class="form-button primary required">Save Changes</button>
-	{% else %}
-		<button class="form-button primary">Update</button>
-		<button class="form-button" name="_then" value="show">Update and back</button>
-	{% endif %}
-	{% if cancel is defined %}
-		{% if cancel is same as(true) %}
-			<button class="link-button" type="reset">Reset</button>
-		{% else %}
-			<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
+		{% if cancel_tab is defined %}
+			<label class="link-button" for="{{ cancel_tab }}" title="">Cancel</label>
 		{% endif %}
-	{% endif %}
-	{% if cancel_tab is defined %}
-		<label class="link-button" for="{{ cancel_tab }}" title="">Cancel</label>
-	{% endif %}
-	</dd>
-    </dl>
-</form>
+   </dd>
+</dl>
+
+{{ form_end(editForm) }}

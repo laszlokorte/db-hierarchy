@@ -702,6 +702,7 @@ class HierarchyController {
                 'node' => $node,
                 'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
                 'update' => $update,
+                'editForm' => $editForm->createView(),
             ];
         }
 
