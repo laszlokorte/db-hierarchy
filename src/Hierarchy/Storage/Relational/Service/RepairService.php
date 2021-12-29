@@ -81,9 +81,9 @@ class RepairService {
 
 					default: throw new \Exception("invalid command");
 				}
-				$stmt->execute();
+				$result = $stmt->execute();
 
-				if($stmt->rowCount() < 1) {
+				if($result->rowCount() < 1) {
 					break;
 				}
 
