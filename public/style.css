@@ -1271,8 +1271,8 @@ h1, h2, h3 {
 .inline-prefix-icon {
     width: 1em;
     height: 1em;
-    margin-inline: 5px;
-    vertical-align: middle;
+    margin-inline: 0 5px;
+    vertical-align: bottom;
 }
 
 .form-error-container {

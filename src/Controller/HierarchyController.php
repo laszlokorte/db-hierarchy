@@ -319,14 +319,14 @@ class HierarchyController {
         $creationForm->handleRequest($request);
 
         if($creationForm->isSubmitted()) {
-            $creation = $creationService->getValidatedCreation($key->getId(), $request->request->get('field', []), $scope, $parent);
+            $creation = $creationService->getValidatedCreation($key->getId(), $request->request->all('field'), $scope, $parent);
         } else {
             $creation = $creationService->getFreshCreation($key->getId());
         }
 
 
         if($creationForm->isSubmitted() && $creationForm->isValid() && $creation->isValid()) {
-            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
+            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->all('field'), $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -424,13 +424,13 @@ class HierarchyController {
                 $parent = null;
             }
             
-            $creation = $creationService->getValidatedCreation($childKey->getId(), $request->request->get('field', []), $scope, $parent);
+            $creation = $creationService->getValidatedCreation($childKey->getId(), $request->request->all('field'), $scope, $parent);
         } else {
             $creation = $creationService->getFreshCreation($childKey->getId(), $parentNode);
         }
 
         if($creationForm->isSubmitted() && $creationForm->isValid() && $creation->isValid()) {
-            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->get('field', []), $scope, $parent);
+            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->all('field'), $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -684,13 +684,13 @@ class HierarchyController {
         $editForm->handleRequest($request);
 
         if($editForm->isSubmitted()) {
-            $update = $updateService->getValidatedUpdate($node, $request->request->get('field', []));
+            $update = $updateService->getValidatedUpdate($node, $request->request->all('field'));
         } else {
             $update = $updateService->getFreshUpdate($node);
         }
 
         if($editForm->isSubmitted() && $editForm->isValid() && $update->isValid()) {
-            $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->get('field', []));
+            $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->all('field'));
 
             $then = $request->request->get('_then', null);
 

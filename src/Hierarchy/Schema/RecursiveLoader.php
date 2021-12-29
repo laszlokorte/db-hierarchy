@@ -358,7 +358,7 @@ class RecursiveLoader {
 				$settings['title']?:'Hierarchy Manager', 
 				$settings['title']?:'Hierarchie Managers', 
 				$settings['intro'], 
-				'gear', 
+				'favicon', 
 				$settings['accent_color']?:'#444'
 			), [
 			'hierarchy' => new KeyDefinition(

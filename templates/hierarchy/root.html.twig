@@ -5,8 +5,9 @@
 {% block area_main %}
 
 <h1>
-{%- include 'hierarchy/partials/icon.html.twig' with {icon: hierarchy.label.icon} only -%}
+<span>
 {{ hierarchy.label.singular }} Dashboard
+</span>
 </h1>
 
 {% if hierarchy.label.description is not empty %}
@@ -18,7 +19,10 @@
 {% for rootKey in hierarchy.rootKeys %}
     <section>
         <h2>
+        <span>
+          {%- include 'hierarchy/partials/icon.html.twig' with {icon: rootKey.label.icon, prefix: true} only -%}
         {{ rootKey.label.string(rootKey.isSingleton) }}
+        </span>
         {%- if rootKey.label.description is not empty -%}
         <i class="icon-link info tooltipped" aria-label="{{rootKey.label.description}}" target="_blank">
             {% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}
