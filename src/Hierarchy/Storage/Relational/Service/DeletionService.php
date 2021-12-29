@@ -57,12 +57,12 @@ class DeletionService {
 				if($this->schemaDef->isKeyReflexive($key)) {
 					$deleteClosure = $this->commandBuilder->getCommandForDeleteMultipleNodesClosure($key, $nodeIdParams);
 
-					$stmtCLosure = $this->connection->prepare($this->dialect->deleteToString($deleteClosure));
+					$stmtClosure = $this->connection->prepare($this->dialect->deleteToString($deleteClosure));
 
 					foreach($nodeIdParams AS $i => $p) {
-						$stmtCLosure->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($key));
+						$stmtClosure->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($key));
 					}
-					$stmtCLosure->execute();
+					$stmtClosure->execute();
 				}
 
 				$delete = $this->commandBuilder->getCommandForDeleteMultipleNodes($key, $nodeIdParams);
@@ -92,8 +92,8 @@ class DeletionService {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmt->execute();
-			$rows = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$rows = $stmtResult->fetchAllAssociativeIndexed();
 		} else {
 			$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
 			$select = $this->commandBuilder->getSelectForCollectSelfById($keyId, $nodeIdParams);
@@ -101,8 +101,8 @@ class DeletionService {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i],$this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmt->execute();
-			$rows = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$rows = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
 		if(empty($rows)) {
@@ -137,8 +137,8 @@ class DeletionService {
 		foreach($nodeIdParams AS $i => $p) {
 			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i], $this->coder->getScopeColumnBindingType($keyId));
 		}
-		$stmt->execute();
-		$rows = $stmt->fetchAllAssociativeIndexed();
+		$stmtResult = $stmt->execute();
+		$rows = $stmtResult->fetchAllAssociativeIndexed();
 
 		if(empty($rows)) {
 			return [];
@@ -181,12 +181,12 @@ class DeletionService {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmt->execute();
+			$stmtResult = $stmt->execute();
 
 			if($this->schemaDef->isKeyLeaf($refKey)) {
-				$leafs[$refKey] = $stmt->fetchAllAssociativeIndexed();
+				$leafs[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
 			} else {
-				$inners[$refKey] = $stmt->fetchAllAssociativeIndexed();
+				$inners[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
 			}
 		}
 

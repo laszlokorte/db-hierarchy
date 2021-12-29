@@ -57,7 +57,7 @@
                         {% endif %}
                         <td class="data-table-cell"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId}) }}" aria-label="{{ nodeId }}"><span class="type-id compact">{{ nodeId }}</span></a></td>
                         {% if not nodeCollection.isScoped and key.isScoped %}
-                        <td class="data-table-cell"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id, nodeId: nodeCollection.nodeScope(nodeId)}) }}"><span class="type-id compact">{{ nodeCollection.nodeScope(nodeId) }}</span></a>
+                        <td class="data-table-cell"><a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId: key.scopeKey.id, nodeId: nodeCollection.nodeScope(nodeId)}) }}" aria-label="{{ nodeCollection.nodeScope(nodeId) }}"><span class="type-id compact">{{ nodeCollection.nodeScope(nodeId) }}</span></a>
                         </td>
                         {% endif %}
                         {% for field in key.fields(false) %}
@@ -69,7 +69,7 @@
                         <td></td>
                         {% for nested in key.nestedKeys %}
                         <td class="data-table-cell" align="center">
-                            <a class="faded-link" href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId,childKeyId:nested.id}) }}" title="{{ nested.label.plural }}">Show</a>
+                            <a class="faded-link" href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, nodeId: nodeId,childKeyId:nested.id}) }}" title="Show {{ nested.label.getString(nested.isSingleton) }}">Show</a>
                         </td>
                         {% endfor %}
                         <td class="data-table-cell actions sticky-end" align="right">

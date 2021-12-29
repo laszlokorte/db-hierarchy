@@ -14,17 +14,17 @@ use Doctrine\DBAL\Connection;
 class StorageConnection {
 	public function __construct(SchemaDefinition $schemaDef, Connection $connection) {
 		$this->quirks = new Quirks(
-			$connection->getDriver()->getName() == 'pdo_mysql'
+			$connection->getDatabasePlatform()->getName() == 'mysql'
 		);
 
 		$this->schemaDef = $schemaDef;
 		$this->connection = $connection;
 		$this->naming = new Naming($schemaDef);
 		$this->coder = new ColumnCoder($schemaDef, $this->naming);
-		switch($connection->getDriver()->getName()) {
-			case 'pdo_mysql': $this->dialect = new MySql(); break;
-			case 'pdo_sqlite': $this->dialect = new Sqlite(); break;
-			default: throw new \Exception(sprintf('database "%s" not supported', $connection->getDriver()->getName()));
+		switch($connection->getDatabasePlatform()->getName()) {
+			case 'mysql': $this->dialect = new MySql(); break;
+			case 'sqlite': $this->dialect = new Sqlite(); break;
+			default: throw new \Exception(sprintf('database "%s" not supported', $connection->getDatabasePlatform()->getName()));
 		}
 	}
 

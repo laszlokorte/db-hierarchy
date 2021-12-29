@@ -86,8 +86,8 @@ class InstallationService {
 
 	public function getTableDiff() {
 		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'BASE TABLE'");
-		$stmt->execute();
-		$existing = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		$stmtResult = $stmt->execute();
+		$existing = $stmtResult->fetchFirstColumn();
 		$needed = array_map(fn($t) => $t->getName()->getString(), $this->schmaBuilder->getAllTables());
 
 		return [
@@ -99,8 +99,8 @@ class InstallationService {
 
 	public function getViewDiff() {
 		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'VIEW'");
-		$stmt->execute();
-		$existing = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+		$stmtResult = $stmt->execute();
+		$existing = $stmtResult->fetchFirstColumn();
 		$needed = array_map(fn($t) => $t->getName()->getString(), $this->schmaBuilder->getAllViews());
 
 		return [

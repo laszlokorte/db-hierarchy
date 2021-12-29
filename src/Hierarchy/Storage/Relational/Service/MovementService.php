@@ -9,6 +9,8 @@ use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Changeset\Movement;
 use App\Hierarchy\Data;
 
+use App\Util\ResultFetcher;
+
 use Doctrine\DBAL\Connection;
 
 class MovementService {
@@ -51,11 +53,11 @@ class MovementService {
 
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$stmt->execute();
+			$stmtResult = $stmt->execute();
 
 
 
-			$groupedRows[$keyId] = $stmt->fetchAll(\PDO::FETCH_GROUP);
+			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
 			$rootKeyIds[] = $keyId;
 		}
 
@@ -67,10 +69,10 @@ class MovementService {
 			
 			$this->connection->beginTransaction();
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->execute();
+			$stmtResult = $stmt->execute();
 			$this->connection->commit();
 
-			$groupedRows[$scope] = $stmt->fetchAll(\PDO::FETCH_GROUP);
+			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
 			$rootKeyIds[] = $scope;
 		}
 
@@ -100,9 +102,9 @@ class MovementService {
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->execute();
 
-			if(!$validPositionStmt->fetchColumn()) {
+			if(!$stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
 			}
 		}
@@ -114,9 +116,9 @@ class MovementService {
 
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$checkCycleStmt->execute();
+			$stmtResult = $checkCycleStmt->execute();
 
-			if($checkCycleStmt->fetchColumn()) {
+			if($stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
 			}
 		}

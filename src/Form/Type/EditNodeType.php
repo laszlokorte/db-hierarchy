@@ -33,12 +33,12 @@ class EditNodeType extends AbstractType
         ]);
 
         $buttons
-            ->add('create', Type\SubmitType::class, [
-                'label' => 'Create', 
+            ->add('update', Type\SubmitType::class, [
+                'label' => 'Update', 
                 'attr' => ['class' => 'form-button primary']
             ])
-            ->add('create_stay', Type\SubmitType::class, [
-                'label' => 'Create (stay here)', 
+            ->add('update_stay', Type\SubmitType::class, [
+                'label' => 'Update (stay here)', 
                 'attr' => ['class' => 'form-button']
             ]);
 

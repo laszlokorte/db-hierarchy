@@ -3,7 +3,7 @@
 namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\FieldType;
-use Doctrine\DBAL\Connection;
+
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\LabelDefinition;
@@ -14,6 +14,11 @@ use App\Hierarchy\Schema\Definition\StorageDefinition;
 use App\Hierarchy\Schema\Definition\FieldDefinition;
 use App\Hierarchy\Schema\Definition\SummaryDefinition;
 use App\Hierarchy\Schema\Definition\ScopeDefinition;
+
+use App\Util\ResultFetcher;
+
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class RecursiveLoader {
 	private array $fieldTypes;
@@ -120,8 +125,8 @@ class RecursiveLoader {
 		if($this->subSchemas === null) {
 			try {
 				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
-				$stmt->execute();
-				$rows = $stmt->fetchAll();
+				$result = $stmt->execute();
+				$rows = $result->fetchAll();
 
 				$this->subSchemas = [];
 				foreach ($rows as $row) {
@@ -178,9 +183,9 @@ class RecursiveLoader {
 			return $this->baseConnection;
 		} else {
 			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
-			$stmt->bindValue('slug', $hierarchyName, \PDO::PARAM_STR);
-			$stmt->execute();
-			$dsn = $stmt->fetchColumn();
+			$stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
+			$result = $stmt->execute();
+			$dsn = $result->fetchOne();
 
 			if($dsn===false) {
 				throw new \Exception();
@@ -192,10 +197,10 @@ class RecursiveLoader {
 
 	private function loadDynamicDefinition($hierarchyName) {
 		$stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
-		$stmt->bindValue('slug', $hierarchyName, \PDO::PARAM_STR);
-		$stmt->execute();
+		$stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
+		$result = $stmt->execute();
 
-		$row = $stmt->fetch();
+		$row = $result->fetch();
 
 		if(!$row) {
 			throw new \Exception();
@@ -237,9 +242,10 @@ class RecursiveLoader {
 			ON scope_definition.scope_key_ref = scope_collection.id
 			WHERE collection.hierarchy_id = UNHEX(:hid) AND collection.slug <> ""
 			');
-		$keyStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
-		$keyStmt->execute();
-		$keyRows = $keyStmt->fetchAll();
+		$keyStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
+		$keyResult = $keyStmt->execute();
+
+		$keyRows = $keyResult->fetchAll();
 
 		$fieldStmt = $this->baseConnection->prepare('
 			SELECT collection.slug AS collection_slug, 
@@ -258,9 +264,9 @@ class RecursiveLoader {
 			ON collection.id = field.collection_id 
 			WHERE collection.hierarchy_id = UNHEX(:hid) AND field.slug <> ""
 		');
-		$fieldStmt->bindValue('hid', $hierarchyId, \PDO::PARAM_STR);
-		$fieldStmt->execute();
-		$fieldRows = $fieldStmt->fetchAll(\PDO::FETCH_GROUP);
+		$fieldStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
+		$fieldResult = $fieldStmt->execute();
+		$fieldRows = ResultFetcher::fetchGrouped($fieldResult);
 
 
 		$keys = [];
@@ -336,9 +342,9 @@ class RecursiveLoader {
 		$settings = ['accent_color' => null,'title' => null,'intro' => null];
 		try {
 			$stmt = $this->baseConnection->prepare('SELECT title, url, accent_color, intro FROM settings');
-			$stmt->execute();
+			$settingResult = $stmt->execute();
 
-			$settingsRow = $stmt->fetch();
+			$settingsRow = $settingResult->fetch();
 
 			if($settingsRow) {
 				$settings = array_merge($settings, $settingsRow);

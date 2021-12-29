@@ -16,6 +16,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class ColumnCoder {
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming) {
@@ -157,12 +158,12 @@ class ColumnCoder {
 	private function getColumnBindingType(string $type) {
 		switch($type) {
 			case 'serial':
-				return \PDO::PARAM_INT;
+				return ParameterType::INTEGER;
 			case 'uuid':
-				return \PDO::PARAM_STR;
+				return ParameterType::STRING;
 			case 'manual':
 			default:
-				return \PDO::PARAM_STR;
+				return ParameterType::STRING;
 		}
 	}
 

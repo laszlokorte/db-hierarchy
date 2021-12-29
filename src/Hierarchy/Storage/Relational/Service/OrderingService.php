@@ -10,6 +10,7 @@ use App\Hierarchy\Changeset\Ordering;
 use App\Hierarchy\Data\Node;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class OrderingService {
 	public function __construct(private SchemaDefinition $schemaDef, private OrderingCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder, private QueryService $queryService) {
@@ -56,7 +57,7 @@ class OrderingService {
 		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, \PDO::PARAM_INT);
+		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, ParameterType::INTEGER);
 
 		$stmt->execute();
 		$this->commitTransaction();

@@ -30,8 +30,8 @@ class RepairService {
 		$columns = [];
 		foreach($this->queryBuilder->getDiagnosisQueriesForKey($keyId) AS $name => $select) {
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->execute();
-			$rows[$name] = $stmt->fetchAll();
+			$stmtResult = $stmt->execute();
+			$rows[$name] = $stmtResult->fetchAll();
 			$columns[$name] = $this->extractColumnNamesFromSelect($select);
 		}
 

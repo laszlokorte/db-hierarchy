@@ -9,6 +9,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class Validator {
 	public function __construct(
@@ -74,11 +75,11 @@ class Validator {
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
-			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, \PDO::PARAM_INT);
-			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, \PDO::PARAM_INT);
-			$validPositionStmt->execute();
+			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, ParameterType::INTEGER);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, ParameterType::INTEGER);
+			$stmtResult = $validPositionStmt->execute();
 
-			if(!$validPositionStmt->fetchColumn()) {
+			if(!$stmtResult->fetchOne()) {
 				$errors['_parent'][] = 'parent and scope not matching';
 			}
 		}
@@ -118,14 +119,14 @@ class Validator {
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($scopeParam),
-				$scopeId, \PDO::PARAM_INT
+				$scopeId, ParameterType::INTEGER
 			);
 		}
 
     	if($this->schemaDef->isKeyReflexive($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($parentParam),
-				$parentId, \PDO::PARAM_INT
+				$parentId, ParameterType::INTEGER
 			);
 		}
 
@@ -138,8 +139,8 @@ class Validator {
 			}
 		}
 
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$stmtResult = $stmt->execute();
+		$result = $stmtResult->fetch();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {
@@ -198,7 +199,7 @@ class Validator {
 
     	$stmt->bindValue(
 			$this->dialect->parameterToString($idParam),
-			$nodeId, \PDO::PARAM_INT
+			$nodeId, ParameterType::INTEGER
 		);
 
 		foreach ($fieldsToCheck as $fieldId => $params) {
@@ -210,8 +211,8 @@ class Validator {
 			}
 		}
 
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$stmtResult = $stmt->execute();
+		$result = $stmtResult->fetch();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {

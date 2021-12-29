@@ -58,6 +58,13 @@
 .type-id.compact:hover {
     overflow-x: visible;
     position: relative;
+    transition: overflow-x 1s 1s step;
+    outline: 3px solid white;
+}
+
+.tooltipped > .type-id.compact:hover {
+    overflow-x: hidden;
+    position: static;
 }
 
 .type-id.compact::first-line {

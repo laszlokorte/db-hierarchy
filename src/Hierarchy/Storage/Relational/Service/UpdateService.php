@@ -11,6 +11,7 @@ use App\Hierarchy\Changeset\Update;
 use App\Hierarchy\Data\Node;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class UpdateService {
 	public function __construct(private SchemaDefinition $schemaDef, private UpdateCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
@@ -88,7 +89,7 @@ class UpdateService {
 
     	$stmt->bindValue(
 			$this->dialect->parameterToString($idParam),
-			$nodeId, \PDO::PARAM_INT
+			$nodeId, ParameterType::INTEGER
 		);
 
 		foreach ($fieldsToCheck as $fieldId => $params) {
@@ -100,8 +101,8 @@ class UpdateService {
 			}
 		}
 
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$stmtResult = $stmt->execute();
+		$result = $stmtResult->fetch();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {

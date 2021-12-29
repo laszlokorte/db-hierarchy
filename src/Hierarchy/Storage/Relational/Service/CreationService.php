@@ -11,6 +11,7 @@ use App\Hierarchy\Changeset\Creation;
 use App\Hierarchy\Data\Node;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class CreationService {
 	public function __construct(private SchemaDefinition $schemaDef, private CreationCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
@@ -103,11 +104,11 @@ class CreationService {
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
-			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, \PDO::PARAM_INT);
-			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, \PDO::PARAM_INT);
-			$validPositionStmt->execute();
+			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, ParameterType::INTEGER);
+			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, ParameterType::INTEGER);
+			$stmtResult = $validPositionStmt->execute();
 
-			if(!$validPositionStmt->fetchColumn()) {
+			if(!$stmtResult->fetchOne()) {
 				$parentErrors[] = 'is not matching';
 			}
 		}
@@ -147,14 +148,14 @@ class CreationService {
     	if($this->schemaDef->isKeyScoped($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($scopeParam),
-				$scopeId, \PDO::PARAM_INT
+				$scopeId, ParameterType::INTEGER
 			);
 		}
 
     	if($this->schemaDef->isKeyReflexive($keyId)) {
 			$stmt->bindValue(
 				$this->dialect->parameterToString($parentParam),
-				$parentId, \PDO::PARAM_INT
+				$parentId, ParameterType::INTEGER
 			);
 		}
 
@@ -167,8 +168,8 @@ class CreationService {
 			}
 		}
 
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$stmtResult = $stmt->execute();
+		$result = $stmtResult->fetch();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {
@@ -200,9 +201,9 @@ class CreationService {
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, $this->coder->getScopeColumnBindingType($keyId));
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->execute();
 
-			if(!$validPositionStmt->fetchColumn()) {
+			if(!$stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
 			}
 		}
@@ -218,14 +219,14 @@ class CreationService {
 				$generatedId = $this->genUUID();
 				$stmt->bindValue(
 					$this->dialect->parameterToString($idParam),
-					$generatedId, \PDO::PARAM_STR
+					$generatedId, ParameterType::STRING
 				);
 				break;
 			case 'manual':
 				$generatedId = 'affecaffee';
 				$stmt->bindValue(
 					$this->dialect->parameterToString($idParam),
-					$generatedId, \PDO::PARAM_STR
+					$generatedId, ParameterType::STRING
 				);
 				break;
 		}
@@ -275,7 +276,7 @@ class CreationService {
 
 			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0, \PDO::PARAM_INT);
+			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0, ParameterType::INTEGER);
 
 			if($this->schemaDef->isKeyScoped($keyId)) {
 				$closureStmt->bindValue(

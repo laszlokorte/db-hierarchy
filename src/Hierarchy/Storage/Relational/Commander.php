@@ -6,12 +6,13 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Data;
 
-use Doctrine\DBAL\Connection;
-
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
 use App\Hierarchy\Storage\Relational\Algebra\Update;
 use App\Hierarchy\Storage\Relational\Algebra\Delete;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ParameterType;
 
 class Commander {
 	private const MAX_REPAIR_RETRIES = 5;
@@ -53,9 +54,9 @@ class Commander {
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, $this->coder->getScopeColumnBindingType($keyId));
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->execute();
 
-			if(!$validPositionStmt->fetchColumn()) {
+			if(!$stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
 			}
 		}
@@ -71,14 +72,14 @@ class Commander {
 				$generatedId = $this->genUUID();
 				$stmt->bindValue(
 					$this->dialect->parameterToString($idParam),
-					$generatedId, \PDO::PARAM_STR
+					$generatedId, ParameterType::STRING
 				);
 				break;
 			case 'manual':
 				$generatedId = 'affecaffee';
 				$stmt->bindValue(
 					$this->dialect->parameterToString($idParam),
-					$generatedId, \PDO::PARAM_STR
+					$generatedId, ParameterType::STRING
 				);
 				break;
 		}
@@ -129,7 +130,7 @@ class Commander {
 
 			$closureStmt->bindValue($this->dialect->parameterToString($parentParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$closureStmt->bindValue($this->dialect->parameterToString($childParam), $newNodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0, \PDO::PARAM_INT);
+			$closureStmt->bindValue($this->dialect->parameterToString($depthParam), 0, ParameterType::INTEGER);
 
 			if($this->schemaDef->isKeyScoped($keyId)) {
 				$closureStmt->bindValue(
@@ -275,8 +276,8 @@ class Commander {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmt->execute();
-			$rows = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$rows = $stmtResult->fetchAllAssociativeIndexed();
 		} else {
 			$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
 			$select = $this->commandBuilder->getSelectForCollectSelfById($keyId, $nodeIdParams);
@@ -284,8 +285,8 @@ class Commander {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i],$this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmt->execute();
-			$rows = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$rows = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
 		if(empty($rows)) {
@@ -320,8 +321,8 @@ class Commander {
 		foreach($nodeIdParams AS $i => $p) {
 			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i], $this->coder->getScopeColumnBindingType($keyId));
 		}
-		$stmt->execute();
-		$rows = $stmt->fetchAllAssociativeIndexed();
+		$stmtResult = $stmt->execute();
+		$rows = $stmtResult->fetchAllAssociativeIndexed();
 
 		if(empty($rows)) {
 			return [];
@@ -370,8 +371,8 @@ class Commander {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmt->execute();
-			$result[$group][$refKey] = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$result[$group][$refKey] = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
 		return $result;
@@ -397,9 +398,9 @@ class Commander {
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->execute();
 
-			if(!$validPositionStmt->fetchColumn()) {
+			if(!$stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
 			}
 		}
@@ -411,9 +412,9 @@ class Commander {
 
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$checkCycleStmt->execute();
+			$stmtResult = $checkCycleStmt->execute();
 
-			if($checkCycleStmt->fetchColumn()) {
+			if($stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
 			}
 		}
@@ -501,7 +502,7 @@ class Commander {
 		$this->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, \PDO::PARAM_INT);
+		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, ParameterType::INTEGER);
 
 		$stmt->execute();
 		$this->commitTransaction();

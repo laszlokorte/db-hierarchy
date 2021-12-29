@@ -9,6 +9,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Data;
 
+use App\Util\ResultFetcher;
+
 use Doctrine\DBAL\Connection;
 
 class QueryService {
@@ -21,9 +23,9 @@ class QueryService {
 
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmt->execute();
+		$stmtResult = $stmt->execute();
     	$this->connection->commit();
-		$rows = $stmt->fetchAllAssociativeIndexed();
+		$rows = $stmtResult->fetchAllAssociativeIndexed();
 
 		return new Data\NodeCollection(
 			$keyId,
@@ -38,9 +40,9 @@ class QueryService {
 
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmt->execute();
+		$stmtResult = $stmt->execute();
     	$this->connection->commit();
-		$rows = $stmt->fetchAllAssociativeIndexed();
+		$rows = $stmtResult->fetchAllAssociativeIndexed();
 
 		return new Data\NodeCollection(
 			$keyId,
@@ -58,8 +60,8 @@ class QueryService {
 		foreach ($this->schemaDef->getRootScopeKeyIds() as $keyId) {
 			$select = $this->commandBuilder->getSelectForFindNodes($keyId, new Constant(null), new Constant(null));
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->execute();
-			$groupedRows[$keyId] = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$groupedRows[$keyId] = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
     	$this->connection->commit();
@@ -78,9 +80,9 @@ class QueryService {
 
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmt->execute();
+		$stmtResult = $stmt->execute();
     	$this->connection->commit();
-		$rows = $stmt->fetchAll(\PDO::FETCH_GROUP);
+		$rows = ResultFetcher::fetchGrouped($stmtResult);
 
 		return new Data\NodeTree(
 			$keyId,
@@ -98,8 +100,8 @@ class QueryService {
 		foreach ($this->schemaDef->getAllKeyIds() as $keyId) {
 			$select = $this->commandBuilder->getSelectForFindHierarchy($keyId, null, null);
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->execute();
-			$groupedRows[$keyId] = $stmt->fetchAll(\PDO::FETCH_GROUP);
+			$stmtResult = $stmt->execute();
+			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
 		}
 
     	$this->connection->commit();
@@ -117,9 +119,9 @@ class QueryService {
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
-		$stmt->execute();
+		$stmtResult = $stmt->execute();
     	$this->connection->commit();
-		$result = $stmt->fetchAssociative();
+		$result = $stmtResult->fetchAssociative();
 
 		if(!$result) {
 			throw new \Exception('node not found');
@@ -135,9 +137,9 @@ class QueryService {
 		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
-		$stmt->execute();
+		$stmtResult = $stmt->execute();
     	$this->connection->commit();
-		$result = $stmt->fetch();
+		$result = $stmtResult->fetch();
 
 		if($result === false) {
 			throw new \Exception("not found");
@@ -165,8 +167,8 @@ class QueryService {
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($scopeParam), $scope);
 		$stmt->bindValue($this->dialect->parameterToString($parentParam), $parent);
-		$stmt->execute();    	
-		$rows = $stmt->fetchAllAssociativeIndexed();
+		$stmtResult = $stmt->execute();    	
+		$rows = $stmtResult->fetchAllAssociativeIndexed();
     	$this->connection->commit();
 
 		return new Data\NodeCollection(
@@ -196,8 +198,8 @@ class QueryService {
 				$stmt->bindValue($this->dialect->parameterToString($parentParam), null);
 			}
 
-			$stmt->execute();
-			$groupedRows[$childKeyId] = $stmt->fetchAllAssociativeIndexed();
+			$stmtResult = $stmt->execute();
+			$groupedRows[$childKeyId] = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
 		return new Data\MultiCollection(
@@ -233,14 +235,14 @@ class QueryService {
 				$select = $this->commandBuilder->getSelectForFindNode($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
-				$stmt->execute();
-				$groupedNodes[$currentKey] = $stmt->fetchAllAssociativeIndexed();
+				$stmtResult = $stmt->execute();
+				$groupedNodes[$currentKey] = $stmtResult->fetchAllAssociativeIndexed();
 			} else {
 				$select = $this->commandBuilder->getSelectForFindReflexiveParentNodes($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
-				$stmt->execute();
-				$groupedNodes[$currentKey] = $stmt->fetchAllAssociativeIndexed();
+				$stmtResult = $stmt->execute();
+				$groupedNodes[$currentKey] = $stmtResult->fetchAllAssociativeIndexed();
 			}
 			
 			$currentNode = end($groupedNodes[$currentKey]);
@@ -262,10 +264,10 @@ class QueryService {
 			$this->connection->beginTransaction();
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$stmt->execute();
+			$stmtResult = $stmt->execute();
 	    	$this->connection->commit();
 
-			$groupedRows[$keyId] = $stmt->fetchAll(\PDO::FETCH_GROUP);
+			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
 			$rootKeyIds[] = $keyId;
 		}
 
@@ -276,10 +278,10 @@ class QueryService {
 
 			$this->connection->beginTransaction();
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->execute();
+			$stmtResult = $stmt->execute();
 	    	$this->connection->commit();
 
-			$groupedRows[$scope] = $stmt->fetchAll(\PDO::FETCH_GROUP);
+			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
 			$rootKeyIds[] = $scope;
 		}
 
