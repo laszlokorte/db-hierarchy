@@ -11,6 +11,10 @@ body {
     accent-color: var(--accent-primary, #034);
 }
 
+textarea {
+    resize: vertical;
+}
+
 .html-body {
     height: 100%;
     margin: 0;

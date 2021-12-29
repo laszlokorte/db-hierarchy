@@ -319,14 +319,14 @@ class HierarchyController {
         $creationForm->handleRequest($request);
 
         if($creationForm->isSubmitted()) {
-            $creation = $creationService->getValidatedCreation($key->getId(), $request->request->all('field'), $scope, $parent);
+            $creation = $creationService->getValidatedCreation($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
         } else {
             $creation = $creationService->getFreshCreation($key->getId());
         }
 
 
-        if($creationForm->isSubmitted() && $creationForm->isValid() && $creation->isValid()) {
-            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->all('field'), $scope, $parent);
+        if($creationForm->isSubmitted() && $creationForm->isValid() /*&& $creation->isValid()*/) {
+            $newId = $storageConnection->getCommander()->createNode($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -424,13 +424,13 @@ class HierarchyController {
                 $parent = null;
             }
             
-            $creation = $creationService->getValidatedCreation($childKey->getId(), $request->request->all('field'), $scope, $parent);
+            $creation = $creationService->getValidatedCreation($childKey->getId(), $request->request->all('fields'), $scope, $parent);
         } else {
             $creation = $creationService->getFreshCreation($childKey->getId(), $parentNode);
         }
 
         if($creationForm->isSubmitted() && $creationForm->isValid() && $creation->isValid()) {
-            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->all('field'), $scope, $parent);
+            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->all('fields'), $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -684,13 +684,13 @@ class HierarchyController {
         $editForm->handleRequest($request);
 
         if($editForm->isSubmitted()) {
-            $update = $updateService->getValidatedUpdate($node, $request->request->all('field'));
+            $update = $updateService->getValidatedUpdate($node, $request->request->all('fields'));
         } else {
             $update = $updateService->getFreshUpdate($node);
         }
 
         if($editForm->isSubmitted() && $editForm->isValid() && $update->isValid()) {
-            $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->all('field'));
+            $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->all('fields'));
 
             $then = $request->request->get('_then', null);
 

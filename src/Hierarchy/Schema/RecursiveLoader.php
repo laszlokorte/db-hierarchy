@@ -17,8 +17,11 @@ use App\Hierarchy\Schema\Definition\ScopeDefinition;
 
 use App\Util\ResultFetcher;
 
+use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
+
+use PDO;
 
 class RecursiveLoader {
 	private array $fieldTypes;
@@ -191,7 +194,7 @@ class RecursiveLoader {
 				throw new \Exception();
 			}
 
-			return $dsn ? \Doctrine\DBAL\DriverManager::getConnection(['pdo' => new \PDO($dsn)]) : $this->baseConnection;
+			return $dsn ? DriverManager::getConnection(['pdo' => new PDO($dsn)]) : $this->baseConnection;
 		}
 	}
 
@@ -359,7 +362,7 @@ class RecursiveLoader {
 				$settings['title']?:'Hierarchie Managers', 
 				$settings['intro'], 
 				'favicon', 
-				$settings['accent_color']?:'#444'
+				$settings['accent_color']?:'#00805A'
 			), [
 			'hierarchy' => new KeyDefinition(
 				new StorageDefinition('hierarchy'),
@@ -367,7 +370,7 @@ class RecursiveLoader {
 					'Hierarchy', 
 					'Hierarchies',
 					'What is a hierarchy?',
-					'quote'
+					'archive'
 				),
 				null, null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(

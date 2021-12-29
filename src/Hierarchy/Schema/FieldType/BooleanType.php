@@ -19,8 +19,8 @@ class BooleanType implements FieldTypeInterface {
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
 		switch($fieldData) {
-			case 'true': $casted = '1'; break;
-			case 'false': $casted = '0'; break;
+			case 'yes': $casted = '1'; break;
+			case 'no': $casted = '0'; break;
 			default: $casted = null; break;
 		}
 		return [$casted];
@@ -28,16 +28,16 @@ class BooleanType implements FieldTypeInterface {
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
 		switch($columnData[0]) {
-			case '0': return false;
-			case '1': return true;
+			case '0': return 'no';
+			case '1': return 'yes';
 			default: return null;
 		}
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
 		switch($fieldData) {
-			case 'true': return 'true';
-			case 'false': return 'false';
+			case 'yes': return 'yes';
+			case 'no': return 'no';
 			default: return 'null';
 		}
 	}

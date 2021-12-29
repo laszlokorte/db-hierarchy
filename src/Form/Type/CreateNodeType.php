@@ -39,7 +39,19 @@ class CreateNodeType extends AbstractType
             'label' => false,
         ]);
 
-        $buttons
+        if($key->isSingleton()) {
+            $buttons
+            ->add('create', Type\SubmitType::class, [
+                'label' => 'Save', 
+                'attr' => ['class' => 'form-button primary']
+            ])
+            ->add('create_stay', Type\SubmitType::class, [
+                'label' => 'Save (stay here)', 
+                'attr' => ['class' => 'form-button']
+            ]);
+
+        } else {
+            $buttons
             ->add('create', Type\SubmitType::class, [
                 'label' => 'Create', 
                 'attr' => ['class' => 'form-button primary']
@@ -48,6 +60,7 @@ class CreateNodeType extends AbstractType
                 'label' => 'Create (stay here)', 
                 'attr' => ['class' => 'form-button']
             ]);
+        }
 
         $builder->add($buttons);
     }
