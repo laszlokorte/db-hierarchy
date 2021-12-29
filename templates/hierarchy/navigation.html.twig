@@ -23,21 +23,37 @@
     <ul class="block-list">
         {% for rootKey in hierarchy.rootKeys %}
         <li>
-        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: rootKey.id}) }}" title="">{{ rootKey.label.string(rootKey.isSingleton) }}</a>
+        <a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: rootKey.id}) }}" title="">
+        {%- include 'hierarchy/partials/icon.html.twig' with {prefix: true, icon: rootKey.label.icon|default('triangle-right')} only -%}
+        {{- rootKey.label.string(rootKey.isSingleton) -}}
+        </a>
         {{ _self.walkSubKeys(hierarchy, rootKey) }}
         </li>
         {% endfor %}
     </ul>
 
     <ul class="block-list">
-        <li><a href="{{ path('hierarchy_tree', {hierarchySlug: hierarchy.slug}) }}">Full Hierarchy</a></li>
+        <li><a href="{{ path('hierarchy_tree', {hierarchySlug: hierarchy.slug}) }}">
+        {%- include 'hierarchy/partials/icon.html.twig' with {prefix: true, icon: 'workflow'} only -%}
+        Full Hierarchy
+        </a></li>
     </ul>
 
     {% if systemHierarchy == hierarchy %}
     <h2 class="site-section-title">System</h2>
     <ul class="block-list">
-        <li><a href="{{ path('show_system_installer', {hierarchySlug: systemHierarchy.slug}) }}">Installer</a></li>
-        <li><a href="{{ path('show_health', {hierarchySlug: systemHierarchy.slug}) }}">Health check</a></li>
+        <li>
+        <a href="{{ path('show_system_installer', {hierarchySlug: systemHierarchy.slug}) }}">
+        {%- include 'hierarchy/partials/icon.html.twig' with {prefix: true, icon: 'rocket'} only -%}
+        Installer
+        </a>
+        </li>
+        <li>
+        <a href="{{ path('show_health', {hierarchySlug: systemHierarchy.slug}) }}">
+        {% include 'hierarchy/partials/icon.html.twig' with {prefix: true, icon: 'pulse'} only %}
+        Health check
+        </a>
+        </li>
     </ul>
     {% endif %}
 
@@ -50,6 +66,11 @@
 
     <h2 class="site-section-title">Account</h2>
     <ul class="block-list">
-        <li><a href="{{ path('security_logout') }}" title="">Log out</a></li>
+        <li>
+        <a href="{{ path('security_logout') }}" title="">
+        {%- include 'hierarchy/partials/icon.html.twig' with {prefix: true, icon: 'sign-out'} only -%}
+        Log out
+        </a>
+        </li>
     </ul>
 </nav>

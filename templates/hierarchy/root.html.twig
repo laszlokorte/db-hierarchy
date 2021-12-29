@@ -4,7 +4,10 @@
 {%- endblock %}
 {% block area_main %}
 
-<h1>{{ hierarchy.label.singular }} Dashboard</h1>
+<h1>
+{%- include 'hierarchy/partials/icon.html.twig' with {icon: hierarchy.label.icon} only -%}
+{{ hierarchy.label.singular }} Dashboard
+</h1>
 
 {% if hierarchy.label.description is not empty %}
 <p>

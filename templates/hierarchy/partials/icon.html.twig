@@ -1,5 +1,7 @@
-{% if icon is not empty %}
-	<svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor">
+{%- if icon is not empty -%}
+	<svg class="{{ html_classes({
+	'inline-icon': not (prefix|default(false)), 
+	'inline-prefix-icon': prefix|default(false)}) }}" viewBox="0 0 16 16" fill="currentColor">
 		<use href="#{{ icon }}-16" />
 	</svg>
-{% endif %}
+{%- endif -%}

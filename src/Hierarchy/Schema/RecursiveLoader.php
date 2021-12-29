@@ -366,7 +366,8 @@ class RecursiveLoader {
 				new LabelDefinition(
 					'Hierarchy', 
 					'Hierarchies',
-					'What is a hierarchy?'
+					'What is a hierarchy?',
+					'quote'
 				),
 				null, null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
@@ -395,7 +396,7 @@ class RecursiveLoader {
 			),
 			'setting' => new KeyDefinition(
 				new StorageDefinition('settings'),
-				new LabelDefinition('Settings', 'Custom', null, null, null, 'Default'),
+				new LabelDefinition('Settings', 'Custom', null, 'gear', null, 'Default'),
 				null, null, new OrderDefinition(singleton: true), [
 					'title' => new FieldDefinition(
 						new LabelDefinition('Title'), 
@@ -413,7 +414,7 @@ class RecursiveLoader {
 			),
 			'account' => new KeyDefinition(
 				new StorageDefinition('account'),
-				new LabelDefinition('Account', 'Accounts'),
+				new LabelDefinition('Account', 'Accounts', null, 'people'),
 				null, null, null, [
 					'login' => new FieldDefinition(
 						new LabelDefinition('Login'), 
@@ -435,7 +436,7 @@ class RecursiveLoader {
 			),
 			'role' => new KeyDefinition(
 				new StorageDefinition('role'),
-				new LabelDefinition('Role', 'Roles'),
+				new LabelDefinition('Role', 'Roles', null, 'mortar-board'),
 				null, null, null, [
 					'title' => new FieldDefinition(
 						new LabelDefinition('Title'), 
@@ -644,7 +645,7 @@ class RecursiveLoader {
 			$this->testHierarchy['label'], [
 			'field_test' => new KeyDefinition(
 				new StorageDefinition('my_test'),
-				new LabelDefinition('Field Test', 'Field Tests'),
+				new LabelDefinition('Field Test', 'Field Tests', null, 'rows'),
 				null, null, null, 
 				array_combine(array_keys($this->fieldTypes), 
 					array_map(fn($typeId) => 
@@ -658,7 +659,7 @@ class RecursiveLoader {
 
 			'aa' => new KeyDefinition(
 				new StorageDefinition('aa'),
-				new LabelDefinition('ScopeTest'),
+				new LabelDefinition('ScopeTest',null,null,'codescan'),
 				null, new ReflexivityDefinition(), null, [],
 				SummaryDefinition::parseSegments('aa')
 			),

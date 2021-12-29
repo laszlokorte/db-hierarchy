@@ -12,7 +12,7 @@
        </dd>
        {% if creationForm._nesting.vars.help is not empty %}
        <dd class="form-container-info">
-       <i class="icon-link info tooltipped" aria-label="{{creationForm._nesting.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       <i class="icon-link info tooltipped" aria-label="{{creationForm._nesting.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'question'} only %}</i>
        </dd>
        {% endif %}
    {% endif %}
@@ -25,7 +25,7 @@
        </dd>
        {% if field.vars.help is not empty %}
        <dd class="form-container-info">
-       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'info'} only %}</i>
+       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'question'} only %}</i>
        </dd>
        {% endif %}
    {% endfor %}
