@@ -24,17 +24,12 @@ class MultiTreeIterator implements RecursiveIterator {
 	}
 
 	public function getChildren() : ?RecursiveIterator {
-		return array_map(function($rootKey) {
-			if($this->keyId == $rootKey) {
-				$scopeId = $this->scopeId;
-				$parentId = current($this->nodes)->getId();
-				return new self($this->tree, $rootKey, $scopeId, $parentId, $this->depth+1);
-			} else {
-				$scopeId = current($this->nodes)->getScope();
-				$parentId = null;
-				return new self($this->tree, $rootKey, $scopeId, $parentId, $this->depth+1);
-			}
-		}, $this->tree->getRootKeys());
+		return new MultiTreeScopeIterator(
+			$this->tree,
+			$this->keyId,
+			current($this->nodes),
+			$this->depth+1
+		);
 	}
 
 	public function hasChildren(): bool {
@@ -49,14 +44,16 @@ class MultiTreeIterator implements RecursiveIterator {
 	}
 
 	public function key() : mixed {
-		return key($this->nodes);
+		return $this->i;
 	}
 
 	public function next() : void {
-		next($this->nodes);
+		array_shift($this->nodes);
+		$this->i++;
 	}
 
 	public function rewind() : void {
+		$this->i = 0;
 		$this->nodes = $this->tree->getNodes($this->keyId, $this->scopeId, $this->parentId);
 	}
 

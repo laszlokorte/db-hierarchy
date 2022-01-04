@@ -40,7 +40,7 @@ class MovementService {
 		);
 	}
 
-	public function findNodeMoveTargets(string $keyId, string $nodeId) {
+	public function findNodeMoveTargets(string $keyId, ?string $nodeId) {
 		$groupedRows = [];
 
 		$rootKeyIds = [];

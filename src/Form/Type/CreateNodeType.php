@@ -27,16 +27,23 @@ class CreateNodeType extends AbstractType
     {
         $key = $options['key'];
 
-        $fetcher = $options['storageConnection']->getFetcher();
+        $movementService = $options['storageConnection']->getMovementService();
 
         if($key->isScoped() || $key->isReflexive()) {
+
+            $choices = new RecursiveIteratorIterator(new MultiTreeIterator($movementService->findNodeMoveTargets($key->getId(), null), $key->getScopeKey()->getId(), null, null, 0), RecursiveIteratorIterator::SELF_FIRST);
+
+            foreach ($choices as $a => $b) {
+                dump($a, $b);
+            }
+
             $builder
             ->add('_nesting', Type\ChoiceType::class, [
                 'label' => 'Nesting',
                 'constraints' => [
                     new NotBlank(),
                 ],
-                'choices' => new RecursiveIteratorIterator(new MultiTreeIterator(new MultiTree([],[]), $key->getId(), null, null, 0), RecursiveIteratorIterator::SELF_FIRST),
+                'choices' => $choices,
             ]);
         }
 
