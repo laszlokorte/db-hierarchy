@@ -45,7 +45,7 @@ class MultiTreeScopeIterator implements RecursiveIterator {
 	}
 
 	public function key() : mixed {
-		return $this->i;
+		return null;
 	}
 
 	public function next() : void {

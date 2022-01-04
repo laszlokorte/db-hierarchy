@@ -37,10 +37,7 @@ class MultiTreeIterator implements RecursiveIterator {
 	}
 
 	public function current() : mixed {
-		return (object)[
-			'node' => current($this->nodes),
-			'depth' => $this->depth,
-		];
+		return current($this->nodes);
 	}
 
 	public function key() : mixed {

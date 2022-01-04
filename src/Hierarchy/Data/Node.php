@@ -59,4 +59,8 @@ class Node {
 		);
 	}
 
+	public function __toString() {
+		return $this->nodeId;
+	}
+
 }

@@ -7,6 +7,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 
 
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -20,6 +21,7 @@ use App\Hierarchy\Data\MultiTreeIterator;
 use App\Hierarchy\Data\MultiTree;
 
 use RecursiveIteratorIterator;
+use RecursiveTreeIterator;
 
 class CreateNodeType extends AbstractType
 {
@@ -30,20 +32,34 @@ class CreateNodeType extends AbstractType
         $movementService = $options['storageConnection']->getMovementService();
 
         if($key->isScoped() || $key->isReflexive()) {
-
-            $choices = new RecursiveIteratorIterator(new MultiTreeIterator($movementService->findNodeMoveTargets($key->getId(), null), $key->getScopeKey()->getId(), null, null, 0), RecursiveIteratorIterator::SELF_FIRST);
-
-            foreach ($choices as $a => $b) {
-                dump($a, $b);
-            }
-
             $builder
             ->add('_nesting', Type\ChoiceType::class, [
                 'label' => 'Nesting',
                 'constraints' => [
                     new NotBlank(),
                 ],
-                'choices' => $choices,
+                'choice_loader' => new CallbackChoiceLoader(function() use ($key, $movementService) {
+                    $treeIterator = new RecursiveTreeIterator(new MultiTreeIterator($movementService->findNodeMoveTargets($key->getId(), null), $key->getScopeKey()->getId(), null, null, 0));
+
+                    $treeIterator->setPrefixPart(RecursiveTreeIterator::PREFIX_MID_LAST, ' ');
+
+                    $treeValueIterator = new RecursiveIteratorIterator(new MultiTreeIterator($movementService->findNodeMoveTargets($key->getId(), null), $key->getScopeKey()->getId(), null, null, 0), RecursiveIteratorIterator::SELF_FIRST
+                    );
+
+                    return array_map(function($a,$b) {
+                        return (object)[
+                            'disabled' => !is_object($b),
+                            'value' => is_object($b) ? $b->getId() : rand(0, 1000),
+                            'label' => (string) $a,
+                        ];
+                    }, iterator_to_array($treeIterator), iterator_to_array($treeValueIterator));
+                }),
+                
+                'choice_label' => function($entry) { return $entry ? $entry->label : null; },
+                'choice_value' => function($entry) { return $entry ? $entry->value : null; },
+                'choice_attr' => function($key, $val, $index) {
+                    return $key->disabled??false ? ['disabled' => 'disabled'] : [];
+                },
             ]);
         }
 
