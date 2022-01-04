@@ -237,7 +237,7 @@ class SchemaBuilder {
 		);
 
 		// TODO: unique keys do not work for reflexive nodes
-		if($this->schemaDef->isKeyReflexive($keyId)) {
+		if(!$this->schemaDef->isKeyReflexive($keyId)) {
 			foreach ($uniqueFieldsIds as $ufid) {
 				$uniqueFieldCombi = array_map(fn($c) => $this->fieldColumnToName($c), $this->getFieldColumns($keyId, $ufid));
 

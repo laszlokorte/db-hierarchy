@@ -429,7 +429,7 @@
 
 {%- block form_errors -%}
     {%- if errors|length > 0 -%}
-    <ul>
+    <ul class="inline-list error">
         {%- for error in errors -%}
             <li>{{ error.message }}</li>
         {%- endfor -%}

@@ -8,10 +8,18 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+
+use Symfony\Component\Validator\Constraints\NotBlank;
+
 use Symfony\Component\Form\Extension\Core\Type;
 
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
+
+use App\Hierarchy\Data\MultiTreeIterator;
+use App\Hierarchy\Data\MultiTree;
+
+use RecursiveIteratorIterator;
 
 class CreateNodeType extends AbstractType
 {
@@ -19,10 +27,16 @@ class CreateNodeType extends AbstractType
     {
         $key = $options['key'];
 
+        $fetcher = $options['storageConnection']->getFetcher();
+
         if($key->isScoped() || $key->isReflexive()) {
             $builder
             ->add('_nesting', Type\ChoiceType::class, [
-                'label' => 'Nesting', 
+                'label' => 'Nesting',
+                'constraints' => [
+                    new NotBlank(),
+                ],
+                'choices' => new RecursiveIteratorIterator(new MultiTreeIterator(new MultiTree([],[]), $key->getId(), null, null, 0), RecursiveIteratorIterator::SELF_FIRST),
             ]);
         }
 

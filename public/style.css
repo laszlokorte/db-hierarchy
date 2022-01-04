@@ -165,10 +165,9 @@ textarea {
 
 .form-container-field {
     margin: 0;
-    display: flex;
-    justify-content: flex-start;
-    justify-items: flex-start;
-    gap: 1em;
+    display: grid;
+    grid-auto-flow: row;
+    gap: 0.1em;
 }
 
 .form-container-field > div:not([class]) {
@@ -306,7 +305,7 @@ textarea {
 .tooltipped[aria-label]:not([aria-label=""])::after {
     content: attr(aria-label);
     position: absolute;
-    left: 100%;
+    right: 100%;
     margin-left: 0.5em;
     top: 50%;
     transform: translateY(-50%);
@@ -323,7 +322,6 @@ textarea {
     opacity: 0;
     color:  #333e;
     transition: opacity 100ms ease-out, color 250ms ease-out;
-    isolation: isolate;
 }
 
 .tooltipped.vertical[aria-label]:not([aria-label=""])::after {
@@ -1191,7 +1189,7 @@ details>.details-summary ~ * {
     background: #222;
     color: #fff;
     display: grid;
-    grid-template-columns: 80em;
+    grid-template-columns: minmax(100px, 80em);
     justify-content: center;
     justify-items: end;
 }
