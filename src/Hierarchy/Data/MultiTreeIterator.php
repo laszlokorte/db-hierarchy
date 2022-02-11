@@ -53,7 +53,6 @@ class MultiTreeIterator implements RecursiveIterator {
 
 	public function rewind() : void {
 		$this->i = 0;
-		dump($this->tree);
 		$this->nodes = $this->tree->getNodes($this->key->getId(), $this->scopeId, $this->parentId);
 	}
 

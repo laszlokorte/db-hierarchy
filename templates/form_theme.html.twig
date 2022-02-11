@@ -10,6 +10,19 @@
     </select>
 {% endblock %}
 
+{% block order_position_widget %}
+    <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
+        {{ block('widget_attributes') }}
+    {%- endwith %} >
+        <option disabled>Top</option>
+        {% for id, node in choices %}
+            <option disabled>{{node.order}} - {{node.id}}</option>
+            <option value="{{id}}">put here</option>
+        {% endfor %}
+        <option disabled>Bottom</option>
+    </select>
+{% endblock %}
+
 {# Widgets #}
 
 {%- block form_widget -%}

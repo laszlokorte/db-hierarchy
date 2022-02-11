@@ -2,8 +2,6 @@
 
 namespace App\Form\Type;
 
-use App\Form\Type\OrderPositionType;
-
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
@@ -16,31 +14,17 @@ use Symfony\Component\Form\Extension\Core\Type;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
-class OrderNodeType extends AbstractType
+use App\Hierarchy\Data\NodePositionIterator;
+
+class OrderPositionType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+	public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $key = $options['key'];
         $storageConnection = $options['storageConnection'];
         $nodeId = $options['nodeId'];
 
-
-        $builder->add('new_position', OrderPositionType::class, [
-            'label' => 'New Position',
-            'key' => $key,
-            'storageConnection' => $storageConnection,
-            'nodeId' => $nodeId,
-        ]);
-
-        $buttons = $builder->create('buttons', ActionType::class);
-
-        $buttons
-            ->add('move', Type\SubmitType::class, [
-                'label' => 'Reorder', 
-                'attr' => ['class' => 'form-button primary']
-            ]);
-
-        $builder->add($buttons);
+        $builder->setAttribute('choice_list', new NodePositionIterator($storageConnection->getOrderingService()->findNodeSiblings($key->getId(), $nodeId)));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -55,6 +39,10 @@ class OrderNodeType extends AbstractType
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
+    	$choiceList = $form->getConfig()->getAttribute('choice_list');
+
+        $view->vars = array_replace($view->vars, [
+            'choices' => $choiceList,
+        ]);
     }
-    
 }

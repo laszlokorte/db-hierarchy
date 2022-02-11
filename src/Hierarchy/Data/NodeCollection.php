@@ -49,7 +49,8 @@ class NodeCollection implements \Countable {
 			$nodeId, 
 			$this->rows[$nodeId], 
 			$this->rows[$nodeId]['_scope']??$this->scopeId, 
-			$this->rows[$nodeId]['_parent']??$this->parentId
+			$this->rows[$nodeId]['_parent']??$this->parentId,
+			$this->rows[$nodeId]['_order']??null,
 		);
 	}
 

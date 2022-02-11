@@ -194,8 +194,6 @@ class RecursiveLoader {
 				throw new \Exception();
 			}
 
-			dump($dsn);
-
 			return $dsn ? DriverManager::getConnection([
 				'pdo' => new PDO($dsn),
 				'driver' => $dsn === 'sqlite::memory:' ? 'pdo_sqlite' : null,
