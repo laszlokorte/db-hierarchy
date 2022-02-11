@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hierarchy\Storage\Relational;
+namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Data\Validation;
 
@@ -11,10 +11,10 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 
-class Validator {
+class Validation {
 	public function __construct(
 		private SchemaDefinition $schemaDef, 
-		private ValidationBuilder $validationBuilder, 
+		private ValidationCommandBuilder $commandBuilder, 
 		private Connection $connection, 
 		private DialectInterface $dialect
 	) {
@@ -71,7 +71,7 @@ class Validator {
 
 
 		if(!empty($scopeId) && !empty($parentId)) {
-			$selectMoveTargetExists = $this->validationBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
+			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
 			
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
@@ -113,7 +113,7 @@ class Validator {
 			}
 		}
 
-		$select = $this->validationBuilder->getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck);
+		$select = $this->commandBuilder->getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
     	if($this->schemaDef->isKeyScoped($keyId)) {
@@ -194,7 +194,7 @@ class Validator {
 			}
 		}
 
-		$select = $this->validationBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
+		$select = $this->commandBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
     	$stmt->bindValue(

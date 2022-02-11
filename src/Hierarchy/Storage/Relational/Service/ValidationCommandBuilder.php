@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hierarchy\Storage\Relational;
+namespace App\Hierarchy\Storage\Relational\Service;
 
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;

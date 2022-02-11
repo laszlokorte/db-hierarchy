@@ -1,15 +1,3 @@
-{% block field %}
-    <select class="form-field compact" name="field[{{field.id}}]" value="{{fieldValue}}">
-        {% if field.option('explicit') or not field.isRequired %}
-        <option value="">---</option>
-        {% endif %}
-        {% for value in field.option('values') %}
-            <option value="{{value}}" {% if fieldValue==value %} selected="selected"{% endif %}>{{value}}</option>
-        {% endfor %}
-    </select>
-{% endblock %}
-
-
 {% block cell %}
     {% if fieldValue %}
     <span class="badge" style="background-color: #eee;color:#000">

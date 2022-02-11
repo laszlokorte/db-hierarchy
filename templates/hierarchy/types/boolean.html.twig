@@ -1,35 +1,3 @@
-{% block field %}
-    {% if field.option('style') == 'compact' %}
-        <select {% if field.isRequired()%} required="required"{%endif%} name="field[{{field.id}}]" class="form-field compact">
-            {% if field.option('explicit') or not field.isRequired %}
-            <option value="">not set</option>
-            {% endif %}
-            <option value="true" {% if fieldValue == true %} selected{%endif%}>YES</option>
-            <option value="false" {% if fieldValue == false %} selected{%endif%}>NO</option>
-        </select>
-    {% elseif field.option('style') == 'check' and not field.option('explicit') %}
-        <ul class="form-choice-list">
-        <li class="form-choice-item">
-        <input type="hidden" name="field[{{field.id}}]" value="false">
-        <label class="form-choice-label">
-        <input type="checkbox" name="field[{{field.id}}]" value="true"  {% if fieldValue == true %} checked{%endif%}> YES
-        <i class="marker"></i>
-        </label>
-        </li>
-        </ul>
-    {% else %}
-        <ul class="form-choice-list">
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="false" id="field_{{field.id}}_true" name="field[{{field.id}}]" {% if fieldValue == false %} checked{%endif%} {%if field.isRequired%} required{%endif%}> NO<i class="marker"></i></label></li>
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="true" id="field_{{field.id}}_false" name="field[{{field.id}}]" {% if fieldValue == true %} checked{%endif%} {%if field.isRequired%} required{%endif%}> YES<i class="marker"></i></label></li>
-
-        {% if field.option('explicit') or not field.isRequired %}
-        <li class="form-choice-item"><label class="form-choice-label"><input class="form-radio" type="radio" value="" id="field_{{field.id}}_null" name="field[{{field.id}}]" {% if fieldValue is null %} checked{%endif%} {%if field.isRequired%} required{%endif%}> Not set<i class="marker"></i></label></li>
-        {% endif %}
-        </ul>
-    {% endif %}
-{% endblock %}
-
-
 {% block cell %}
     {% if fieldValue is same as(true) %}
         <span class="badge true">yes</span>
