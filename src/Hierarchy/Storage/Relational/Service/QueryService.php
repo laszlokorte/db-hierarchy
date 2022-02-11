@@ -107,7 +107,6 @@ class QueryService {
     	$this->connection->commit();
 
 		return new Data\MultiTree(
-			$this->schemaDef->getAllKeyIds(),
 			$groupedRows
 		);
 	}
@@ -253,43 +252,6 @@ class QueryService {
 		return new Data\MultiCollection(null,null,$groupedNodes,null,null);
 	}
 
-	public function findNodeMoveTargets(string $keyId, string $nodeId) {
-		$groupedRows = [];
-
-		$rootKeyIds = [];
-		if($this->schemaDef->isKeyReflexive($keyId)) {
-			$idParam = new Parameter('_id');
-			$select = $this->commandBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
-
-			$this->connection->beginTransaction();
-			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$stmtResult = $stmt->execute();
-	    	$this->connection->commit();
-
-			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
-			$rootKeyIds[] = $keyId;
-		}
-
-		if($this->schemaDef->isKeyScoped($keyId)) {
-			$scope = $this->schemaDef->getKeyScopeId($keyId);
-
-			$select = $this->commandBuilder->getSelectForFindHierarchy($scope, null, null);
-
-			$this->connection->beginTransaction();
-			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmtResult = $stmt->execute();
-	    	$this->connection->commit();
-
-			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
-			$rootKeyIds[] = $scope;
-		}
-
-		return new Data\MultiTree(
-			$rootKeyIds,
-			$groupedRows
-		);
-	}
 
 	public function findNodeSiblings(string $keyId, string $nodeId) {
 		$self = $this->findNode($keyId, $nodeId);

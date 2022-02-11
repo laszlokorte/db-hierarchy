@@ -9,7 +9,7 @@ use App\Hierarchy\Storage\Relational\ColumnCoder;
 use Doctrine\DBAL\Connection;
 
 class RepairService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaDefinition $schemaDef, , private RepairCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 

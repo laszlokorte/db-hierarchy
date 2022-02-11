@@ -50,6 +50,9 @@ class Key {
 	}
 
 	public function getScopeKey() {
+		if(!$this->isScoped()) {
+			return null;
+		}
 		return new Key($this->def, $this->def->getKeyScopeId($this->keyId));
 	}
 

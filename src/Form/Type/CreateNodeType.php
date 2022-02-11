@@ -2,6 +2,8 @@
 
 namespace App\Form\Type;
 
+use App\Form\Type\NestingType;
+
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
@@ -17,11 +19,6 @@ use Symfony\Component\Form\Extension\Core\Type;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
-use App\Hierarchy\Data\MultiTreeIterator;
-use App\Hierarchy\Data\MultiTree;
-
-use RecursiveIteratorIterator;
-use RecursiveTreeIterator;
 
 class CreateNodeType extends AbstractType
 {
@@ -33,33 +30,13 @@ class CreateNodeType extends AbstractType
 
         if($key->isScoped() || $key->isReflexive()) {
             $builder
-            ->add('_nesting', Type\ChoiceType::class, [
+            ->add('_nesting', NestingType::class, [
                 'label' => 'Nesting',
                 'constraints' => [
                     new NotBlank(),
                 ],
-                'choice_loader' => new CallbackChoiceLoader(function() use ($key, $movementService) {
-                    $treeIterator = new RecursiveTreeIterator(new MultiTreeIterator($movementService->findNodeMoveTargets($key->getId(), null), $key->getScopeKey()->getId(), null, null, 0));
-
-                    $treeIterator->setPrefixPart(RecursiveTreeIterator::PREFIX_MID_LAST, ' ');
-
-                    $treeValueIterator = new RecursiveIteratorIterator(new MultiTreeIterator($movementService->findNodeMoveTargets($key->getId(), null), $key->getScopeKey()->getId(), null, null, 0), RecursiveIteratorIterator::SELF_FIRST
-                    );
-
-                    return array_map(function($a,$b) {
-                        return (object)[
-                            'disabled' => !is_object($b),
-                            'value' => is_object($b) ? $b->getId() : rand(0, 1000),
-                            'label' => (string) $a,
-                        ];
-                    }, iterator_to_array($treeIterator), iterator_to_array($treeValueIterator));
-                }),
-                
-                'choice_label' => function($entry) { return $entry ? $entry->label : null; },
-                'choice_value' => function($entry) { return $entry ? $entry->value : null; },
-                'choice_attr' => function($key, $val, $index) {
-                    return $key->disabled??false ? ['disabled' => 'disabled'] : [];
-                },
+                'key' => $options['key'],
+                'storageConnection' => $options['storageConnection'],
             ]);
         }
 

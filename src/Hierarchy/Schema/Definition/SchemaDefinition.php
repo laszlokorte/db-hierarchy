@@ -85,6 +85,15 @@ class SchemaDefinition {
 			 && ($singletons || !$this->isKeySingleton($k)));
 	}
 
+	public function getKeyNestings() {
+		$keys = array_keys($this->keys);
+
+		return array_combine(
+			$keys,
+			array_map(fn($k) => $this->getKeyIdsScopedInsideAndReflexiveSelf($k), $keys)
+		);
+	}
+
 	public function getKeyScopePath($keyId, $includeSelf = false) {
 		$scopeIds = [];
 

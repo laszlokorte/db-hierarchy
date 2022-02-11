@@ -4,12 +4,12 @@ namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
-use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\SchemaBuilder;
 
 use Doctrine\DBAL\Connection;
 
 class InstallationService {
-	public function __construct(private SchemaDefinition $schemaDef, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+	public function __construct(private SchemaBuilder $schmaBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 

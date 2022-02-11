@@ -46,7 +46,7 @@ class HierarchyController {
     	try {
             return [
                 'hierarchy' => $hierarchy,
-                'rootNodes' => $storageConnection->getFetcher()->findAllRootNodes(),
+                'rootNodes' => $storageConnection->getQueryService()->findAllRootNodes(),
             ];
         } catch(\Doctrine\DBAL\Exception\DriverException) {
             $session->getFlashBag()->add('error', 'An error occured. Maybe the schema has to be updated');
@@ -63,7 +63,7 @@ class HierarchyController {
     {       
     	return [
             'hierarchy' => $hierarchy,
-    		'hierarchyNodes' => $storageConnection->getFetcher()->findAllHierarchyNodes(),
+    		'hierarchyNodes' => $storageConnection->getQueryService()->findAllHierarchyNodes(),
     	];
     }
 
@@ -77,7 +77,7 @@ class HierarchyController {
     	return [
             'hierarchy' => $hierarchy,
             'subHierarchy' => $subHierarchy,
-    		'installer' => $storageConnection->getInstaller(),
+    		'installer' => $storageConnection->getInstallationService(),
     		'adapter' => new Sqlite(),
     	];
     }
@@ -87,7 +87,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     public function install(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
-        $storageConnection->getInstaller()->createSchema(true, $request->request->get('only_views', false));
+        $storageConnection->getInstallationService()->createSchema(true, $request->request->get('only_views', false));
 
         $session->getFlashBag()->add('success', 'Schema has been updated.');
 
@@ -99,7 +99,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
-        $storageConnection->getInstaller()->dropSchema();
+        $storageConnection->getInstallationService()->dropSchema();
 
         $session->getFlashBag()->add('success', 'Schema has been removed.');
 
@@ -113,7 +113,7 @@ class HierarchyController {
 	#[Template()]
     public function showHealth(Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
-    	$health = $storageConnection->getFetcher()->findAllDefects();
+    	$health = $storageConnection->getQueryService()->findAllDefects();
 
     	return [
             'hierarchy' => $hierarchy,
@@ -156,7 +156,7 @@ class HierarchyController {
     #[Template()]
     public function listAllNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
     {
-        $all = $storageConnection->getFetcher()->findAllNodes($key->getId());
+        $all = $storageConnection->getQueryService()->findAllNodes($key->getId());
         return new JsonResponse([
             'keyId' => $key->getId(),
             'nodes' => array_map(fn($nodeId) => [
@@ -177,7 +177,7 @@ class HierarchyController {
         $target = $field->getOption('target');
         $targetKey = $hierarchy->getKey($target);
 
-        $all = $storageConnection->getFetcher()->findAllNodes($targetKey->getId());
+        $all = $storageConnection->getQueryService()->findAllNodes($targetKey->getId());
         return new JsonResponse([
             'keyId' => $targetKey->getId(),
             'nodes' => array_map(fn($nodeId) => [
@@ -200,7 +200,7 @@ class HierarchyController {
             'nodeId' => $nodeId,
             'field' => $field->getId(),
             'value' => $field->readObjectOf(
-                $storageConnection->getFetcher()->findNodeField($key->getId(), $nodeId, $field->getId())
+                $storageConnection->getQueryService()->findNodeField($key->getId(), $nodeId, $field->getId())
             ),
         ]);
     }
@@ -214,7 +214,7 @@ class HierarchyController {
     public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen,  FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
 
-    	$lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
+    	$lastParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
 
         $deletionService = $storageConnection->getDeletionService();
         $deletion = $deletionService->getDeletionPlan($key->getId(), $nodeId);
@@ -248,8 +248,8 @@ class HierarchyController {
             return [
                 'hierarchy' => $hierarchy,
                 'key' => $key,
-                'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
-                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'node' => $storageConnection->getQueryService()->findNode($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
                 'deletion' => $deletion,
                 'deletionForm' => $deletionForm->createView(),
             ];
@@ -295,7 +295,7 @@ class HierarchyController {
         if($scope || $parent) {
             $parentKey = $parent === null ? $key->getScopeKey() : $key;
             $parentId = $parent ?: $scope;
-            $parentNode = $storageConnection->getFetcher()->findNode($parentKey->getId(), $parentId);
+            $parentNode = $storageConnection->getQueryService()->findNode($parentKey->getId(), $parentId);
         } else {
             $parentNode = null;
         }
@@ -387,12 +387,12 @@ class HierarchyController {
     public function createChildNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId, Key $childKey)
     {
         if($childKey->isSingleton()) {
-            if(!$storageConnection->getFetcher()->findNodeChildren($key->getId(), $nodeId, $childKey->getId())->isEmpty()) {
+            if(!$storageConnection->getQueryService()->findNodeChildren($key->getId(), $nodeId, $childKey->getId())->isEmpty()) {
                 return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId, 'childKeyId' => $childKey->getId()]));
             }
         }
 
-        $parentNode = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $parentNode = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
 
         $creationService = $storageConnection->getCreationService();
 
@@ -441,7 +441,7 @@ class HierarchyController {
                     'key' => $key,
                     'childKey' => $childKey,
                     'node' => $parentNode,
-                    'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                    'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
                     'creation' => $creation,
                     'creationForm' => $creationForm->createView(),
             ];
@@ -493,9 +493,9 @@ class HierarchyController {
         return [
             'hierarchy' => $hierarchy,
             'key' => $key,
-            'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
-            'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-            'childNodes' => $storageConnection->getFetcher()->findNodeAllChildren($key->getId(), $nodeId),
+            'node' => $storageConnection->getQueryService()->findNode($key->getId(), $nodeId),
+            'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
+            'childNodes' => $storageConnection->getQueryService()->findNodeAllChildren($key->getId(), $nodeId),
         ];
     }
 
@@ -513,7 +513,7 @@ class HierarchyController {
 
         list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
 
-        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $movementService = $storageConnection->getMovementService();
         
         
@@ -549,11 +549,11 @@ class HierarchyController {
             return [
                 'hierarchy' => $hierarchy,
                 'key' => $key,
-                'moveTargets' => $storageConnection->getFetcher()->findNodeMoveTargets($key->getId(), $nodeId),
+                'moveTargets' => $storageConnection->getMovementService()->findNodeMoveTargets($key->getId(), $nodeId),
                 'node' => $node,
                 'movement' => $movement,
                 'movementForm' => $movementForm->createView(),
-                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
             ];
         }
 
@@ -582,7 +582,7 @@ class HierarchyController {
         
         $target = $request->request->get('target_order', 0);
 
-        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $orderingService = $storageConnection->getOrderingService();
 
         $orderForm = $formFactory->create(
@@ -618,9 +618,9 @@ class HierarchyController {
             return [
                 'hierarchy' => $hierarchy,
                 'key' => $key,
-                'orderTargets' => $storageConnection->getFetcher()->findNodeSiblings($key->getId(), $nodeId),
+                'orderTargets' => $storageConnection->getQueryService()->findNodeSiblings($key->getId(), $nodeId),
                 'node' => $node,
-                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
                 'ordering' => $ordering,
                 'orderForm' => $orderForm->createView(),
             ];
@@ -631,7 +631,7 @@ class HierarchyController {
         if($then === 'tree') {
             return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
         } elseif($then === 'list') {
-            $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
+            $directParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
 
             if($directParent) {
                 return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $directParent->getKey(), 'nodeId' => $directParent->getId(), 'childKeyId' => $key->getId()]));
@@ -642,7 +642,7 @@ class HierarchyController {
         } elseif($then === 'root_list') {
             return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
         } elseif($then === 'parent') {
-            $directParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
+            $directParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
 
             if($directParent) {
                 return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $directParent->getKey(), 'nodeId' => $directParent->getId()]));
@@ -663,7 +663,7 @@ class HierarchyController {
     #[Template('hierarchy/edit_node.html.twig')]
     public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
     {
-        $node = $storageConnection->getFetcher()->findNode($key->getId(), $nodeId);
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $updateService = $storageConnection->getUpdateService();
 
 		$editForm = $formFactory->create(
@@ -700,7 +700,7 @@ class HierarchyController {
                 'hierarchy' => $hierarchy,
                 'key' => $key,
                 'node' => $node,
-                'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
                 'update' => $update,
                 'editForm' => $editForm->createView(),
             ];
@@ -709,7 +709,7 @@ class HierarchyController {
         if($then === 'root') {
             return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
         } elseif($then === 'list') {
-            $lastParent = $storageConnection->getFetcher()->findNodeDirectParent($key->getId(), $nodeId);
+            $lastParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
             if($lastParent) {
                 $args = array_merge($lastParent->pathArgs(), ['hierarchySlug' => $hierarchy->getSlug(), 'childKeyId' => $key->getId()]);
                 return new RedirectResponse($urlGen->generate('list_child_nodes', $args));
@@ -733,7 +733,7 @@ class HierarchyController {
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
-    		'nodeCollection' => $storageConnection->getFetcher()->findRootNodes($key->getId()),
+    		'nodeCollection' => $storageConnection->getQueryService()->findRootNodes($key->getId()),
             'parentNodes' => new MultiCollection(null, null, [], null, null),
     	];
     }
@@ -748,9 +748,9 @@ class HierarchyController {
             'hierarchy' => $hierarchy,
     		'key' => $key,
     		'childKey' => $childKey,
-            'node' => $storageConnection->getFetcher()->findNode($key->getId(), $nodeId),
-            'parentNodes' => $storageConnection->getFetcher()->findParentNodes($key->getId(), $nodeId),
-            'nodeCollection' => $storageConnection->getFetcher()->findNodeChildren($key->getId(), $nodeId, $childKey->getId()),
+            'node' => $storageConnection->getQueryService()->findNode($key->getId(), $nodeId),
+            'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
+            'nodeCollection' => $storageConnection->getQueryService()->findNodeChildren($key->getId(), $nodeId, $childKey->getId()),
     	];
     }
 

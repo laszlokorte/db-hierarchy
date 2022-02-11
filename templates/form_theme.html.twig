@@ -1,3 +1,15 @@
+{% block nesting_widget %}
+    <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
+        {{ block('widget_attributes') }}
+    {%- endwith %} >
+        
+        {% for key, v in choices %}
+            <option value="{{key}}">{{v}}</option>
+        {% endfor %}
+
+    </select>
+{% endblock %}
+
 {# Widgets #}
 
 {%- block form_widget -%}

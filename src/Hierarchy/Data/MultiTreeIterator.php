@@ -2,22 +2,24 @@
 
 namespace App\Hierarchy\Data;
 
+use App\Hierarchy\Schema\Key;
+
 use RecursiveIterator;
 
 class MultiTreeIterator implements RecursiveIterator {
 
 	private MultiTree $tree;
 
-	private $keyId;
+	private $key;
 	private $scopeId;
 	private $parentId;
 	private $depth;
 
 	private $nodes;
 
-	public function __construct(MultiTree $tree, $keyId, $scopeId, $parentId, $depth) {
+	public function __construct(MultiTree $tree, Key $key, $scopeId, $parentId, $depth) {
 		$this->tree = $tree;
-		$this->keyId = $keyId;
+		$this->key = $key;
 		$this->scopeId = $scopeId;
 		$this->parentId = $parentId;
 		$this->depth = $depth;
@@ -26,14 +28,14 @@ class MultiTreeIterator implements RecursiveIterator {
 	public function getChildren() : ?RecursiveIterator {
 		return new MultiTreeScopeIterator(
 			$this->tree,
-			$this->keyId,
+			$this->key,
 			current($this->nodes),
 			$this->depth+1
 		);
 	}
 
 	public function hasChildren(): bool {
-		return $this->tree->hasNodes($this->keyId, $this->scopeId, $this->parentId);
+		return $this->tree->hasNodes($this->key->getId(), $this->scopeId, $this->parentId);
 	}
 
 	public function current() : mixed {
@@ -41,7 +43,7 @@ class MultiTreeIterator implements RecursiveIterator {
 	}
 
 	public function key() : mixed {
-		return $this->i;
+		return sprintf('%s/%s/%s[%d]', $this->scopeId??'-', $this->key->getId(), $this->parentId??'-', $this->i??0);
 	}
 
 	public function next() : void {
@@ -51,7 +53,8 @@ class MultiTreeIterator implements RecursiveIterator {
 
 	public function rewind() : void {
 		$this->i = 0;
-		$this->nodes = $this->tree->getNodes($this->keyId, $this->scopeId, $this->parentId);
+		dump($this->tree);
+		$this->nodes = $this->tree->getNodes($this->key->getId(), $this->scopeId, $this->parentId);
 	}
 
 	public function valid() : bool {

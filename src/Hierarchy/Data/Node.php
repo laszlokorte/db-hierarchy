@@ -60,7 +60,7 @@ class Node {
 	}
 
 	public function __toString() {
-		return $this->nodeId;
+		return $this->scopeId . '/' . $this->nodeId;
 	}
 
 }

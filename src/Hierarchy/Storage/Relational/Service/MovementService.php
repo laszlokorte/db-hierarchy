@@ -2,6 +2,8 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
@@ -43,7 +45,6 @@ class MovementService {
 	public function findNodeMoveTargets(string $keyId, ?string $nodeId) {
 		$groupedRows = [];
 
-		$rootKeyIds = [];
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$idParam = new Parameter('_id');
 			$select = $this->commandBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
@@ -56,9 +57,7 @@ class MovementService {
 			$stmtResult = $stmt->execute();
 
 
-
 			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
-			$rootKeyIds[] = $keyId;
 		}
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
@@ -73,11 +72,11 @@ class MovementService {
 			$this->connection->commit();
 
 			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
-			$rootKeyIds[] = $scope;
+			
+
 		}
 
 		return new Data\MultiTree(
-			$rootKeyIds,
 			$groupedRows
 		);
 	}

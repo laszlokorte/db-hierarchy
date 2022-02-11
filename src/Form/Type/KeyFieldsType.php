@@ -51,7 +51,7 @@ class KeyFieldsType extends AbstractType
                         'choice_loader' => new CallbackChoiceLoader(function() use ($field, $storageConnection) {
                             $target = $field->getOption('target');
 
-                            $all = $storageConnection->getFetcher()->findAllNodes($target);
+                            $all = $storageConnection->getQueryService()->findAllNodes($target);
                             return $all->getIds();
                         }),
                     ]);

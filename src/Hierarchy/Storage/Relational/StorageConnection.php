@@ -28,26 +28,13 @@ class StorageConnection {
 		}
 	}
 
-	public function getCommander() {
-		return new Commander($this->schemaDef, new CommandBuilder($this->schemaDef, $this->naming, $this->coder), $this->connection, $this->dialect, $this->coder);
-	}
+	// public function getCommander() {
+	// 	return new Commander($this->schemaDef, new CommandBuilder($this->schemaDef, $this->naming, $this->coder), $this->connection, $this->dialect, $this->coder);
+	// }
 
-	public function getFetcher() {
-		return new Fetcher($this->schemaDef, new QueryBuilder($this->schemaDef, $this->naming, $this->coder), $this->connection, $this->dialect);
-	}
-
-	public function getInstaller() {
-		return new Installer(new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), $this->connection, $this->dialect);
-	}
-
-	public function getValidator() {
-		return new Validator(
-			$this->schemaDef,
-			new ValidationBuilder($this->schemaDef, $this->naming, $this->coder),
-			$this->connection, 
-			$this->dialect
-		);
-	}
+	// public function getInstaller() {
+	// 	return new Installer(new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), $this->connection, $this->dialect);
+	// }
 
 	public function getQueryService() {
 		return new Service\QueryService(
@@ -107,6 +94,24 @@ class StorageConnection {
 			$this->dialect,
 			$this->coder,
 			$this->getQueryService()
+		);
+	}
+
+	public function getRepairService() {
+		return new Service\RepairService(
+			$this->schemaDef, 
+			new Service\RepairCommandBuilder($this->schemaDef, $this->naming, $this->coder), 
+			$this->connection, 
+			$this->dialect,
+			$this->coder
+		);
+	}
+
+	public function getInstallationService() {
+		return new Service\InstallationService(
+			new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), 
+			$this->connection, 
+			$this->dialect
 		);
 	}
 }
