@@ -18,6 +18,11 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\String\Concat;
+use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
+
+
 
 class QueryCommandBuilder  {
 

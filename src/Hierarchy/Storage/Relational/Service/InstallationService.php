@@ -85,7 +85,8 @@ class InstallationService {
 	}
 
 	public function getTableDiff() {
-		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'BASE TABLE'");
+		
+		$stmt = $this->connection->prepare($this->dialect->stringQueryTableNames());
 		$stmtResult = $stmt->execute();
 		$existing = $stmtResult->fetchFirstColumn();
 		$needed = array_map(fn($t) => $t->getName()->getString(), $this->commandBuilder->getAllTables());
@@ -98,7 +99,7 @@ class InstallationService {
 	}
 
 	public function getViewDiff() {
-		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'VIEW'");
+		$stmt = $this->connection->prepare($this->dialect->stringQueryViewNames());
 		$stmtResult = $stmt->execute();
 		$existing = $stmtResult->fetchFirstColumn();
 		$needed = array_map(fn($t) => $t->getName()->getString(), $this->commandBuilder->getAllViews());

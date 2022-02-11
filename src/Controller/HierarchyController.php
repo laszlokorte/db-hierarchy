@@ -423,14 +423,13 @@ class HierarchyController {
                 $scope = $parentNode->getId();
                 $parent = null;
             }
-            
-            $creation = $creationService->getValidatedCreation($childKey->getId(), $request->request->all('fields'), $scope, $parent);
+            $creation = $creationService->getValidatedCreation($childKey->getId(), $creationForm->getData()['fields'], $scope, $parent);
         } else {
             $creation = $creationService->getFreshCreation($childKey->getId(), $parentNode);
         }
 
-        if($creationForm->isSubmitted() && $creationForm->isValid() && $creation->isValid()) {
-            $newId = $storageConnection->getCreationService()->createNode($key->getId(), $request->request->all('fields'), $scope, $parent);
+        if($creationForm->isSubmitted() && $creationForm->isValid()) {
+            $newId = $storageConnection->getCreationService()->createNode($childKey->getId(), $creationForm->getData()['fields'], $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -449,23 +448,23 @@ class HierarchyController {
 
         if($then === 'form') {
             if($parent) {
-                return new RedirectResponse($urlGen->generate('new_child_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'childKeyId' => $key->getId(), 'nodeId' => $parent]));
+                return new RedirectResponse($urlGen->generate('new_child_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'childKeyId' => $childKey->getId(), 'nodeId' => $parent]));
             } elseif ($scope) {
-                $parentKey = $key->getScopeKey()->getId();
-                return new RedirectResponse($urlGen->generate('new_child_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $parentKey, 'childKeyId' => $key->getId(), 'nodeId' => $scope]));
+                $parentKey = $key->getId();
+                return new RedirectResponse($urlGen->generate('new_child_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $parentKey, 'childKeyId' => $childKey->getId(), 'nodeId' => $scope]));
             } else {
-                return new RedirectResponse($urlGen->generate('new_root_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
+                return new RedirectResponse($urlGen->generate('new_root_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $childKey->getId()]));
             }
         } elseif($then === 'root_form') {
-            return new RedirectResponse($urlGen->generate('new_root_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
+            return new RedirectResponse($urlGen->generate('new_root_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $childKey->getId()]));
         } elseif($then === 'new') {
             return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $newId]));
         } elseif($then === 'list') {
             if($parent) {
                 return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'childKeyId' => $key->getId(), 'nodeId' => $parent]));
             } elseif ($scope) {
-                $parentKey = $key->getScopeKey()->getId();
-                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $parentKey, 'childKeyId' => $key->getId(), 'nodeId' => $scope]));
+                $parentKey = $key->getId();
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $parentKey, 'childKeyId' => $childKey->getId(), 'nodeId' => $scope]));
             } else {
                 return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
             }
@@ -475,7 +474,7 @@ class HierarchyController {
             if($parent) {
                 return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $parent]));
             } elseif ($scope) {
-                $parentKey = $key->getScopeKey()->getId();
+                $parentKey = $key->getId();
                 return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $parentKey, 'nodeId' => $scope]));
             } else {
                 return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug(), 'hierarchySlug' => $hierarchy->getSlug()]));

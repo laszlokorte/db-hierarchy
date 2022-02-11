@@ -18,7 +18,9 @@
             {% endif %}
         {% endfor %}
 
-        {% include 'hierarchy/navigation.html.twig' with {hierarchy} only %}
+        {% block navigation %}
+        {% include 'hierarchy/navigation.html.twig' with {hierarchy: hierarchy|default(systemHierarchy)} only %}
+        {% endblock %}
 
         <section style="padding-bottom: 10em;">
             {% block area_main %}

@@ -192,6 +192,7 @@ class CreationService {
 
 	public function createNode(string $keyId, $fieldData, $scopeId, $parentId) {
 		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
+			dump($keyId);
 			throw new \Exception("missing scope");
 		}
 

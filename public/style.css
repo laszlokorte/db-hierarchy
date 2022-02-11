@@ -612,6 +612,10 @@ body.state-dragging .dragger:not(.drag-target):not(.state-dragging) {
     pointer-events: none;
 }
 
+.tab-nav + h2 {
+    display: none;
+}
+
 .tab-list {
     display: flex;
     list-style: none;
@@ -953,6 +957,13 @@ body.show-quickform .quickform-inline {
     padding: 1em; 
     border: 1px solid #04a;
     background: #def;
+    margin: 1em 0;
+}
+
+.neutral-box {
+    padding: 1em; 
+    border: 1px solid #aaa;
+    background: #eee;
     margin: 1em 0;
 }
 

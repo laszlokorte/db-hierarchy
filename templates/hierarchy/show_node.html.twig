@@ -15,6 +15,8 @@
 
 {% include 'hierarchy/partials/tabs.html.twig' with {hierarchy,key, node, active: 'show'} only %}
 
+<h2>Overview</h2>
+
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: 'fields', tabs: [
 {label: 'Fields', default: true},
 {label: 'Edit'},

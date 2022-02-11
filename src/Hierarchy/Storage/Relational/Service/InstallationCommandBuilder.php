@@ -323,7 +323,7 @@ class InstallationCommandBuilder {
 				case 'INTEGER':
 					return 'INTEGER SIGNED';
 				case 'SERIAL':
-					return 'INTEGER UNSIGNED';
+					return 'SERIAL';
 				case 'UUID':
 					return 'BINARY(16)';
 				default:

@@ -22,7 +22,7 @@
         </dl>
     </div>
     {% else %}
-        <div class="approve-box">This node does not have any child nodes.</div>
+        <div class="neutral-box">This {{ key.label.singular }} node does not have any child nodes. Deleting it will not effect any other nodes.</div>
     {% endif %}
 {% endif %}
 
@@ -55,7 +55,7 @@
 {{ form_errors(deletionForm) }}
 
     <p>
-        Are you sure?
+        Are you sure you want to delete this {{ key.label.singular }} node?
     </p>
 
 <dl class="form-container">

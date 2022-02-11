@@ -26,6 +26,16 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing;
 use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 
 class Sqlite extends SqlBase implements DialectInterface {
+
+	
+	public function stringQueryViewNames() {
+		return "SELECT name FROM sqlite_schema WHERE type ='view'";
+	}
+
+	public function stringQueryTableNames() {
+		return "SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%'";
+	}
+
 	protected function foreignKeyToString(ForeignKey $fk) {
 		return parent::foreignKeyToString($fk) . ' DEFERRABLE INITIALLY DEFERRED';
 	}
@@ -74,5 +84,13 @@ class Sqlite extends SqlBase implements DialectInterface {
 
 	public function stringSwitchForeignKey($on) {
 		return sprintf('PRAGMA foreign_keys = %s;', $on ? 'On' : 'Off');
+	}
+
+	protected function dataTypeToString($type) {
+		if($type === 'SERIAL') {
+			return 'INTEGER';
+		}
+
+		return $type;
 	}
 }

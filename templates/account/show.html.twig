@@ -1,0 +1,14 @@
+{% extends 'hierarchy/base.html.twig' %}
+
+
+{% block html_title -%}
+    My Account - {{ parent() }}
+{%- endblock %}
+
+{% block area_main %}
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy, trailing: 'My Account'} only %}
+
+<h1>My Account</h1>
+
+{% endblock %}

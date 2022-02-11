@@ -29,4 +29,8 @@ interface DialectInterface {
 	public function dropTableToString(CreateTable $createView);
 
 	public function parameterToString(Parameter $param);
+
+	public function stringQueryViewNames();
+
+	public function stringQueryTableNames();
 }

@@ -29,6 +29,13 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 
 class MySql extends SqlBase implements DialectInterface {
 	
+	public function stringQueryViewNames() {
+		return "SHOW FULL TABLES WHERE Table_Type = 'VIEW'";
+	}
+
+	public function stringQueryTableNames() {
+		return "SHOW FULL TABLES WHERE Table_Type = 'BASE TABLE'";
+	}
 
 	protected function tableColumnToString(TableColumn $column) {
 		$result = $this->escapeIdentifier($column->getName());
@@ -45,6 +52,14 @@ class MySql extends SqlBase implements DialectInterface {
 		}
 
 		return $result;
+	}
+
+	protected function dataTypeToString($type) {
+		if($type === 'SERIAL') {
+			return 'INTEGER UNSIGNED';
+		}
+
+		return $type;
 	}
 
 

@@ -1,14 +1,14 @@
 <nav class="global-bar">
         <ul class="global-tabs">
             {% for subSchema in subSchemas %}
-                <li class="global-tabs-item"><a class="{{ html_classes('global-tabs-link', {'state-active': hierarchy.slug == subSchema.slug}) }}" href="{{ path('hierarchy_root', {hierarchySlug: subSchema.slug}) }}">
+                <li class="global-tabs-item"><a class="{{ html_classes('global-tabs-link', {'state-active': hierarchy is defined and hierarchy.slug == subSchema.slug}) }}" href="{{ path('hierarchy_root', {hierarchySlug: subSchema.slug}) }}">
 
             {%- include 'hierarchy/partials/icon.html.twig' with {
             prefix: true,
             icon: subSchema.label.icon} only -%}
                 {{subSchema.label.singular}}</a></li>
             {% endfor %}
-            <li class="global-tabs-item"><a class="{{ html_classes('global-tabs-link', {'state-active': hierarchy.slug == systemHierarchy.slug}) }}" href="{{ path('hierarchy_root', {hierarchySlug: systemHierarchy.slug}) }}">
+            <li class="global-tabs-item"><a class="{{ html_classes('global-tabs-link', {'state-active': hierarchy is defined and hierarchy.slug == systemHierarchy.slug}) }}" href="{{ path('hierarchy_root', {hierarchySlug: systemHierarchy.slug}) }}">
             {%- include 'hierarchy/partials/icon.html.twig' with {
             prefix: true,
             icon: systemHierarchy.label.icon} only -%}
