@@ -41,6 +41,8 @@ class NestingType extends AbstractType
     {
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
+        $resolver->setDefault('nodeId', null);
+        $resolver->setAllowedTypes('nodeId', ['string', 'null']);
         $resolver->setRequired('storageConnection');
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
     }
@@ -61,6 +63,6 @@ class NestingType extends AbstractType
 	    $treeValueIterator = new RecursiveIteratorIterator($multiTreeIterator, RecursiveIteratorIterator::SELF_FIRST
 	    );
 
-	    return array_combine(iterator_to_array($treeValueIterator), iterator_to_array($treeIterator));
+	    return $treeValueIterator;
     }
 }

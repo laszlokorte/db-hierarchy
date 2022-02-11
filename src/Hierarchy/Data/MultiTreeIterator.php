@@ -39,11 +39,11 @@ class MultiTreeIterator implements RecursiveIterator {
 	}
 
 	public function current() : mixed {
-		return current($this->nodes);
+		return $this->key->summarize(current($this->nodes), true);
 	}
 
 	public function key() : mixed {
-		return sprintf('%s/%s/%s[%d]', $this->scopeId??'-', $this->key->getId(), $this->parentId??'-', $this->i??0);
+		return current($this->nodes)->getLocator();
 	}
 
 	public function next() : void {

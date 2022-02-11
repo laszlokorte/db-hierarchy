@@ -22,13 +22,11 @@ class MoveNodeType extends AbstractType
         $storageConnection = $options['storageConnection'];
         $nodeId = $options['nodeId'];
 
-        $builder->add('move_to', Type\ChoiceType::class, [
+        $builder->add('move_to', NestingType::class, [
             'label' => 'Move To',
-            'choice_loader' => new CallbackChoiceLoader(function() use ($key, $storageConnection, $nodeId) {
-                $all = $storageConnection->getMovementService()->findNodeMoveTargets($key->getId(), $nodeId);
-
-                return [];
-            }),
+            'key' => $key,
+            'storageConnection' => $storageConnection,
+            'nodeId' => $nodeId,
         ]);
 
         $buttons = $builder->create('buttons', ActionType::class);

@@ -3,8 +3,8 @@
         {{ block('widget_attributes') }}
     {%- endwith %} >
         
-        {% for key, v in choices %}
-            <option value="{{key}}">{{v}}</option>
+        {% for k, v in choices %}
+            <option value="{{k}}">{{v}}</option>
         {% endfor %}
 
     </select>
@@ -16,7 +16,7 @@
     {%- endwith %} >
         <option disabled>Top</option>
         {% for id, node in choices %}
-            <option disabled>{{node.order}} - {{node.id}}</option>
+            <option disabled>{{key.summarize(node, true)}}</option>
             <option value="{{id}}">put here</option>
         {% endfor %}
         <option disabled>Bottom</option>

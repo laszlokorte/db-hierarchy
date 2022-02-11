@@ -43,6 +43,7 @@ class OrderPositionType extends AbstractType
 
         $view->vars = array_replace($view->vars, [
             'choices' => $choiceList,
+            'key' => $options['key'],
         ]);
     }
 }

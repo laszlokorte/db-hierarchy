@@ -63,4 +63,8 @@ class Node {
 		return $this->scopeId . '/' . $this->nodeId;
 	}
 
+	public function getLocator() {
+		return $this->scopeId . '/' . $this->nodeId;
+	}
+
 }

@@ -88,7 +88,7 @@
 <h1>Tree</h1>
 
 {% for key in hierarchy.rootKeys %}
-    <h3><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">{{ key.label.plural }}</a></h3>
+    <h3><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">{{ key.label.string(key.isSingleton) }}</a></h3>
     
     {% if not hierarchyNodes.hasNodes(key.id) %}
         <p>
