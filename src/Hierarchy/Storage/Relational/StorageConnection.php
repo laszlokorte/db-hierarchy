@@ -28,14 +28,6 @@ class StorageConnection {
 		}
 	}
 
-	// public function getCommander() {
-	// 	return new Commander($this->schemaDef, new CommandBuilder($this->schemaDef, $this->naming, $this->coder), $this->connection, $this->dialect, $this->coder);
-	// }
-
-	// public function getInstaller() {
-	// 	return new Installer(new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), $this->connection, $this->dialect);
-	// }
-
 	public function getQueryService() {
 		return new Service\QueryService(
 			$this->schemaDef, 
@@ -109,7 +101,7 @@ class StorageConnection {
 
 	public function getInstallationService() {
 		return new Service\InstallationService(
-			new SchemaBuilder($this->schemaDef, $this->naming, $this->quirks), 
+			new Service\InstallationCommandBuilder($this->schemaDef, $this->naming, $this->quirks), 
 			$this->connection, 
 			$this->dialect
 		);

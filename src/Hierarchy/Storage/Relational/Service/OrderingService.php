@@ -54,12 +54,12 @@ class OrderingService {
 
 		$update = $this->commandBuilder->getUpdateforReorderNode($keyId, $idParam, $orderParam);
 
-		$this->beginTransaction();
+		$this->connection->beginTransaction();
 		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, ParameterType::INTEGER);
 
 		$stmt->execute();
-		$this->commitTransaction();
+		$this->connection->commit();
 	}
 }

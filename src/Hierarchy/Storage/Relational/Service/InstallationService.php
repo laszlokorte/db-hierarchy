@@ -9,17 +9,17 @@ use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use Doctrine\DBAL\Connection;
 
 class InstallationService {
-	public function __construct(private SchemaBuilder $schmaBuilder, private Connection $connection, private DialectInterface $dialect) {
+	public function __construct(private InstallationCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
 
 	}
 
 	public function getSchemaDeclerations() {
 		$schema = '';
 
-		foreach ($this->schmaBuilder->getAllTables() as $t) {
+		foreach ($this->commandBuilder->getAllTables() as $t) {
 			$schema .= PHP_EOL . $this->dialect->createTableToString($t);
 		}
-		foreach ($this->schmaBuilder->getAllViews() as $v) {
+		foreach ($this->commandBuilder->getAllViews() as $v) {
 			$schema .= PHP_EOL . $this->dialect->createViewToString($v);
 		}
 
@@ -35,27 +35,27 @@ class InstallationService {
 		}
 
 
-		foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
+		foreach (array_reverse($this->commandBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
 
 		if(!$onlyViews) {
-			foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
+			foreach (array_reverse($this->commandBuilder->getAllTables()) as $t) {
 				$this->connection->executeStatement($this->dialect->dropTableToString($t));
 			}
 
-			foreach ($this->schmaBuilder->getAllTables() as $t) {
+			foreach ($this->commandBuilder->getAllTables() as $t) {
 				$this->connection->executeStatement($this->dialect->createTableToString($t, true));
 			}
 
-			foreach ($this->schmaBuilder->getAllTables() as $t) {
+			foreach ($this->commandBuilder->getAllTables() as $t) {
 				if($t->hasForeignKeys()) {
 					$this->connection->executeStatement($this->dialect->addForeignKeysTableToString($t));
 				}
 			}
 		}
 
-		foreach ($this->schmaBuilder->getAllViews() as $v) {
+		foreach ($this->commandBuilder->getAllViews() as $v) {
 			$this->connection->executeStatement($this->dialect->createViewToString($v));
 		}
 
@@ -72,10 +72,10 @@ class InstallationService {
 			$this->connection->exec($turnOffFk);
 		}
 
-    	foreach (array_reverse($this->schmaBuilder->getAllViews()) as $v) {
+    	foreach (array_reverse($this->commandBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
-		foreach (array_reverse($this->schmaBuilder->getAllTables()) as $t) {
+		foreach (array_reverse($this->commandBuilder->getAllTables()) as $t) {
 			$this->connection->executeStatement($this->dialect->dropTableToString($t));
 		}
 
@@ -88,7 +88,7 @@ class InstallationService {
 		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'BASE TABLE'");
 		$stmtResult = $stmt->execute();
 		$existing = $stmtResult->fetchFirstColumn();
-		$needed = array_map(fn($t) => $t->getName()->getString(), $this->schmaBuilder->getAllTables());
+		$needed = array_map(fn($t) => $t->getName()->getString(), $this->commandBuilder->getAllTables());
 
 		return [
 			'missing' => array_diff($needed, $existing),
@@ -101,7 +101,7 @@ class InstallationService {
 		$stmt = $this->connection->prepare("SHOW FULL TABLES WHERE Table_Type = 'VIEW'");
 		$stmtResult = $stmt->execute();
 		$existing = $stmtResult->fetchFirstColumn();
-		$needed = array_map(fn($t) => $t->getName()->getString(), $this->schmaBuilder->getAllViews());
+		$needed = array_map(fn($t) => $t->getName()->getString(), $this->commandBuilder->getAllViews());
 
 		return [
 			'missing' => array_diff($needed, $existing),

@@ -5,22 +5,31 @@ namespace App\Hierarchy\Storage\Relational\Service;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Data;
+
+
+use App\Hierarchy\Storage\Relational\Algebra\Insert;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
+use App\Hierarchy\Storage\Relational\Algebra\Delete;
 
 use Doctrine\DBAL\Connection;
 
 class RepairService {
-	public function __construct(private SchemaDefinition $schemaDef, , private RepairCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+
+	const MAX_REPAIR_RETRIES = 5;
+
+	public function __construct(private SchemaDefinition $schemaDef, private RepairCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
 
 	public function findAllDefects() {
-		return array_map(fn($key) => $this->findDefectsForKeyInternal($key), $this->queryBuilder->getDiagnosableKeys());
+		return array_map(fn($key) => $this->findDefectsForKeyInternal($key), $this->commandBuilder->getDiagnosableKeys());
 	}
 
 	public function findDefectsForKey(string $keyId) {
-		$this->beginTransaction();
+		$this->connection->beginTransaction();
 		$result = $this->findDefectsForKeyInternal($keyId);
-    	$this->commitTransaction();
+    	$this->connection->commit();
 
     	return $result;
 	}
@@ -28,7 +37,7 @@ class RepairService {
 	private function findDefectsForKeyInternal(string $keyId) {
 		$rows = [];
 		$columns = [];
-		foreach($this->queryBuilder->getDiagnosisQueriesForKey($keyId) AS $name => $select) {
+		foreach($this->commandBuilder->getDiagnosisQueriesForKey($keyId) AS $name => $select) {
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmtResult = $stmt->execute();
 			$rows[$name] = $stmtResult->fetchAll();
@@ -43,18 +52,25 @@ class RepairService {
 		return array_map(fn($proj, $i) => $proj->getAutoName($i)->getString(), $projections, array_keys($projections));
 	}
 
+
+	public function getRepairableKeys() {
+		return array_filter($this->schemaDef->getAllKeyIdsTopological(), 
+			fn($keyId) => $this->schemaDef->isKeyReflexive($keyId) || $this->schemaDef->isKeyOrdered($keyId)
+		);
+	}
+
 	public function repairAll() {
-		$this->beginTransaction();
-		foreach ($this->commandBuilder->getRepairableKeys() as $key) {
+		$this->connection->beginTransaction();
+		foreach ($this->getRepairableKeys() as $key) {
 			$this->repairKeyInternal($key);
 		}
-    	$this->commitTransaction();
+    	$this->connection->commit();
 	}
 
 	public function repairKey(string $keyId) {
-		$this->beginTransaction();
+		$this->connection->beginTransaction();
 		$result = $this->repairKeyInternal($keyId);
-    	$this->commitTransaction();
+    	$this->connection->commit();
 
     	return $result;
 	}

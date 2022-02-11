@@ -113,7 +113,7 @@ class HierarchyController {
 	#[Template()]
     public function showHealth(Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
-    	$health = $storageConnection->getQueryService()->findAllDefects();
+    	$health = $storageConnection->getRepairService()->findAllDefects();
 
     	return [
             'hierarchy' => $hierarchy,
@@ -128,7 +128,7 @@ class HierarchyController {
     #[ParamConverter('subHierarchy')]
     public function repairAllDefects(UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
-    	$storageConnection->getCommander()->repairAll();
+    	$storageConnection->getRepairService()->repairAll();
         $session->getFlashBag()->add('success', 'Full schema has been repaired.');
 
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
@@ -141,7 +141,7 @@ class HierarchyController {
     #[ParamConverter('key', options: ['slug' => 'subHierarchySlug'])]
     public function repairKeyDefects(UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key)
     {
-    	$storageConnection->getCommander()->repairKey($key->getId());
+    	$storageConnection->getRepairService()->repairKey($key->getId());
         $session->getFlashBag()->add('success', 'Key has been repaired.');
 
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
@@ -326,7 +326,7 @@ class HierarchyController {
 
 
         if($creationForm->isSubmitted() && $creationForm->isValid() /*&& $creation->isValid()*/) {
-            $newId = $storageConnection->getCommander()->createNode($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
+            $newId = $storageConnection->getCreationService()->createNode($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -430,7 +430,7 @@ class HierarchyController {
         }
 
         if($creationForm->isSubmitted() && $creationForm->isValid() && $creation->isValid()) {
-            $newId = $storageConnection->getCommander()->createNode($key->getId(), $request->request->all('fields'), $scope, $parent);
+            $newId = $storageConnection->getCreationService()->createNode($key->getId(), $request->request->all('fields'), $scope, $parent);
 
             $then = $request->request->get('_then', null);
             
@@ -542,7 +542,7 @@ class HierarchyController {
         }
 
         if($movementForm->isSubmitted() && $movementForm->isValid() && $movement->isValid()) {
-            $storageConnection->getCommander()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
+            $storageConnection->getMovementService()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
 
             $session->getFlashBag()->add('success', 'Node Moved');
         } else {
@@ -611,7 +611,7 @@ class HierarchyController {
         }
 
         if($orderForm->isSubmitted() && $orderForm->isValid() && $ordering->isValid()) {
-            $storageConnection->getCommander()->orderNode($key->getId(), $nodeId, $target);
+            $storageConnection->getOrderingService()->orderNode($key->getId(), $nodeId, $target);
 
             $session->getFlashBag()->add('success', 'Node Reordered');
         } else {
@@ -690,7 +690,7 @@ class HierarchyController {
         }
 
         if($editForm->isSubmitted() && $editForm->isValid() && $update->isValid()) {
-            $storageConnection->getCommander()->updateNode($key->getId(), $nodeId, $request->request->all('fields'));
+            $storageConnection->getUpdateService()->updateNode($key->getId(), $nodeId, $request->request->all('fields'));
 
             $then = $request->request->get('_then', null);
 

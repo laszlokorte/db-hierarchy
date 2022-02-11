@@ -1,6 +1,9 @@
 <?php
 
-namespace App\Hierarchy\Storage\Relational;
+namespace App\Hierarchy\Storage\Relational\Service;
+
+use App\Hierarchy\Storage\Relational\Naming;
+use App\Hierarchy\Storage\Relational\Quirks;
 
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
@@ -38,7 +41,7 @@ use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\ReferenceCoding;
 use App\Hierarchy\Schema\Definition\StorageCoding;
 
-class SchemaBuilder {
+class InstallationCommandBuilder {
 	public const CLOSURE_TABLE_PK_TYPE = 'INTEGER';
 	public const CLOSURE_TABLE_DEPTH_TYPE = 'INTEGER';
 
@@ -57,6 +60,7 @@ class SchemaBuilder {
 	
 		return $tables;
 	}
+
 	public function getViewsFor(string $keyId) {
 		$views = [
 			$this->buildHierarchyView($keyId),

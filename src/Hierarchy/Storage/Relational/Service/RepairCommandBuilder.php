@@ -2,26 +2,135 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
+use App\Hierarchy\Storage\Relational\Service\InstallationCommandBuilder;
+
 use App\Hierarchy\Storage\Relational\Naming;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+
+use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
+use App\Hierarchy\Storage\Relational\Algebra\Select;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
+use App\Hierarchy\Storage\Relational\Algebra\Delete;
+use App\Hierarchy\Storage\Relational\Algebra\Insert;
+use App\Hierarchy\Storage\Relational\Algebra\Setter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+
+use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class RepairCommandBuilder  {
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
 	}
 
-	// getDiagnosableKeys
-	// getDiagnosisQueriesForKey
 	// getRepairableKeys
 	// getCommandForRepairKey
+
+
+
+	public function getCommandForRepairKey(string $keyId) {
+		$result = [];
+
+		if($this->schemaDef->isKeyReflexive($keyId)) {
+			$result['invalid'] = $this->getDeleteForClosureRepair($keyId);
+			$result['missing'] = $this->getInsertForClosureRepair($keyId);
+		}
+
+		if($this->schemaDef->isKeyOrdered($keyId)) {
+			$result['order'] = $this->getUpdateForOrderRepair($keyId);
+		}
+
+		return $result;
+	}
+
+
+
+	public function getDeleteForClosureRepair(string $keyId) {
+		$closureTable = new TableReference($this->naming->closureTableName($keyId));
+		$invalidView = new TableReference($this->naming->closureInvalidViewName($keyId));
+		$invalidViewId = new ColumnReference($invalidView, $this->naming->closureInvalidIdColumn($keyId));
+
+		$idColumn = new ColumnReference($closureTable, $this->naming->closureTablePkName($keyId));
+
+		return new Delete($closureTable, 
+			new ElementOf(
+				$idColumn,
+				new Select([new Projection($invalidViewId)], [$invalidView])
+			)
+		);
+	}
+
+	public function getInsertForClosureRepair(string $keyId) {
+		$closureTableName = $this->naming->closureTableName($keyId);
+		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
+
+		$targetColumns = [
+			$this->naming->closureTablePkName($keyId),
+			$this->naming->closureParentColumnName($keyId),
+			$this->naming->closureChildColumnName($keyId),
+			$this->naming->closureTableDepthName($keyId),
+		];
+
+		$sourceColumns = [
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingIdColumn($keyId))),
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingParentColumn($keyId))),
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingChildColumn($keyId))),
+			new Projection(new ColumnReference($missingView, $this->naming->closureMissingDepthColumn($keyId))),
+		];
+
+		if($this->schemaDef->isKeyScoped($keyId)) {
+			$targetColumns[] = $this->naming->nodeOwnScopeColumnName($keyId);
+			$sourceColumns[] = new Projection(new ColumnReference($missingView, $this->naming->nodeOwnScopeColumnName($keyId)));
+		}
+
+		return new Insert(
+			$closureTableName,
+			$targetColumns,
+			new Select($sourceColumns, [$missingView])
+		);
+	}
+
+	public function getUpdateForOrderRepair(string $keyId) {
+		$table = new TableReference($this->naming->nodeTableName($keyId));
+		$orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
+		$orderColumn = new ColumnReference($table, $this->naming->orderColumnName($keyId));
+		$orderId = new ColumnReference($orderView, $this->naming->normalizedOrderIdColumnName($keyId));
+		$storedOrder = new ColumnReference($orderView, $this->naming->normalizedOrderStoredColumnName($keyId));
+		$normalizedOrder = new ColumnReference($orderView, $this->naming->normalizedOrderNormalizedColumnName($keyId));
+		
+		$innerNormalized = new Projection($normalizedOrder, new Identifier("normalized_order"));
+		$innerId = new Projection($orderId, new Identifier("inner_id"));
+
+
+		return new Update($table, [
+				new Setter($orderColumn, new Projected($innerNormalized))
+			],
+			new BinaryOperation(
+				new Equal(),
+				new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+				new Projected($innerId)
+			),
+			new Select([$innerId, $innerNormalized], [$orderView], [], new BinaryOperation(
+				new NotEqual(),
+				$storedOrder,
+				$normalizedOrder
+			))
+		);
+	}
 
 	public function getSelectForFindKeyClosureMissings($keyId) {
 		$missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 		return new Select([
 			new Projection(
 				$this->coder->decodeColumnType(
-					SchemaBuilder::CLOSURE_TABLE_PK_TYPE,
+					InstallationCommandBuilder::CLOSURE_TABLE_PK_TYPE,
 					new ColumnReference($missingView, $this->naming->closureMissingIdColumn($keyId))
 				),
 				$this->naming->closureMissingIdColumn($keyId)
@@ -42,7 +151,7 @@ class RepairCommandBuilder  {
 			),
 			new Projection(
 				$this->coder->decodeColumnType(
-					SchemaBuilder::CLOSURE_TABLE_DEPTH_TYPE,
+					InstallationCommandBuilder::CLOSURE_TABLE_DEPTH_TYPE,
 					new ColumnReference($missingView, $this->naming->closureMissingDepthColumn($keyId))
 				),
 				$this->naming->closureMissingDepthColumn($keyId)
@@ -62,7 +171,7 @@ class RepairCommandBuilder  {
 		return new Select([
 			new Projection(
 				$this->coder->decodeColumnType(
-					SchemaBuilder::CLOSURE_TABLE_PK_TYPE,
+					InstallationCommandBuilder::CLOSURE_TABLE_PK_TYPE,
 					new ColumnReference($invalidView, $this->naming->closureInvalidIdColumn($keyId))
 				),
 				$this->naming->closureInvalidIdColumn($keyId)
@@ -83,7 +192,7 @@ class RepairCommandBuilder  {
 			),
 			new Projection(
 				$this->coder->decodeColumnType(
-					SchemaBuilder::CLOSURE_TABLE_DEPTH_TYPE,
+					InstallationCommandBuilder::CLOSURE_TABLE_DEPTH_TYPE,
 					new ColumnReference($invalidView, $this->naming->closureInvalidDepthColumn($keyId))
 				),
 				$this->naming->closureInvalidDepthColumn($keyId)
