@@ -18,6 +18,8 @@ use Symfony\Component\Form\Extension\Core\Type;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
+use App\Form\Type\Field as HierarchyField;
+
 class KeyFieldsType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -57,13 +59,8 @@ class KeyFieldsType extends AbstractType
                     break;
                 case "bool":
                     $builder
-                    ->add($field->getId(), Type\ChoiceType::class, [
+                    ->add($field->getId(), HierarchyField\BoolType::class, [
                         'label' => $field->getLabel()->getString(),
-                        'expanded' => true,
-                        'choices'  => array_combine(
-                            ['yes', 'no'],
-                            ['yes', 'no']
-                        ),
                     ]);
                     break;
                 case "date":

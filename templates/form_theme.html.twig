@@ -1,4 +1,4 @@
-{% block nesting_widget %}
+{% block hierarchy_nesting_widget %}
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >
@@ -10,7 +10,7 @@
     </select>
 {% endblock %}
 
-{% block reference_widget %}
+{% block hierarchy_reference_widget %}
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >
@@ -22,7 +22,7 @@
     </select>
 {% endblock %}
 
-{% block position_widget %}
+{% block hierarchy_position_widget %}
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >

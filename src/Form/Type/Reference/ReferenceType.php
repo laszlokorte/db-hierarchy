@@ -32,7 +32,7 @@ class ReferenceType extends AbstractType
         $resolver->setDefaults([
             'compound' => false,
         ]);
-        
+
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setRequired('storageConnection');
@@ -49,5 +49,10 @@ class ReferenceType extends AbstractType
             'choices' => $choiceList,
             'key' => $options['key'],
         ]);
+    }
+
+    public function getBlockPrefix()
+    {
+        return 'hierarchy_reference';
     }
 }

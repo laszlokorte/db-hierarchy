@@ -42,7 +42,7 @@ class NestingType extends AbstractType
         $resolver->setDefaults([
             'compound' => false,
         ]);
-        
+
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setDefault('nodeId', null);
@@ -68,5 +68,10 @@ class NestingType extends AbstractType
 	    );
 
 	    return $treeValueIterator;
+    }
+
+    public function getBlockPrefix()
+    {
+        return 'hierarchy_nesting';
     }
 }
