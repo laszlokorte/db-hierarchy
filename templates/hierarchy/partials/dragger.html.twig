@@ -21,7 +21,6 @@
               body: fd
             }).then((r) => {
                 if(r.url != window.location.href) {
-                return
                 window.location.href = r.url
             } else {
                 window.location.reload()

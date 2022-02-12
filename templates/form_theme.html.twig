@@ -29,7 +29,7 @@
         <option disabled>Top</option>
         {% for id, node in choices %}
             <option disabled>{{key.summarize(node, true)}}</option>
-            <option value="{{id}}">put here</option>
+            <option value="{{node.order}}">put here</option>
         {% endfor %}
         <option disabled>Bottom</option>
     </select>

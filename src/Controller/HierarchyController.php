@@ -371,8 +371,6 @@ class HierarchyController {
             throw new NotFoundHttpException(sprintf('%s are not ordered', $key->getLabel()->getPlural()));
         }
         
-        $target = $request->request->get('target_order', 0);
-
         $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $orderingService = $storageConnection->getOrderingService();
 
@@ -394,14 +392,17 @@ class HierarchyController {
 
         $orderForm->handleRequest($request);
 
-        if($orderForm->isSubmitted()) {
-            $ordering = $orderingService->getValidatedOrdering($node, $target);
+        // if($orderForm->isSubmitted()) {
+        //     $ordering = $orderingService->getValidatedOrdering($node, $target);
 
-        } else {
-            $ordering = $orderingService->getFreshOrdering($node);
-        }
+        // } else {
+        //     $ordering = $orderingService->getFreshOrdering($node);
+        // }
 
-        if($orderForm->isSubmitted() && $orderForm->isValid() && $ordering->isValid()) {
+        if($orderForm->isSubmitted() && $orderForm->isValid()/* && $ordering->isValid()*/) {
+            $target = $orderForm->getData()['new_position'];
+            dump($target);
+
             $storageConnection->getOrderingService()->orderNode($key->getId(), $nodeId, $target);
 
             $session->getFlashBag()->add('success', 'Node Reordered');
@@ -412,7 +413,7 @@ class HierarchyController {
                 'orderTargets' => $storageConnection->getQueryService()->findNodeSiblings($key->getId(), $nodeId),
                 'node' => $node,
                 'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
-                'ordering' => $ordering,
+                //'ordering' => $ordering,
                 'orderForm' => $orderForm->createView(),
             ];
         }

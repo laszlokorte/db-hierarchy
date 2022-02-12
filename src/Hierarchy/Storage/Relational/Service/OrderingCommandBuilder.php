@@ -7,6 +7,29 @@ use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
+use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Cases;
+use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThan;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThanEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Subtraction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
+use App\Hierarchy\Storage\Relational\Algebra\Setter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Select;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Tuple;
+
 class OrderingCommandBuilder  {
 
 	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {

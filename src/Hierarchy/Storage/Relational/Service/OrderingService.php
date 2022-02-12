@@ -9,6 +9,8 @@ use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Changeset\Ordering;
 use App\Hierarchy\Data\Node;
 
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 

@@ -29,6 +29,10 @@ class PositionType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setDefaults([
+            'compound' => false,
+        ]);
+        
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setRequired('storageConnection');
