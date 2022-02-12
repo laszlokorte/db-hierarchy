@@ -10,7 +10,19 @@
     </select>
 {% endblock %}
 
-{% block order_position_widget %}
+{% block reference_widget %}
+    <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
+        {{ block('widget_attributes') }}
+    {%- endwith %} >
+        
+        {% for node in choices %}
+            <option value="{{node.id}}">{{key.summarize(node, true)}}</option>
+        {% endfor %}
+
+    </select>
+{% endblock %}
+
+{% block position_widget %}
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >

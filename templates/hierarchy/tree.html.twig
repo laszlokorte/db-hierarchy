@@ -18,9 +18,9 @@
             event.stopPropagation();
             let fd = new FormData();
             if(event.dataTransfer.getData('key')==this.dataset.key) {
-                fd.append('target_scope-parent', this.dataset.scope+'/'+this.dataset.parent);
+                fd.append('move_node[target]', this.dataset.scope+'/'+this.dataset.parent);
             } else {
-                fd.append('target_scope-parent', this.dataset.parent+'/');
+                fd.append('move_node[target]', this.dataset.parent+'/');
             }
             fd.append('_then', 'tree');
             document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false)
@@ -91,9 +91,11 @@
     <h3><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">{{ key.label.string(key.isSingleton) }}</a></h3>
     
     {% if not hierarchyNodes.hasNodes(key.id) %}
+        {% if not key.isSingleton %}
         <p>
             None
         </p>
+        {% endif %}
     {% else %}
         {% if key.isReflexive %}
             <span data-key="{{key.id}}"
@@ -105,7 +107,7 @@
         this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target-large,.state-over').forEach(e=>e.classList.remove('drag-target-large','state-over'));
             event.stopPropagation();
             let fd = new FormData();
-            fd.append('target_scope-parent', '/');
+            fd.append('move_node[target]', '/');
             fd.append('_then', 'tree');
             document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false);
             fetch(event.dataTransfer.getData('move-url'), {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form\Type;
+namespace App\Form\Type\Order;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -14,9 +14,9 @@ use Symfony\Component\Form\Extension\Core\Type;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
-use App\Hierarchy\Data\NodePositionIterator;
+use App\Hierarchy\Data\NodeCollectionIterator;
 
-class OrderPositionType extends AbstractType
+class PositionType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -24,7 +24,7 @@ class OrderPositionType extends AbstractType
         $storageConnection = $options['storageConnection'];
         $nodeId = $options['nodeId'];
 
-        $builder->setAttribute('choice_list', new NodePositionIterator($storageConnection->getOrderingService()->findNodeSiblings($key->getId(), $nodeId)));
+        $builder->setAttribute('choice_list', new NodeCollectionIterator($storageConnection->getOrderingService()->findNodeSiblings($key->getId(), $nodeId)));
     }
 
     public function configureOptions(OptionsResolver $resolver): void

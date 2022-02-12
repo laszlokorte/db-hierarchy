@@ -95,7 +95,9 @@ class HierarchyExtension extends AbstractExtension
     {
     	$deletionForm = $this->formFactory->create(
             DeleteNodeType::class, 
-            [], 
+            [
+                'cascade' => 'no',
+            ], 
             [
                 'key' => $hierarchy->getKey($keyId), 
                 'storageConnection' => $this->schemaLoader->loadStorageConnection($hierarchy->getSlug()),

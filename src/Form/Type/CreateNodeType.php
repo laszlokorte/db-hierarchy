@@ -2,7 +2,7 @@
 
 namespace App\Form\Type;
 
-use App\Form\Type\NestingType;
+use App\Form\Type\Nesting\NestingType;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;

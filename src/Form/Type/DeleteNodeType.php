@@ -9,6 +9,7 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use App\Hierarchy\Storage\Relational\StorageConnection;
@@ -26,6 +27,10 @@ class DeleteNodeType extends AbstractType
                 'attr' => ['class' => 'action-button danger']
             ]);
 
+        $builder
+            ->add('cascade', HiddenType::class, [
+                'empty_data' => 'no',
+            ]);
         $builder->add($buttons);
     }
 

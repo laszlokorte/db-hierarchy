@@ -20,14 +20,14 @@
 {{ form_errors(movementForm) }}
 
 <dl class="form-container">
-  <dt class="form-container-label">{{ form_label(movementForm.move_to) }}</dt>
+  <dt class="form-container-label">{{ form_label(movementForm.target) }}</dt>
    <dd class="form-container-field">
-   {{ form_widget(movementForm.move_to) }}
-   {{ form_errors(movementForm.move_to) }}
+   {{ form_widget(movementForm.target) }}
+   {{ form_errors(movementForm.target) }}
    </dd>
-   {% if movementForm.move_to.vars.help is not empty %}
+   {% if movementForm.target.vars.help is not empty %}
    <dd class="form-container-info">
-   <i class="icon-link info tooltipped" aria-label="{{movementForm.move_to.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'question'} only %}</i>
+   <i class="icon-link info tooltipped" aria-label="{{movementForm.target.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'question'} only %}</i>
    </dd>
    {% endif %}
    <dt class="form-container-label form-container-spacer"></dt>

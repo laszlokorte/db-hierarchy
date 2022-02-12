@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Form\Type;
-
-use App\Form\Type\Order\PositionType;
+namespace App\Form\Type\Reference;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -16,31 +14,17 @@ use Symfony\Component\Form\Extension\Core\Type;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
-class OrderNodeType extends AbstractType
+use App\Hierarchy\Data\NodeCollectionIterator;
+
+class ReferenceType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+	public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $key = $options['key'];
         $storageConnection = $options['storageConnection'];
         $nodeId = $options['nodeId'];
 
-
-        $builder->add('new_position', PositionType::class, [
-            'label' => 'New Position',
-            'key' => $key,
-            'storageConnection' => $storageConnection,
-            'nodeId' => $nodeId,
-        ]);
-
-        $buttons = $builder->create('buttons', ActionType::class);
-
-        $buttons
-            ->add('move', Type\SubmitType::class, [
-                'label' => 'Reorder', 
-                'attr' => ['class' => 'form-button primary']
-            ]);
-
-        $builder->add($buttons);
+        $builder->setAttribute('choice_list', new NodeCollectionIterator($storageConnection->getQueryService()->findAllNodes($key->getId())));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -50,11 +34,16 @@ class OrderNodeType extends AbstractType
         $resolver->setRequired('storageConnection');
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
         $resolver->setRequired('nodeId');
-        $resolver->setAllowedTypes('nodeId', 'string');
+        $resolver->setAllowedTypes('nodeId', ['string','null']);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
+    	$choiceList = $form->getConfig()->getAttribute('choice_list');
+
+        $view->vars = array_replace($view->vars, [
+            'choices' => $choiceList,
+            'key' => $options['key'],
+        ]);
     }
-    
 }

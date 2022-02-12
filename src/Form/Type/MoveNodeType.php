@@ -2,6 +2,8 @@
 
 namespace App\Form\Type;
 
+use App\Form\Type\Nesting\NestingType;
+
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
@@ -22,7 +24,7 @@ class MoveNodeType extends AbstractType
         $storageConnection = $options['storageConnection'];
         $nodeId = $options['nodeId'];
 
-        $builder->add('move_to', NestingType::class, [
+        $builder->add('target', NestingType::class, [
             'label' => 'Move To',
             'key' => $key,
             'storageConnection' => $storageConnection,

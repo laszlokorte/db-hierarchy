@@ -6,7 +6,7 @@ use App\Hierarchy\Schema\Key;
 
 use Iterator;
 
-class NodePositionIterator implements Iterator {
+class NodeCollectionIterator implements Iterator {
 	private $collection;
 	private $ids;
 	private $i;

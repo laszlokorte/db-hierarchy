@@ -34,7 +34,6 @@ class NodeCollection implements \Countable {
 		return $this->rows[$nodeId]['_order'] ?? null;
 	}
 
-
 	public function getNodeScope($nodeId) {
 		return $this->rows[$nodeId]['_scope'] ?? null;
 	}

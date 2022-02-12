@@ -107,6 +107,14 @@ class Key {
 		);
 	}
 
+	public function getReferencingKey($keyId) {
+		if(!$this->def->isKeyReferencedBy($keyId, $this->keyId)) {
+			throw new \Exception(sprintf('%s is not in %s', $keyId, implode(', ', $this->def->getReferencingKeys($this->keyId))));
+		}
+
+		return new Key($this->def, $keyId);
+	}
+
 	public function newCreation(?Node $superNode = null) {
 		if($superNode === null) {
 			return new Creation(

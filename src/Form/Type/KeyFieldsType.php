@@ -2,6 +2,8 @@
 
 namespace App\Form\Type;
 
+use App\Form\Type\Reference\ReferenceType;
+
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
@@ -46,14 +48,11 @@ class KeyFieldsType extends AbstractType
                     break;
                 case "reference":
                     $builder
-                    ->add($field->getId(), Type\ChoiceType::class, [
+                    ->add($field->getId(), ReferenceType::class, [
+                        'storageConnection' => $storageConnection,
                         'label' => $field->getLabel()->getString(),
-                        'choice_loader' => new CallbackChoiceLoader(function() use ($field, $storageConnection) {
-                            $target = $field->getOption('target');
-
-                            $all = $storageConnection->getQueryService()->findAllNodes($target);
-                            return $all->getIds();
-                        }),
+                        'key' => $key->getReferencingKey($field->getOption('target')),
+                        'nodeId' => null,
                     ]);
                     break;
                 case "bool":

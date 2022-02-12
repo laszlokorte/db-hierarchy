@@ -221,7 +221,8 @@ class HierarchyController {
 
         $deletionForm = $formFactory->create(
             DeleteNodeType::class, 
-            [], 
+            [
+            ], 
             [
                 'key' => $key, 
                 'storageConnection' => $storageConnection,
@@ -236,7 +237,13 @@ class HierarchyController {
 
         $deletionForm->handleRequest($request);
 
+        if($deletionForm->isSubmitted() && $deletionForm->getData()['cascade'] !== 'yes' && $deletion->isCascading()) {
+            return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+        }
+
+     
         if($deletionForm->isSubmitted() && $deletionForm->isValid() && $deletion->isNotBlocked()) {
+
             try {
                 $deletionService->performDeletion($deletion);
             } catch(DeletionBlockedException $e) {
@@ -245,6 +252,8 @@ class HierarchyController {
                 return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
             }
         } else {
+            $deletionForm->get('cascade')->submit('yes');
+
             return [
                 'hierarchy' => $hierarchy,
                 'key' => $key,
@@ -280,6 +289,164 @@ class HierarchyController {
             return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
         } 
     }
+
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_move', name: 'move_node', methods: 'POST')]
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_move', name: 'ask_move_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    #[ParamConverter('key')]
+    #[Template('hierarchy/ask_move_node.html.twig')]
+    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
+    {
+        if(!$key->isNested()) {
+            throw new NotFoundHttpException(sprintf('%s are not nested', $key->getLabel()->getPlural()));
+        }
+
+        list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
+
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
+        $movementService = $storageConnection->getMovementService();
+        
+        
+        $movementForm = $formFactory->create(
+            MoveNodeType::class, 
+            [], 
+            [
+                'key' => $key, 
+                'nodeId' => $nodeId, 
+                'storageConnection' => $storageConnection,
+                'action' => $urlGen->generate('move_node', [
+                    'hierarchySlug' => $hierarchy->getSlug(), 
+                    'keyId' => $key->getId(), 
+                    'nodeId' => $nodeId
+                ]),
+                'method' => 'POST',
+            ]
+        );
+
+        $movementForm->handleRequest($request);
+
+        if($movementForm->isSubmitted()) {
+            $movement = $movementService->getValidatedMovement($node, $scope, $parent);
+        } else {
+            $movement = $movementService->getFreshMovement($node);
+        }
+
+        if($movementForm->isSubmitted() && $movementForm->isValid() && $movement->isValid()) {
+            $storageConnection->getMovementService()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
+
+            $session->getFlashBag()->add('success', 'Node Moved');
+        } else {
+            return [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'moveTargets' => $storageConnection->getMovementService()->findNodeMoveTargets($key->getId(), $nodeId),
+                'node' => $node,
+                'movement' => $movement,
+                'movementForm' => $movementForm->createView(),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
+            ];
+        }
+
+
+        $then = $request->request->get('_then', null);
+
+        if($then === 'tree') {
+            return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
+        } else {
+            return new RedirectResponse($urlGen->generate('ask_move_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+        }
+    }
+
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_order', name: 'order_node', methods: 'POST')]
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_order', name: 'ask_order_node', methods: 'GET')]
+    #[ParamConverter('storageConnection')]
+    #[ParamConverter('hierarchy')]
+    #[ParamConverter('key')]
+    #[Template('hierarchy/ask_order_node.html.twig')]
+    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
+    {
+
+        if(!$key->isOrdered()) {
+            throw new NotFoundHttpException(sprintf('%s are not ordered', $key->getLabel()->getPlural()));
+        }
+        
+        $target = $request->request->get('target_order', 0);
+
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
+        $orderingService = $storageConnection->getOrderingService();
+
+        $orderForm = $formFactory->create(
+            OrderNodeType::class, 
+            [], 
+            [
+                'key' => $key, 
+                'nodeId' => $nodeId, 
+                'storageConnection' => $storageConnection,
+                'action' => $urlGen->generate('order_node', [
+                    'hierarchySlug' => $hierarchy->getSlug(), 
+                    'keyId' => $key->getId(), 
+                    'nodeId' => $nodeId
+                ]),
+                'method' => 'POST',
+            ]
+        );
+
+        $orderForm->handleRequest($request);
+
+        if($orderForm->isSubmitted()) {
+            $ordering = $orderingService->getValidatedOrdering($node, $target);
+
+        } else {
+            $ordering = $orderingService->getFreshOrdering($node);
+        }
+
+        if($orderForm->isSubmitted() && $orderForm->isValid() && $ordering->isValid()) {
+            $storageConnection->getOrderingService()->orderNode($key->getId(), $nodeId, $target);
+
+            $session->getFlashBag()->add('success', 'Node Reordered');
+        } else {
+            return [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'orderTargets' => $storageConnection->getQueryService()->findNodeSiblings($key->getId(), $nodeId),
+                'node' => $node,
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
+                'ordering' => $ordering,
+                'orderForm' => $orderForm->createView(),
+            ];
+        }
+
+        $then = $request->request->get('_then', null);
+
+        if($then === 'tree') {
+            return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
+        } elseif($then === 'list') {
+            $directParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
+
+            if($directParent) {
+                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $directParent->getKey(), 'nodeId' => $directParent->getId(), 'childKeyId' => $key->getId()]));
+
+            } else {
+                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
+            }
+        } elseif($then === 'root_list') {
+            return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
+        } elseif($then === 'parent') {
+            $directParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
+
+            if($directParent) {
+                return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $directParent->getKey(), 'nodeId' => $directParent->getId()]));
+
+            } else {
+                return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
+            }
+        } else {
+            return new RedirectResponse($urlGen->generate('ask_order_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+        }
+    }
+
+
 
     #[Route('/{hierarchySlug}/{keyId}', name: 'create_node', methods: 'POST')]
     #[Route('/{hierarchySlug}/{keyId}/+', name: 'new_root_node', methods: 'GET')]
@@ -496,162 +663,6 @@ class HierarchyController {
             'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
             'childNodes' => $storageConnection->getQueryService()->findNodeAllChildren($key->getId(), $nodeId),
         ];
-    }
-
-    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_move', name: 'move_node', methods: 'POST')]
-    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_move', name: 'ask_move_node', methods: 'GET')]
-    #[ParamConverter('storageConnection')]
-    #[ParamConverter('hierarchy')]
-    #[ParamConverter('key')]
-    #[Template('hierarchy/ask_move_node.html.twig')]
-    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
-    {
-        if(!$key->isNested()) {
-            throw new NotFoundHttpException(sprintf('%s are not nested', $key->getLabel()->getPlural()));
-        }
-
-        list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
-
-        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
-        $movementService = $storageConnection->getMovementService();
-        
-        
-        $movementForm = $formFactory->create(
-            MoveNodeType::class, 
-            [], 
-            [
-                'key' => $key, 
-                'nodeId' => $nodeId, 
-                'storageConnection' => $storageConnection,
-                'action' => $urlGen->generate('move_node', [
-                    'hierarchySlug' => $hierarchy->getSlug(), 
-                    'keyId' => $key->getId(), 
-                    'nodeId' => $nodeId
-                ]),
-                'method' => 'POST',
-            ]
-        );
-
-        $movementForm->handleRequest($request);
-
-        if($movementForm->isSubmitted()) {
-            $movement = $movementService->getValidatedMovement($node, $scope, $parent);
-        } else {
-            $movement = $movementService->getFreshMovement($node);
-        }
-
-        if($movementForm->isSubmitted() && $movementForm->isValid() && $movement->isValid()) {
-            $storageConnection->getMovementService()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
-
-            $session->getFlashBag()->add('success', 'Node Moved');
-        } else {
-            return [
-                'hierarchy' => $hierarchy,
-                'key' => $key,
-                'moveTargets' => $storageConnection->getMovementService()->findNodeMoveTargets($key->getId(), $nodeId),
-                'node' => $node,
-                'movement' => $movement,
-                'movementForm' => $movementForm->createView(),
-                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
-            ];
-        }
-
-
-        $then = $request->request->get('_then', null);
-
-        if($then === 'tree') {
-            return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
-        } else {
-            return new RedirectResponse($urlGen->generate('ask_move_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
-        }
-    }
-
-    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_order', name: 'order_node', methods: 'POST')]
-    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_order', name: 'ask_order_node', methods: 'GET')]
-    #[ParamConverter('storageConnection')]
-    #[ParamConverter('hierarchy')]
-    #[ParamConverter('key')]
-    #[Template('hierarchy/ask_order_node.html.twig')]
-    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
-    {
-
-        if(!$key->isOrdered()) {
-            throw new NotFoundHttpException(sprintf('%s are not ordered', $key->getLabel()->getPlural()));
-        }
-        
-        $target = $request->request->get('target_order', 0);
-
-        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
-        $orderingService = $storageConnection->getOrderingService();
-
-        $orderForm = $formFactory->create(
-            OrderNodeType::class, 
-            [], 
-            [
-                'key' => $key, 
-                'nodeId' => $nodeId, 
-                'storageConnection' => $storageConnection,
-                'action' => $urlGen->generate('order_node', [
-                    'hierarchySlug' => $hierarchy->getSlug(), 
-                    'keyId' => $key->getId(), 
-                    'nodeId' => $nodeId
-                ]),
-                'method' => 'POST',
-            ]
-        );
-
-        $orderForm->handleRequest($request);
-
-        if($orderForm->isSubmitted()) {
-            $ordering = $orderingService->getValidatedOrdering($node, $target);
-
-        } else {
-            $ordering = $orderingService->getFreshOrdering($node);
-        }
-
-        if($orderForm->isSubmitted() && $orderForm->isValid() && $ordering->isValid()) {
-            $storageConnection->getOrderingService()->orderNode($key->getId(), $nodeId, $target);
-
-            $session->getFlashBag()->add('success', 'Node Reordered');
-        } else {
-            return [
-                'hierarchy' => $hierarchy,
-                'key' => $key,
-                'orderTargets' => $storageConnection->getQueryService()->findNodeSiblings($key->getId(), $nodeId),
-                'node' => $node,
-                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
-                'ordering' => $ordering,
-                'orderForm' => $orderForm->createView(),
-            ];
-        }
-
-        $then = $request->request->get('_then', null);
-
-        if($then === 'tree') {
-            return new RedirectResponse($urlGen->generate('hierarchy_tree', ['hierarchySlug' => $hierarchy->getSlug()]));
-        } elseif($then === 'list') {
-            $directParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
-
-            if($directParent) {
-                return new RedirectResponse($urlGen->generate('list_child_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $directParent->getKey(), 'nodeId' => $directParent->getId(), 'childKeyId' => $key->getId()]));
-
-            } else {
-                return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
-            }
-        } elseif($then === 'root_list') {
-            return new RedirectResponse($urlGen->generate('list_root_nodes', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId()]));
-        } elseif($then === 'parent') {
-            $directParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
-
-            if($directParent) {
-                return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $directParent->getKey(), 'nodeId' => $directParent->getId()]));
-
-            } else {
-                return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
-            }
-        } else {
-            return new RedirectResponse($urlGen->generate('ask_order_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
-        }
     }
 
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}', name: 'update_node', methods: 'POST')]

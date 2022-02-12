@@ -47,7 +47,7 @@
 
   {% block tab_0 %}
       
-    {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, rootKey.id, nodeId), cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, rootKey.id, nodeId), cancel_tab: defaultTabId|default(null),key: rootKey} only %}
 
   {% endblock %}
 

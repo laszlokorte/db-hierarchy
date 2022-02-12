@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form\Type;
+namespace App\Form\Type\Nesting;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;

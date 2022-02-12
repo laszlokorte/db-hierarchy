@@ -13,13 +13,15 @@
             event.stopPropagation()
             this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))
             let fd = new FormData();
-            fd.append('target_order', this.dataset.order);
+            fd.append('order_node[new_position]', this.dataset.order);
+            fd.append('_then', '{{then}}');
             fd.append('_then', '{{then}}');
             fetch(event.dataTransfer.getData('order-url'), {
               method: 'POST',
               body: fd
             }).then((r) => {
                 if(r.url != window.location.href) {
+                return
                 window.location.href = r.url
             } else {
                 window.location.reload()
