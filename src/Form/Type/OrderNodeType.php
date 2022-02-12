@@ -51,6 +51,10 @@ class OrderNodeType extends AbstractType
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
         $resolver->setRequired('nodeId');
         $resolver->setAllowedTypes('nodeId', 'string');
+
+        $resolver->setDefaults([
+            'csrf_token_id'   => 'hierarchy_order',
+        ]);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void

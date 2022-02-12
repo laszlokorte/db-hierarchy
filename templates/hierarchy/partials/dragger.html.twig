@@ -14,17 +14,26 @@
             this.classList.remove('state-over');document.body.classList.remove('state-dragging');document.querySelectorAll('.drag-target').forEach(e=>e.classList.remove('drag-target'))
             let fd = new FormData();
             fd.append('order_node[new_position]', this.dataset.order);
-            fd.append('_then', '{{then}}');
+            fd.append('order_node[_token]', document.querySelector('meta[name=csrf_token_order]').getAttribute('content'));
             fd.append('_then', '{{then}}');
             fetch(event.dataTransfer.getData('order-url'), {
               method: 'POST',
               body: fd
             }).then((r) => {
                 if(r.url != window.location.href) {
-                window.location.href = r.url
-            } else {
-                window.location.reload()
-            }})  
+                    //window.location.href = r.url
+                    r.text().then((t) => {
+                        var doc = new DOMParser().parseFromString(t, 'text/html');
+                        var b = doc.querySelector('body');
+                        document.body.replaceWith(b);
+                        history.pushState({}, doc.title, r.url)
+                    }).catch(() => {
+                        window.location = r.url
+                    })
+                } else {
+                    window.location.reload()
+                }
+            })  
         }
     ">
     {% include 'hierarchy/partials/icon.html.twig' with {icon: 'three-bars'} only %}

@@ -22,6 +22,8 @@
         {% endblock %}
 
         <link rel="icon" href="{{path('hierarchy_favicon_svg', {hierarchySlug: hierarchy|default(systemHierarchy).slug})}}">
+
+        <meta name="csrf_token_order" content="{{csrf_token('hierarchy_order')}}" />
         {% endblock %}
     </head>
     <body class="html-body">
@@ -35,5 +37,10 @@
         {% endblock %}
 
         <script src="/formfields.js" defer></script>
+        <script>
+            window.addEventListener('popstate', function(event) {
+                location.reload()
+            })
+        </script>
     </body>
 </html>
