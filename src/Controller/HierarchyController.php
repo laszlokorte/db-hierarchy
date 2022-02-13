@@ -302,8 +302,6 @@ class HierarchyController {
             throw new NotFoundHttpException(sprintf('%s are not nested', $key->getLabel()->getPlural()));
         }
 
-        list($scope, $parent) = explode('/', $request->request->get('target_scope-parent','/'), 2);
-
         $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $movementService = $storageConnection->getMovementService();
         
@@ -326,13 +324,11 @@ class HierarchyController {
 
         $movementForm->handleRequest($request);
 
-        if($movementForm->isSubmitted()) {
-            $movement = $movementService->getValidatedMovement($node, $scope, $parent);
-        } else {
-            $movement = $movementService->getFreshMovement($node);
-        }
+        if($movementForm->isSubmitted() && $movementForm->isValid()) {
 
-        if($movementForm->isSubmitted() && $movementForm->isValid() && $movement->isValid()) {
+            list($scope, $parent) = explode('/', $movementForm->getData()['target'], 2);
+            
+
             $storageConnection->getMovementService()->moveNode($key->getId(), $nodeId, $scope?:null, $parent?:null);
 
             $session->getFlashBag()->add('success', 'Node Moved');
@@ -342,7 +338,6 @@ class HierarchyController {
                 'key' => $key,
                 'moveTargets' => $storageConnection->getMovementService()->findNodeMoveTargets($key->getId(), $nodeId),
                 'node' => $node,
-                'movement' => $movement,
                 'movementForm' => $movementForm->createView(),
                 'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
             ];
@@ -401,7 +396,6 @@ class HierarchyController {
 
         if($orderForm->isSubmitted() && $orderForm->isValid()/* && $ordering->isValid()*/) {
             $target = $orderForm->getData()['new_position'];
-            dump($target);
 
             $storageConnection->getOrderingService()->orderNode($key->getId(), $nodeId, $target);
 
@@ -457,17 +451,6 @@ class HierarchyController {
     #[Template('hierarchy/new_root_node.html.twig')]
     public function createNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key)
     {
-        $scope = $request->request->get('scope', NULL);
-        $parent = $request->request->get('parent', NULL);
-
-        if($scope || $parent) {
-            $parentKey = $parent === null ? $key->getScopeKey() : $key;
-            $parentId = $parent ?: $scope;
-            $parentNode = $storageConnection->getQueryService()->findNode($parentKey->getId(), $parentId);
-        } else {
-            $parentNode = null;
-        }
-
         $creationService = $storageConnection->getCreationService();
 
         $creationForm = $formFactory->create(
@@ -486,14 +469,10 @@ class HierarchyController {
 
         $creationForm->handleRequest($request);
 
-        if($creationForm->isSubmitted()) {
-            $creation = $creationService->getValidatedCreation($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
-        } else {
-            $creation = $creationService->getFreshCreation($key->getId());
-        }
+        if($creationForm->isSubmitted() && $creationForm->isValid()) {
+            list($scope, $parent) = explode('/', $creationForm->getData()['_nesting'], 2);
+            dump($scope);
 
-
-        if($creationForm->isSubmitted() && $creationForm->isValid() /*&& $creation->isValid()*/) {
             $newId = $storageConnection->getCreationService()->createNode($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
 
             $then = $request->request->get('_then', null);
@@ -504,7 +483,6 @@ class HierarchyController {
                 'hierarchy' => $hierarchy,
                 'key' => $key,
                 'parentNodes' => new MultiCollection(null, null, [], null, null),
-                'creation' => $creation,
                 'creationForm' => $creationForm->createView(),
             ];
         }
@@ -582,8 +560,7 @@ class HierarchyController {
 
         $creationForm->handleRequest($request);
 
-        if($creationForm->isSubmitted()) {
-
+        if($creationForm->isSubmitted() && $creationForm->isValid()) {
             if($childKey->getId() == $key->getId()) {
                 $scope = $parentNode->getScope();
                 $parent = $parentNode->getId();
@@ -591,12 +568,7 @@ class HierarchyController {
                 $scope = $parentNode->getId();
                 $parent = null;
             }
-            $creation = $creationService->getValidatedCreation($childKey->getId(), $creationForm->getData()['fields'], $scope, $parent);
-        } else {
-            $creation = $creationService->getFreshCreation($childKey->getId(), $parentNode);
-        }
 
-        if($creationForm->isSubmitted() && $creationForm->isValid()) {
             $newId = $storageConnection->getCreationService()->createNode($childKey->getId(), $creationForm->getData()['fields'], $scope, $parent);
 
             $then = $request->request->get('_then', null);
@@ -609,7 +581,6 @@ class HierarchyController {
                     'childKey' => $childKey,
                     'node' => $parentNode,
                     'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
-                    'creation' => $creation,
                     'creationForm' => $creationForm->createView(),
             ];
         }
@@ -694,14 +665,8 @@ class HierarchyController {
 
         $editForm->handleRequest($request);
 
-        if($editForm->isSubmitted()) {
-            $update = $updateService->getValidatedUpdate($node, $request->request->all('fields'));
-        } else {
-            $update = $updateService->getFreshUpdate($node);
-        }
-
-        if($editForm->isSubmitted() && $editForm->isValid() && $update->isValid()) {
-            $storageConnection->getUpdateService()->updateNode($key->getId(), $nodeId, $request->request->all('fields'));
+        if($editForm->isSubmitted() && $editForm->isValid()) {
+            $storageConnection->getUpdateService()->updateNode($key->getId(), $nodeId, $editForm->getData()['fields']);
 
             $then = $request->request->get('_then', null);
 
@@ -712,7 +677,6 @@ class HierarchyController {
                 'key' => $key,
                 'node' => $node,
                 'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
-                'update' => $update,
                 'editForm' => $editForm->createView(),
             ];
         }
