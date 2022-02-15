@@ -24,6 +24,9 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Negation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\String\Concat;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Setter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
 
 class MovementCommandBuilder  {
 

@@ -24,6 +24,7 @@
         <link rel="icon" href="{{path('hierarchy_favicon_svg', {hierarchySlug: hierarchy|default(systemHierarchy).slug})}}">
 
         <meta name="csrf_token_order" content="{{csrf_token('hierarchy_order')}}" />
+        <meta name="csrf_token_move" content="{{csrf_token('hierarchy_move')}}" />
         {% endblock %}
     </head>
     <body class="html-body">

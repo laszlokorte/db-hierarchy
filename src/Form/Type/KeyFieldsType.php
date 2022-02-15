@@ -15,6 +15,8 @@ use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
@@ -33,19 +35,24 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\TextType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                         'help' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
+                        'constraints' => $field->isRequired() ? [new Assert\NotBlank()] : [],
                     ]);
                     break;
                 case "text":
                     $builder
                     ->add($field->getId(), Type\TextareaType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "file":
                     $builder
                     ->add($field->getId(), Type\FileType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "reference":
@@ -53,6 +60,7 @@ class KeyFieldsType extends AbstractType
                     ->add($field->getId(), ReferenceType::class, [
                         'storageConnection' => $storageConnection,
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                         'key' => $key->getReferencingKey($field->getOption('target')),
                         'nodeId' => null,
                     ]);
@@ -61,18 +69,21 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), HierarchyField\BoolType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "date":
                     $builder
                     ->add($field->getId(), Type\DateType::class, [
-                        'label' => $field->getLabel()->getString()
+                        'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "datetime":
                     $builder
                     ->add($field->getId(), Type\DateTimeType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                         'date_label' => 'false',
                         'time_label' => 'false',
                     ]);
@@ -81,12 +92,14 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\NumberType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "enum":
                     $builder
                     ->add($field->getId(), Type\ChoiceType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                         'expanded' => $field->getOption('style') != 'compact',
                         'choices'  => array_combine(
                             $field->getOption('values'),
@@ -98,24 +111,28 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\NumberType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "hash":
                     $builder
                     ->add($field->getId(), Type\PasswordType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "integer":
                     $builder
                     ->add($field->getId(), Type\NumberType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "json":
                     $builder
                     ->add($field->getId(), Type\TextareaType::class, [
                         'label' => $field->getLabel()->getString(),  
+                        'required' => $field->isRequired(),
                         'attr' => ['class' => 'form-field multiline monospace']
                     ]);
                     break;
@@ -123,18 +140,21 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\TimeType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "email":
                     $builder
                     ->add($field->getId(), Type\EmailType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "color":
                     $builder
                     ->add($field->getId(), Type\ColorType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "geo":
@@ -144,12 +164,14 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\UrlType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                     ]);
                     break;
                 case "svg":
                     $builder
                     ->add($field->getId(), Type\TextareaType::class, [
                         'label' => $field->getLabel()->getString(),  
+                        'required' => $field->isRequired(),
                         'attr' => ['class' => 'form-field multiline monospace']
                     ]);
                     break;
@@ -157,6 +179,7 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\TextareaType::class, [
                         'label' => $field->getLabel()->getString(),  
+                        'required' => $field->isRequired(),
                         'attr' => ['class' => 'form-field multiline monospace']
                     ]);
                     break;
@@ -164,6 +187,7 @@ class KeyFieldsType extends AbstractType
                     $builder
                     ->add($field->getId(), Type\ChoiceType::class, [
                         'label' => $field->getLabel()->getString(), 
+                        'required' => $field->isRequired(),
                         'choices'  => array_combine(
                             $field->getOption('values'),
                             $field->getOption('values')
@@ -173,6 +197,7 @@ class KeyFieldsType extends AbstractType
                 case "timeRange":
                     $range = $builder->create($field->getId(), FormType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     $range
                     ->add('start', Type\TimeType::class)
@@ -182,6 +207,7 @@ class KeyFieldsType extends AbstractType
                 case "dateRange":
                     $range = $builder->create($field->getId(), FormType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     $range
                     ->add('start', Type\DateType::class)
@@ -191,6 +217,7 @@ class KeyFieldsType extends AbstractType
                 case "dateTimeRange":
                     $range = $builder->create($field->getId(), FormType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     $range
                     ->add('start', Type\DateTimeType::class)
@@ -200,6 +227,7 @@ class KeyFieldsType extends AbstractType
                 case "integerRange":
                     $range = $builder->create($field->getId(), FormType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     $range
                     ->add('start', Type\NumberType::class)
@@ -209,6 +237,7 @@ class KeyFieldsType extends AbstractType
                 case "floatRange":
                     $range = $builder->create($field->getId(), FormType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     $range
                     ->add('start', Type\NumberType::class)
@@ -218,6 +247,7 @@ class KeyFieldsType extends AbstractType
                 case "decimalRange":
                     $range = $builder->create($field->getId(), FormType::class, [
                         'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
                     ]);
                     $range
                     ->add('start', Type\NumberType::class)

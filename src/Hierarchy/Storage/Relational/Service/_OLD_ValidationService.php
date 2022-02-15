@@ -11,7 +11,7 @@ use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 
-class Validation {
+class ValidationServer {
 	public function __construct(
 		private SchemaDefinition $schemaDef, 
 		private ValidationCommandBuilder $commandBuilder, 

@@ -82,7 +82,7 @@ class MySql extends SqlBase implements DialectInterface {
 			$this->indent();
 			$query .= $this->i() . $this->selectToString($update->getSelect());
 			$this->outdent();
-			$query .= ') ' . md5($query) . ' ' . PHP_EOL;
+			$query .= ') ' . '_alias_' . md5($query) . ' ' . PHP_EOL;
 		}
 
 		$query .= 'SET ';

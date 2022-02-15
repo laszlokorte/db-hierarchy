@@ -50,6 +50,10 @@ class MoveNodeType extends AbstractType
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
         $resolver->setRequired('nodeId');
         $resolver->setAllowedTypes('nodeId', 'string');
+
+        $resolver->setDefaults([
+            'csrf_token_id'   => 'hierarchy_move',
+        ]);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void

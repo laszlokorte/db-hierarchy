@@ -22,17 +22,27 @@
             } else {
                 fd.append('move_node[target]', this.dataset.parent+'/');
             }
-            fd.append('_then', 'tree');
+            fd.append('_then', 'tree');            
+            fd.append('move_node[_token]', document.querySelector('meta[name=csrf_token_move]').getAttribute('content'));
+
             document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false)
             fetch(event.dataTransfer.getData('move-url'), {
               method: 'POST',
               body: fd
             }).then((r) => {
                 if(r.url != window.location.href) {
-                window.location.href = r.url
-            } else {
-                window.location.reload()
-            }})
+                    r.text().then((t) => {
+                        var doc = new DOMParser().parseFromString(t, 'text/html');
+                        var b = doc.querySelector('body');
+                        document.body.replaceWith(b);
+                        history.pushState({}, doc.title, r.url)
+                    }).catch(() => {
+                        window.location = r.url
+                    })
+                } else {
+                    window.location.reload()
+                }
+            })
         }
         ">
             <div style="display: flex; gap: 0.5ch">
@@ -108,6 +118,8 @@
             event.stopPropagation();
             let fd = new FormData();
             fd.append('move_node[target]', '/');
+            
+            fd.append('move_node[_token]', document.querySelector('meta[name=csrf_token_move]').getAttribute('content'));
             fd.append('_then', 'tree');
             document.querySelectorAll('[draggable]').forEach((e) => e.draggable=false);
             fetch(event.dataTransfer.getData('move-url'), {
@@ -115,10 +127,18 @@
               body: fd
             }).then((r) => {
                 if(r.url != window.location.href) {
-                window.location.href = r.url
-            } else {
-                window.location.reload()
-            }})
+                    r.text().then((t) => {
+                        var doc = new DOMParser().parseFromString(t, 'text/html');
+                        var b = doc.querySelector('body');
+                        document.body.replaceWith(b);
+                        history.pushState({}, doc.title, r.url)
+                    }).catch(() => {
+                        window.location = r.url
+                    })
+                } else {
+                    window.location.reload()
+                }
+            })
         }
         "
     >Root</span>

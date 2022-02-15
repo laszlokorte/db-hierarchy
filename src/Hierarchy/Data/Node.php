@@ -63,8 +63,12 @@ class Node {
 		return $this->scopeId . '/' . $this->nodeId;
 	}
 
-	public function getLocator() {
-		return $this->scopeId . '/' . $this->nodeId;
+	public function asNestingFor(string $keyId) {
+		if($this->keyId === $keyId) {
+			return new NodeNesting($keyId, $this->scopeId, $this->nodeId);
+		} else {
+			return new NodeNesting($keyId, $this->nodeId, null);
+		}
 	}
 
 }

@@ -32,8 +32,10 @@ class NestingType extends AbstractType
     {
         $choiceList = $form->getConfig()->getAttribute('choice_list');
 
+
         $view->vars = array_replace($view->vars, [
             'choices' => $choiceList,
+            'key' => $options['key'],
         ]);
     }
 
@@ -57,7 +59,7 @@ class NestingType extends AbstractType
 
 
         $tree = $movementService->findNodeMoveTargets($key->getId(), null);
-
+        dump($tree);
     	$multiTreeIterator = new MultiTreeIterator($tree, $key->isScoped() ? $key->getScopeKey() : $key, null, null, 0);
 
     	$treeIterator = new RecursiveTreeIterator($multiTreeIterator);
