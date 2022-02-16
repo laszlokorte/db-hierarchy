@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form\Type\Reference;
+namespace App\Form\Type\Nesting;
 
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;

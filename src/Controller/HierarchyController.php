@@ -470,8 +470,12 @@ class HierarchyController {
         $creationForm->handleRequest($request);
 
         if($creationForm->isSubmitted() && $creationForm->isValid()) {
-            list($scope, $parent) = explode('/', $creationForm->getData()['_nesting'], 2);
-            dump($scope);
+            if($key->isNested()) {
+                list($scope, $parent) = explode('/', $creationForm->getData()['_nesting'], 2);
+            } else {
+                $scope = null;
+                $parent = null;
+            }
 
             $newId = $storageConnection->getCreationService()->createNode($key->getId(), $creationForm->getData()['fields'], $scope, $parent);
 

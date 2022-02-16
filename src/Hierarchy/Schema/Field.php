@@ -47,22 +47,24 @@ class Field {
 		return $this->def->getKeyFieldOption($this->keyId, $this->fieldId, $name);
 	}
 
-	public function readValueOf(Creation|Update|Node $object) {
+	public function readValueOf(Node $object) {
+
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
 		
 		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
 	}
 
-	public function readFormattedValueOf(Creation|Update|Node $object) {
+	public function readFormattedValueOf(Node $object) {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
 
+		dump($object);
 		$fieldData = $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
 		return $type->format($this->fieldId, $options, $fieldData);
 	}
 
-	public function hasValue(Creation|Update|Node $object) {
+	public function hasValue(Node $object) {
 		$v = $this->readValueOf($object);
 		return $v !== '' && $v !== null;
 	}

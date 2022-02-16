@@ -14,7 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type;
 use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
 
-use App\Hierarchy\Data\MultiTreeIterator;
+use App\Hierarchy\Data\MultiTreeOuterIterator;
 use App\Hierarchy\Data\MultiTree;
 
 use RecursiveIteratorIterator;
@@ -59,17 +59,12 @@ class NestingType extends AbstractType
 
 
         $tree = $movementService->findNodeMoveTargets($key->getId(), null);
-        dump($tree);
-    	$multiTreeIterator = new MultiTreeIterator($tree, $key->isScoped() ? $key->getScopeKey() : $key, null, null, 0);
-
-    	$treeIterator = new RecursiveTreeIterator($multiTreeIterator);
-
-	    $treeIterator->setPrefixPart(RecursiveTreeIterator::PREFIX_MID_LAST, ' ');
+    	$multiTreeIterator = new MultiTreeOuterIterator($tree, $key->isScoped() ? $key->getScopeKey() : $key, 0);
 
 	    $treeValueIterator = new RecursiveIteratorIterator($multiTreeIterator, RecursiveIteratorIterator::SELF_FIRST
 	    );
 
-	    return $treeValueIterator;
+	    return array_filter(iterator_to_array($treeValueIterator), fn($x) => !is_string($x));
     }
 
     public function getBlockPrefix()

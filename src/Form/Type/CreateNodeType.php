@@ -28,10 +28,20 @@ class CreateNodeType extends AbstractType
 
         $movementService = $options['storageConnection']->getMovementService();
 
+
+
         if($key->isScoped() || $key->isReflexive()) {
+
+            if(!$key->isScoped()) {
+                $label = 'Parent ' . $key->getLabel()->getSingular();
+            } elseif(!$key->isReflexive() ) {
+                $label = $key->getScopeKey()->getLabel()->getSingular();
+            } else {
+                $label = 'Parent ' . $key->getScopeKey()->getLabel()->getSingular() . '/' . $key->getLabel()->getSingular();
+            }
             $builder
             ->add('_nesting', NestingType::class, [
-                'label' => 'Nesting',
+                'label' => $label,
                 'constraints' => [
                     new NotBlank(),
                 ],

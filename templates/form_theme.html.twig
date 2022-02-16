@@ -4,7 +4,13 @@
     {%- endwith %} >
         
         {% for k, v in choices %}
-            <option value="{{v.asNestingFor(key.id)}}">{{key.summarize(v, true)}}</option>
+            <option value="{{v.asNestingFor(key.id)}}">
+                {% if key.id == v.key %}
+                    {{key.summarize(v, true)}}
+                {% else %}
+                    {{ key.scopeKey.summarize(v,true) }}
+                {% endif %}
+            </option>
         {% endfor %}
 
     </select>
