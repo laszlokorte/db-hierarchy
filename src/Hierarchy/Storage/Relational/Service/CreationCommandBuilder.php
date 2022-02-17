@@ -28,6 +28,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation\Maximum;
+use App\Hierarchy\Storage\Relational\Algebra\Value\DefaultValue;
 
 class CreationCommandBuilder  {
 

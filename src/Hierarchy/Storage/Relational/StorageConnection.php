@@ -11,10 +11,13 @@ use App\Hierarchy\Storage\Relational\Dialect\MySql;
 
 use Doctrine\DBAL\Connection;
 
+use PDO;
+
 class StorageConnection {
 	public function __construct(SchemaDefinition $schemaDef, Connection $connection) {
 		$this->quirks = new Quirks(
-			$connection->getDatabasePlatform()->getName() == 'mysql'
+			$connection->getDatabasePlatform()->getName() == 'mysql',
+			$connection->getDatabasePlatform()->getName() == 'sqlite'
 		);
 
 		$this->schemaDef = $schemaDef;
@@ -23,9 +26,18 @@ class StorageConnection {
 		$this->coder = new ColumnCoder($schemaDef, $this->naming);
 		switch($connection->getDatabasePlatform()->getName()) {
 			case 'mysql': $this->dialect = new MySql(); break;
-			case 'sqlite': $this->dialect = new Sqlite(); break;
+			case 'sqlite': 
+				$connection->exec('PRAGMA foreign_keys = ON;');
+				// POLYFILL: SQlite has noe UNHEX function included.
+				// currently the polyfill is not in use.
+				$pdo = $connection->getNativeConnection();
+			    $pdo->sqliteCreateFunction('MY_HEX', 'bin2hex', 1, PDO::SQLITE_DETERMINISTIC);
+			    $pdo->sqliteCreateFunction('MY_UNHEX', 'hex2bin', 1, PDO::SQLITE_DETERMINISTIC);
+				$this->dialect = new Sqlite();
+			break;
 			default: throw new \Exception(sprintf('database "%s" not supported', $connection->getDatabasePlatform()->getName()));
 		}
+
 	}
 
 	public function getQueryService() {
@@ -103,7 +115,8 @@ class StorageConnection {
 		return new Service\InstallationService(
 			new Service\InstallationCommandBuilder($this->schemaDef, $this->naming, $this->quirks), 
 			$this->connection, 
-			$this->dialect
+			$this->dialect,
+			$this->quirks
 		);
 	}
 }

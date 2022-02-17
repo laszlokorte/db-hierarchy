@@ -59,7 +59,6 @@ class Field {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
 
-		dump($object);
 		$fieldData = $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
 		return $type->format($this->fieldId, $options, $fieldData);
 	}

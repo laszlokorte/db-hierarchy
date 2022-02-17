@@ -8,11 +8,15 @@ use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 
 
 class Quirks {
-	public function __construct(private bool $noDeferredForeignKeys) {
+	public function __construct(private bool $noDeferredForeignKeys, private bool $noAlteredForeignKeys) {
 
 	}
 
 	public function noDeferredFK() {
 		return $this->noDeferredForeignKeys;
+	}
+
+	public function noAlteredFK() {
+		return $this->noAlteredForeignKeys;
 	}
 }

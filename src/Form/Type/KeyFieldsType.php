@@ -63,6 +63,7 @@ class KeyFieldsType extends AbstractType
                         'required' => $field->isRequired(),
                         'key' => $key->getReferencingKey($field->getOption('target')),
                         'nodeId' => null,
+                        'constraints' => $field->isRequired() ? [new Assert\NotBlank()] : [],
                     ]);
                     break;
                 case "bool":
@@ -105,6 +106,7 @@ class KeyFieldsType extends AbstractType
                             $field->getOption('values'),
                             $field->getOption('values')
                         ),
+                        'data' => current($field->getOption('values'))
                     ]);
                     break;
                 case "float":

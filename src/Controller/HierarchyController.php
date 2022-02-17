@@ -20,6 +20,14 @@ use App\Form\Type\EditNodeType;
 use App\Form\Type\MoveNodeType;
 use App\Form\Type\OrderNodeType;
 
+
+use App\Form\Type\System\InstallType;
+use App\Form\Type\System\UninstallType;
+use App\Form\Type\System\RepairType;
+use App\Form\Type\System\RepairAllType;
+
+use App\Response\RedirectHandler;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
 use Doctrine\DBAL\Connection;
@@ -41,7 +49,7 @@ class HierarchyController {
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
 	#[Template()]
-    public function root(Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection)
+    public function root(Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
     {
     	try {
             return [
@@ -72,24 +80,64 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
 	#[Template()]
-    public function showInstaller(Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
+    public function showInstaller(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
+        $installForm = $formFactory->create(InstallType::class, [
+        ], [
+            'action' => $urlGen->generate('system_install', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ]),
+            'method' => 'POST',
+        ]);
+        $uninstallForm = $formFactory->create(UninstallType::class, [], [
+            'action' => $urlGen->generate('system_uninstall', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ])
+        ]);
+        $installViewsForm = $formFactory->create(InstallType::class, [
+            'only_views' => true,
+        ], [
+            'action' => $urlGen->generate('system_install', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ]),
+            'method' => 'POST',
+        ]);
+
     	return [
             'hierarchy' => $hierarchy,
             'subHierarchy' => $subHierarchy,
     		'installer' => $storageConnection->getInstallationService(),
-    		'adapter' => new Sqlite(),
+            'installForm' => $installForm->createView(),
+            'installViewsForm' => $installViewsForm->createView(),
+            'uninstallForm' => $uninstallForm->createView(),
     	];
     }
 
     #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'system_install', methods: 'POST')]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
-    public function install(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
+    public function install(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
     {
-        $storageConnection->getInstallationService()->createSchema(true, $request->request->get('only_views', false));
+        $installForm = $formFactory->create(InstallType::class, [], [
+            'action' => $urlGen->generate('system_install', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ]),
+            'method' => 'POST',
+        ]);
 
-        $session->getFlashBag()->add('success', 'Schema has been updated.');
+        $installForm->handleRequest($request);
+
+        if($installForm->isSubmitted() && $installForm->isValid()) {
+            $viewsOnly = !!$installForm->getData()['only_views'];
+
+            $storageConnection->getInstallationService()->createSchema(true, $viewsOnly);
+
+            $session->getFlashBag()->add('success', 'Schema has been updated.');
+        }
 
         return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
@@ -97,11 +145,22 @@ class HierarchyController {
     #[Route('/{hierarchySlug}/_uninstall/{subHierarchySlug}', name: 'system_uninstall', methods: 'POST')]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
-    public function uninstall(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
+    public function uninstall(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
     {
-        $storageConnection->getInstallationService()->dropSchema();
+        $uninstallForm = $formFactory->create(UninstallType::class, [], [
+            'action' => $urlGen->generate('system_uninstall', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ])
+        ]);
 
-        $session->getFlashBag()->add('success', 'Schema has been removed.');
+        $uninstallForm->handleRequest($request);
+
+        if($uninstallForm->isSubmitted() && $uninstallForm->isValid()) {
+            $storageConnection->getInstallationService()->dropSchema();
+
+            $session->getFlashBag()->add('success', 'Schema has been removed.');
+        }
 
         return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
@@ -111,9 +170,29 @@ class HierarchyController {
     #[ParamConverter('subHierarchy')]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
 	#[Template()]
-    public function showHealth(Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
+    public function showHealth(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
     {
     	$health = $storageConnection->getRepairService()->findAllDefects();
+
+        $repairAllForm = $formFactory->create(RepairAllType::class, [], [
+            'action' => $urlGen->generate('repair', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ])
+        ]);
+
+        $repairForms = array_combine(
+            array_map(fn($diagnostic) => $diagnostic->getKeyId(), $health),
+            array_map(fn($diagnostic) => $formFactory->create(RepairType::class, [], [
+                    'action' => $urlGen->generate('repair', [
+                        'hierarchySlug' => $hierarchy->getSlug(), 
+                        'subHierarchySlug' => $subHierarchy->getSlug(), 
+                        'keyId' => $diagnostic->getKeyId(), 
+                    ])
+                ]),
+                $health
+            )
+        );
 
     	return [
             'hierarchy' => $hierarchy,
@@ -126,8 +205,15 @@ class HierarchyController {
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
-    public function repairAllDefects(UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection)
+    public function repairAllDefects(FormFactoryInterface $formFactory,UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
     {
+        $repairAllForm = $formFactory->create(RepairAllType::class, [], [
+            'action' => $urlGen->generate('repair', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+            ])
+        ]);
+
     	$storageConnection->getRepairService()->repairAll();
         $session->getFlashBag()->add('success', 'Full schema has been repaired.');
 
@@ -139,8 +225,16 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
     #[ParamConverter('key', options: ['slug' => 'subHierarchySlug'])]
-    public function repairKeyDefects(UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key)
+    public function repairKeyDefects(FormFactoryInterface $formFactory,UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key, RedirectHandler $redirectHandler)
     {
+        $formFactory->create(RepairType::class, [], [
+            'action' => $urlGen->generate('repair', [
+                'hierarchySlug' => $hierarchy->getSlug(), 
+                'subHierarchySlug' => $subHierarchy->getSlug(), 
+                'keyId' => $key->getId(), 
+            ])
+        ]);
+
     	$storageConnection->getRepairService()->repairKey($key->getId());
         $session->getFlashBag()->add('success', 'Key has been repaired.');
 
@@ -211,7 +305,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
     #[Template('hierarchy/ask_delete_node.html.twig')]
-    public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen,  FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
+    public function deleteNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen,  FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, RedirectHandler $redirectHandler)
     {
 
     	$lastParent = $storageConnection->getQueryService()->findNodeDirectParent($key->getId(), $nodeId);
@@ -296,7 +390,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
     #[Template('hierarchy/ask_move_node.html.twig')]
-    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
+    public function moveNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, RedirectHandler $redirectHandler)
     {
         if(!$key->isNested()) {
             throw new NotFoundHttpException(sprintf('%s are not nested', $key->getLabel()->getPlural()));
@@ -359,7 +453,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
     #[Template('hierarchy/ask_order_node.html.twig')]
-    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
+    public function orderNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, RedirectHandler $redirectHandler)
     {
 
         if(!$key->isOrdered()) {
@@ -449,7 +543,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
     #[Template('hierarchy/new_root_node.html.twig')]
-    public function createNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key)
+    public function createNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, RedirectHandler $redirectHandler)
     {
         $creationService = $storageConnection->getCreationService();
 
@@ -534,7 +628,7 @@ class HierarchyController {
     #[ParamConverter('key')]
     #[ParamConverter('childKey')]
     #[Template('hierarchy/new_child_node.html.twig')]
-    public function createChildNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId, Key $childKey)
+    public function createChildNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId, Key $childKey, RedirectHandler $redirectHandler)
     {
         if($childKey->isSingleton()) {
             if(!$storageConnection->getQueryService()->findNodeChildren($key->getId(), $nodeId, $childKey->getId())->isEmpty()) {
@@ -647,7 +741,7 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
     #[Template('hierarchy/edit_node.html.twig')]
-    public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId)
+    public function updateNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, RedirectHandler $redirectHandler)
     {
         $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $updateService = $storageConnection->getUpdateService();

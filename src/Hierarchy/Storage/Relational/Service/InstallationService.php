@@ -5,11 +5,12 @@ namespace App\Hierarchy\Storage\Relational\Service;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\SchemaBuilder;
+use App\Hierarchy\Storage\Relational\Quirks;
 
 use Doctrine\DBAL\Connection;
 
 class InstallationService {
-	public function __construct(private InstallationCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect) {
+	public function __construct(private InstallationCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private Quirks $quirks) {
 
 	}
 
@@ -34,7 +35,6 @@ class InstallationService {
 			$this->connection->exec($turnOffFk);
 		}
 
-
 		foreach (array_reverse($this->commandBuilder->getAllViews()) as $v) {
     		$this->connection->executeStatement($this->dialect->dropViewToString($v));
     	}
@@ -45,12 +45,14 @@ class InstallationService {
 			}
 
 			foreach ($this->commandBuilder->getAllTables() as $t) {
-				$this->connection->executeStatement($this->dialect->createTableToString($t, true));
+				$this->connection->executeStatement($this->dialect->createTableToString($t, !$this->quirks->noAlteredFK()));
 			}
 
-			foreach ($this->commandBuilder->getAllTables() as $t) {
-				if($t->hasForeignKeys()) {
-					$this->connection->executeStatement($this->dialect->addForeignKeysTableToString($t));
+			if(!$this->quirks->noAlteredFK()) {
+				foreach ($this->commandBuilder->getAllTables() as $t) {
+					if($t->hasForeignKeys()) {
+						$this->connection->executeStatement($this->dialect->addForeignKeysTableToString($t));
+					}
 				}
 			}
 		}

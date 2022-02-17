@@ -93,4 +93,15 @@ class Sqlite extends SqlBase implements DialectInterface {
 
 		return $type;
 	}
+
+	protected function functionToString(FunctionInterface $function) {
+		switch(get_class($function)) {
+			case Operator\Function\Unhex::class:
+				return '';
+			case Operator\Function\Hex::class:
+				return '';
+			default:
+				return parent::functionToString($function);
+		}
+	}
 }

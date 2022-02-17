@@ -157,8 +157,6 @@ class MovementService {
 			} else {
 				$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
 
-				dump($this->dialect->updateToString($updateOwnScope));
-
 				$updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
 
 				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));

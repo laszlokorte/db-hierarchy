@@ -2,7 +2,7 @@
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >
-        
+        <option value="">---</option>
         {% for k, v in choices %}
             <option value="{{v.asNestingFor(key.id)}}">
                 {% if key.id == v.key %}
@@ -20,7 +20,8 @@
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >
-        
+        <option value="">---</option>
+
         {% for node in choices %}
             <option value="{{node.id}}">{{key.summarize(node, true)}}</option>
         {% endfor %}
