@@ -160,7 +160,14 @@ class KeyFieldsType extends AbstractType
                     ]);
                     break;
                 case "geo":
-
+                    $geo = $builder->create($field->getId(), FormType::class, [
+                        'label' => $field->getLabel()->getString(),
+                        'required' => $field->isRequired(),
+                    ]);
+                    $geo
+                    ->add('lat', Type\NumberType::class)
+                    ->add('lon', Type\NumberType::class);
+                    $builder->add($geo);
                     break;
                 case "url":
                     $builder

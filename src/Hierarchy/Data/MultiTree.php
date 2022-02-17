@@ -28,6 +28,13 @@ class MultiTree {
 	}
 
 	public function getScopes(string $keyId) {
-		return array_unique(array_map(fn($k) => explode('/',$k,2)[0], array_keys($this->groupedRows[$keyId])));
+		return array_unique(array_map(function($k) {
+			$s = explode('/',$k,2)[0];
+			if($s==='-') {
+				return null;
+			} else {
+				return $s;
+			}
+		}, array_keys($this->groupedRows[$keyId])));
 	}
 }

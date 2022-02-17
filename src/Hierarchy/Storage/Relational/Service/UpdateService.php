@@ -135,7 +135,8 @@ class UpdateService {
 		$update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
 
 		if(!$update->isEmpty()) {
-			$this->connection->beginTransaction();
+			$this->connection->setAutoCommit(false);
+			
 			$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 
 			foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
@@ -158,7 +159,7 @@ class UpdateService {
 			);
 			$stmt->execute();
 
-	    	$this->connection->commit();
+	    	$this->connection->setAutoCommit(true);
 		}
 	}
 }

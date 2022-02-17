@@ -42,9 +42,9 @@ class CreateNodeType extends AbstractType
             $builder
             ->add('_nesting', NestingType::class, [
                 'label' => $label,
-                'constraints' => [
+                'constraints' => $key->isScoped() ? [
                     new NotBlank(),
-                ],
+                ] : [],
                 'key' => $options['key'],
                 'storageConnection' => $options['storageConnection'],
             ]);

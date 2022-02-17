@@ -46,7 +46,7 @@ class DeletionService {
 		}
 
 		try {
-			$this->connection->beginTransaction();
+			$this->connection->setAutoCommit(false);
 			foreach ($deletionPlan->getCascadingKeys() as $key) {
 				$nodeIds = $deletionPlan->getCascadingIdsFor($key);
 				if(empty($nodeIds)) {
@@ -74,9 +74,10 @@ class DeletionService {
 				}
 				$stmt->execute();
 			}
-			$this->connection->commit();
+			$this->connection->setAutoCommit(true);
 		} catch(\Exception $e) {
 			$this->connection->rollback();
+			$this->connection->setAutoCommit(true);
 			throw $e;
 		}
 	}

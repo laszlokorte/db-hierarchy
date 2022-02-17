@@ -50,8 +50,6 @@ class MovementService {
 			$select = $this->commandBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
 
 
-			$this->connection->beginTransaction();
-
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
 			$stmtResult = $stmt->execute();
@@ -66,10 +64,9 @@ class MovementService {
 			$select = $this->commandBuilder->getSelectForFindHierarchy($scope, null, null);
 
 			
-			$this->connection->beginTransaction();
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmtResult = $stmt->execute();
-			$this->connection->commit();
+			
 
 			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
 			
@@ -124,7 +121,7 @@ class MovementService {
 
 
 
-		$this->connection->beginTransaction();
+		$this->connection->setAutoCommit(false);
 		
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
@@ -190,6 +187,6 @@ class MovementService {
 
 		}
 
-		$this->connection->commit();
+		$this->connection->setAutoCommit(true);
 	}
 }

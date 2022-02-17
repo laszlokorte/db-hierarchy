@@ -25,7 +25,7 @@
         {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key, node} only %}
   {% endblock %}
   {% block tab_1 %}
-     {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, key.id, node.id)} only %}
+     {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, node)} only %}
   {% endblock %}
 {% endembed %}
 
@@ -36,11 +36,12 @@
 {% endif %}
 
 {% for childKey in key.nestedKeys %}
+{% set childNodesCollection = childNodes.nodesFor(childKey.id) %}
 
 {% if childKey.isSingleton %}
 <h3>{{ childKey.label.singular }}</h3>
 
-{% for childId in childNodes.nodesFor(childKey.id).ids %}
+{% for childId in childNodesCollection.ids %}
 {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: childKey.id~'-'~childId, tabs: [
 {label: childKey.label.empty, activeClasses: 'need-confirmation'},
 {label: childKey.label.plural, default: true},
@@ -58,11 +59,11 @@
     {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, childKey.id, childId), cancel_tab: defaultTabId|default(null), key} only %}
   {% endblock %}
   {% block tab_1 %}
-    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key: childKey, node: childNodes.nodesFor(childKey.id).getNode(childId)} only %}
+    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key: childKey, node: childNodesCollection.getNode(childId)} only %}
 
   {% endblock %}
   {% block tab_2 %}
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, childKey.id, childId), force_then: true, then: 'parent', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, childNodesCollection.getNode(childId)), force_then: true, then: 'parent', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 {% endembed %}
 {% else %}
@@ -86,7 +87,7 @@
 {label: 'New'},
 ]} %}
 {% block tab_0 %}
-{% include 'hierarchy/partials/table.html.twig' with {hierarchy,nodeCollection: childNodes.nodesFor(childKey.id), key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
+{% include 'hierarchy/partials/table.html.twig' with {hierarchy,nodeCollection: childNodesCollection, key: childKey, parent: node.pathArgs, listLink: true, then: 'parent'} only %}
 {% endblock %}
 {% block tab_1 %}
  {% include 'hierarchy/partials/form_new.html.twig' with {creationForm: childCreationForm(hierarchy, key.id, node.id, childKey.id)} only %}

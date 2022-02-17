@@ -220,7 +220,8 @@ class CreationService {
 
 		$insert = $this->commandBuilder->getCommandForCreateNode($keyId, $idParam, $scopeParam, $parentParam);
 
-		$this->connection->beginTransaction();
+		$this->connection->setAutoCommit(false);
+
 		$stmt = $this->connection->prepare($this->dialect->insertToString($insert));
 
 		$generatedId = null;
@@ -319,7 +320,7 @@ class CreationService {
     		));
 		}
 
-    	$this->connection->commit();
+    	$this->connection->setAutoCommit(true);
 
     	return $newNodeId;
 	}

@@ -2,7 +2,7 @@
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >
-        <option value="">---</option>
+        <option value="/">---</option>
         {% for k, v in choices %}
             <option value="{{v.asNestingFor(key.id)}}">
                 {% if key.id == v.key %}
@@ -121,7 +121,7 @@
         {{ block('widget_attributes') }}
     {%- endwith %} {% if multiple %} multiple="multiple"{% endif %}>
         {%- if placeholder is not none -%}
-            <option value=""{% if required and value is empty %} selected="selected"{% endif %}>{{ placeholder != '' ? (translation_domain is same as(false) ? placeholder : placeholder|trans({}, translation_domain)) }}</option>
+            <option value=""{% if required and value is empty %} selected="selected"{% endif %}>{{ placeholder != '' ? (translation_domain is same as(false) ? placeholder : placeholder|trans({}, translation_domain)) : '---' }}</option>
         {%- endif -%}
         {%- if preferred_choices|length > 0 -%}
             {% set options = preferred_choices %}

@@ -208,6 +208,10 @@ textarea {
     margin-right: 0;
 }
 
+.form-container-label > label.required::before {
+    content: ' ⊛ ';
+}
+
 .keyvalue-container {
     display: grid;
     gap: 0.5em;
@@ -361,12 +365,12 @@ textarea {
 }
 
 .flash-message {
-    padding: 1em;
-    margin: 0 0 1em;
+    padding: 0.5em;
+    margin: 0.4em 0;
     text-align: center;
     animation: 1s 2s fade-out forwards;
-    position: fixed;
-    top: 0;
+    position: absolute;
+    bottom: 100%;
     left: 0;
     right: 0;
     z-index: 1;
@@ -1128,6 +1132,14 @@ details>.details-summary ~ * {
 
 .marker {
     border-radius: 0.1em;
+}
+
+.form-choice-label > input:focus-visible {
+    outline: none;
+}
+
+.form-choice-label > input:focus-visible ~ .marker {
+    outline: 3px solid var(--accent-primary);
 }
 
 .form-choice-label > input:hover ~ .marker {

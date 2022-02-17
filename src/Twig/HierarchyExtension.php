@@ -15,6 +15,8 @@ use App\Form\Type\CreateChildNodeType;
 use App\Form\Type\EditNodeType;
 use App\Form\Type\DeleteNodeType;
 
+use App\Hierarchy\Data\Node;
+
 class HierarchyExtension extends AbstractExtension
 {
 	public function __construct(private FormFactoryInterface $formFactory, private UrlGeneratorInterface $urlGen, private RecursiveLoader $schemaLoader) {
@@ -71,18 +73,20 @@ class HierarchyExtension extends AbstractExtension
         return $creationForm->createView();
     }
 
-    public function buildEditForm($hierarchy, $keyId, $nodeId)
+    public function buildEditForm($hierarchy, Node $node)
     {
     	$editForm = $this->formFactory->create(
             EditNodeType::class, 
-            [], 
             [
-                'key' => $hierarchy->getKey($keyId), 
+                'fields' => $node->getColumnValues(),
+            ], 
+            [
+                'key' => $hierarchy->getKey($node->getKey()), 
                 'storageConnection' => $this->schemaLoader->loadStorageConnection($hierarchy->getSlug()),
                 'action' => $this->urlGen->generate('update_node', [
                     'hierarchySlug' => $hierarchy->getSlug(), 
-                    'keyId' => $keyId, 
-                    'nodeId' => $nodeId
+                    'keyId' => $node->getKey(), 
+                    'nodeId' => $node->getId(),
                 ]),
                 'method' => 'POST',
             ]

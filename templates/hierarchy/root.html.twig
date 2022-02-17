@@ -59,7 +59,7 @@
 
   {% block tab_2 %}
       
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, rootKey.id, nodeId), force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, rootNodes.getNode(nodeId)), force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 
 {% endembed %}

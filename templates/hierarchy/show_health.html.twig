@@ -19,10 +19,15 @@
 </ul>
 
 
+
+
 <div class="details-summary">
-<form style="margin-left: auto; "action="{{ path('repair', {hierarchySlug: hierarchy.slug, subHierarchySlug: subHierarchy.slug}) }}" method="post" accept-charset="utf-8">
-    <button>Repair all</button>
-</form>
+    <div style="margin-left: auto;">
+        {{ form_start(repairAllForm) }}
+        {{ form_widget(repairAllForm.submit) }}
+        {{ form_rest(repairAllForm) }}
+        {{ form_end(repairAllForm) }}
+    </div>
 </div>
 
 
@@ -31,10 +36,12 @@
         <summary class="{{ html_classes('details-summary', {'color-valid': d.valid, 'color-invalid': not d.valid}) }}">
         {{ d.keyId }}
 
-
-        <form style="margin-left: auto;" action="{{ path('repair_key',{hierarchySlug: hierarchy.slug, subHierarchySlug: subHierarchy.slug, keyId: d.keyId}) }}" method="post" accept-charset="utf-8">
-            <button>Repair {{d.keyId}} closure</button>
-        </form>
+        <div style="margin-left: auto;">
+            {{ form_start(repairForms[d.keyId]) }}
+            {{ form_widget(repairForms[d.keyId].submit, {label: 'Repair '~d.keyId}) }}
+            {{ form_rest(repairForms[d.keyId]) }}
+            {{ form_end(repairForms[d.keyId]) }}
+        </div>
 
         </summary>
 

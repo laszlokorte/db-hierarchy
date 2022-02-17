@@ -23,7 +23,12 @@
         </dl>
     </div>
     {% else %}
-        <div class="neutral-box">This {{ key.label.singular }} node does not have any child nodes. Deleting it will not effect any other nodes.</div>
+        <div class="neutral-box">
+        <span style="padding-right: 0.5em;">
+            {% include 'hierarchy/partials/icon.html.twig' with {icon: 'check-circle-fill'} only %}
+        </span>
+        This {{ key.label.singular }} node does not have any child nodes. Deleting it will not effect any other nodes.
+        </div>
     {% endif %}
 {% endif %}
 

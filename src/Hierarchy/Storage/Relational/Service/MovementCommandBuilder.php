@@ -27,6 +27,12 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Setter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
 use App\Hierarchy\Storage\Relational\Algebra\Update;
+use App\Hierarchy\Storage\Relational\Algebra\Delete;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThan;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric\Addition;
+use App\Hierarchy\Storage\Relational\Algebra\Insert;
 
 class MovementCommandBuilder  {
 

@@ -64,7 +64,7 @@ class NestingType extends AbstractType
 	    $treeValueIterator = new RecursiveIteratorIterator($multiTreeIterator, RecursiveIteratorIterator::SELF_FIRST
 	    );
 
-	    return array_filter(iterator_to_array($treeValueIterator), fn($x) => !is_string($x));
+	    return array_filter(iterator_to_array($treeValueIterator), fn($x) => !is_string($x) && $x !== null);
     }
 
     public function getBlockPrefix()

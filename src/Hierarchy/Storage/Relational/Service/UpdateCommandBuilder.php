@@ -22,6 +22,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation\Maximum;
+use App\Hierarchy\Storage\Relational\Algebra\Setter;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
 
 class UpdateCommandBuilder  {
 

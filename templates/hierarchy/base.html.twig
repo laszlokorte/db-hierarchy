@@ -4,7 +4,7 @@
 
 
 
-    <div style="width: 100%; display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center;">
+    <div style="width: 100%; display: grid; gap: 5%; grid-template-columns: minmax(min-content, 20%) minmax(30em, 75%); max-width: 80em; margin: 5em auto 5em; justify-content: center; position: relative;">
 
         {% for label, messages in app.flashes(['error','success']) %}
             {% if messages %}

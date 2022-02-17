@@ -116,7 +116,7 @@ class HierarchyController {
     	];
     }
 
-    #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'system_install', methods: 'POST')]
+    #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'system_install', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     public function install(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
@@ -142,7 +142,7 @@ class HierarchyController {
         return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-    #[Route('/{hierarchySlug}/_uninstall/{subHierarchySlug}', name: 'system_uninstall', methods: 'POST')]
+    #[Route('/{hierarchySlug}/_uninstall/{subHierarchySlug}', name: 'system_uninstall', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     public function uninstall(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
@@ -165,7 +165,7 @@ class HierarchyController {
         return new RedirectResponse($urlGen->generate('show_system_installer', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-    #[Route('/{hierarchySlug}/_health/{subHierarchySlug}', name: 'show_health', methods: 'GET', defaults: ['subHierarchySlug' => 'system'])]
+    #[Route('/{hierarchySlug}/_health/{subHierarchySlug}', name: 'show_health', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
@@ -184,7 +184,7 @@ class HierarchyController {
         $repairForms = array_combine(
             array_map(fn($diagnostic) => $diagnostic->getKeyId(), $health),
             array_map(fn($diagnostic) => $formFactory->create(RepairType::class, [], [
-                    'action' => $urlGen->generate('repair', [
+                    'action' => $urlGen->generate('repair_key', [
                         'hierarchySlug' => $hierarchy->getSlug(), 
                         'subHierarchySlug' => $subHierarchy->getSlug(), 
                         'keyId' => $diagnostic->getKeyId(), 
@@ -198,14 +198,16 @@ class HierarchyController {
             'hierarchy' => $hierarchy,
             'subHierarchy' => $subHierarchy,
     		'health' => $health,
+            'repairAllForm' => $repairAllForm->createView(),
+            'repairForms' => array_map(fn($f) => $f->createView(), $repairForms),
     	];
     }
 
-    #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}', name: 'repair', methods: 'POST')]
+    #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}', name: 'repair', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
-    public function repairAllDefects(FormFactoryInterface $formFactory,UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
+    public function repairAllDefects(Request $request, FormFactoryInterface $formFactory,UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler)
     {
         $repairAllForm = $formFactory->create(RepairAllType::class, [], [
             'action' => $urlGen->generate('repair', [
@@ -214,29 +216,37 @@ class HierarchyController {
             ])
         ]);
 
-    	$storageConnection->getRepairService()->repairAll();
-        $session->getFlashBag()->add('success', 'Full schema has been repaired.');
+        $repairAllForm->handleRequest($request);
+
+        if($repairAllForm->isSubmitted() && $repairAllForm->isValid()) {
+            $storageConnection->getRepairService()->repairAll();
+            $session->getFlashBag()->add('success', 'Full schema has been repaired.');
+        }
 
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-    #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}/{keyId}', name: 'repair_key', methods: 'POST')]
+    #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}/{keyId}', name: 'repair_key', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]
     #[ParamConverter('subHierarchy')]
     #[ParamConverter('key', options: ['slug' => 'subHierarchySlug'])]
-    public function repairKeyDefects(FormFactoryInterface $formFactory,UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key, RedirectHandler $redirectHandler)
+    public function repairKeyDefects(Request $request, FormFactoryInterface $formFactory,UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key, RedirectHandler $redirectHandler)
     {
-        $formFactory->create(RepairType::class, [], [
-            'action' => $urlGen->generate('repair', [
+        $repairForm = $formFactory->create(RepairType::class, [], [
+            'action' => $urlGen->generate('repair_key', [
                 'hierarchySlug' => $hierarchy->getSlug(), 
                 'subHierarchySlug' => $subHierarchy->getSlug(), 
                 'keyId' => $key->getId(), 
             ])
         ]);
 
-    	$storageConnection->getRepairService()->repairKey($key->getId());
-        $session->getFlashBag()->add('success', 'Key has been repaired.');
+        $repairForm->handleRequest($request);
+
+        if($repairForm->isSubmitted() && $repairForm->isValid()) {
+            $storageConnection->getRepairService()->repairKey($key->getId());
+            $session->getFlashBag()->add('success', 'Key has been repaired.');
+        }
 
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
@@ -748,7 +758,9 @@ class HierarchyController {
 
 		$editForm = $formFactory->create(
             EditNodeType::class, 
-            [], 
+            [
+                'fields' => $node->getColumnValues(),
+            ], 
             [
                 'key' => $key, 
                 'storageConnection' => $storageConnection,
