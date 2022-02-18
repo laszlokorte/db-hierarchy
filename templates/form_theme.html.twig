@@ -3,13 +3,12 @@
         {{ block('widget_attributes') }}
     {%- endwith %} >
         <option value="/">---</option>
-        {% for k, v in choices %}
-            <option value="{{v.asNestingFor(key.id)}}">
-                {% if key.id == v.key %}
-                    {{key.summarize(v, true)}}
-                {% else %}
-                    {{ key.scopeKey.summarize(v,true) }}
-                {% endif %}
+        {% for choice in choices %}
+            <option value="{{choice.node.asNestingFor(key.id)}}">
+                {% for _ in range(1, choice.depth) -%}
+                    &nbsp;&nbsp;
+                {%- endfor %}
+                {{choice.key.summarize(choice.node, true)}}
             </option>
         {% endfor %}
 

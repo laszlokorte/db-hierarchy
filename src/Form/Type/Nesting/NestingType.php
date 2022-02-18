@@ -55,16 +55,31 @@ class NestingType extends AbstractType
 
     private function createChoiceList($options) {
         $key = $options['key'];
+        $nodeId = $options['nodeId'];
         $movementService = $options['storageConnection']->getMovementService();
 
 
-        $tree = $movementService->findNodeMoveTargets($key->getId(), null);
+        $tree = $movementService->findNodeMoveTargets($key->getId(), $nodeId);
     	$multiTreeIterator = new MultiTreeOuterIterator($tree, $key->isScoped() ? $key->getScopeKey() : $key, 0);
 
 	    $treeValueIterator = new RecursiveIteratorIterator($multiTreeIterator, RecursiveIteratorIterator::SELF_FIRST
 	    );
 
-	    return array_filter(iterator_to_array($treeValueIterator), fn($x) => !is_string($x) && $x !== null);
+        $result = [];
+
+        foreach ($treeValueIterator as $node) {
+            if(is_string($node) || $node === null) {
+                continue;
+            }
+
+            $result[] = (object)[
+                'depth' => $treeValueIterator->getDepth(),
+                'node' => $node,
+                'key' => $key->getId() === $node->getKey() ? $key : $key->getScopeKey(),
+            ];
+        }
+
+	    return $result;
     }
 
     public function getBlockPrefix()

@@ -238,6 +238,7 @@ class QueryService {
 				$groupedNodes[$currentKey] = $stmtResult->fetchAllAssociativeIndexed();
 			} else {
 				$select = $this->commandBuilder->getSelectForFindReflexiveParentNodes($currentKey, $idParam);
+				dump($this->dialect->selectToString($select));
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
 				$stmtResult = $stmt->execute();

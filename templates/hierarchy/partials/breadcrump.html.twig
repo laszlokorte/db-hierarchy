@@ -17,7 +17,7 @@
                     {% endif %}
                     {% if loop.last and loop.parent.loop.last and trailing is not defined %}
                         {{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}
-                    {% elseif key.reflexive %}
+                    {% elseif false and key.reflexive %}
                         <a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId:k.id, nodeId:nodeId, childKeyId: k.id}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>
                     {% else %}
                         <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId:k.id, nodeId:nodeId}) }}" title="">{{ k.summarize(parentNodes.nodesFor(k.id).getNode(nodeId)) }}</a>

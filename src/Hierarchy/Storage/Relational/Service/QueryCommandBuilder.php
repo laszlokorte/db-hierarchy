@@ -191,6 +191,7 @@ class QueryCommandBuilder  {
 	public function getSelectForFindReflexiveParentNodes(string $keyId, Parameter|Constant $id) {
 		$tableN = new TableReference($this->naming->nodeTableName($keyId));
 		$tableC = new TableReference($this->naming->closureTableName($keyId));
+		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
 
 		$projections = [];
 
@@ -198,7 +199,7 @@ class QueryCommandBuilder  {
 		$projections[] = new Projection($this->coder->wrapClosureParentColumn($keyId, $tableC), $this->naming->hierarchyParentColumnName($keyId));
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableN), $this->naming->hierarchyScopeColumnName($keyId));
+			$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
 		} else {
 			$projections[] = new Projection(new Constant(null), $this->naming->hierarchyScopeColumnName($keyId));
 		}
@@ -207,6 +208,12 @@ class QueryCommandBuilder  {
 		$joins[] = new Join($tableC, new BinaryOperation(
 			new Equal(),
 			new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)),
+			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+		));
+
+		$joins[] = new Join($tableH, new BinaryOperation(
+			new Equal(),
+			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
 			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
 		));
 

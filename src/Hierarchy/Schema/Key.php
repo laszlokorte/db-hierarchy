@@ -152,6 +152,8 @@ class Key {
 
 		$result = '';
 
+		$ambiguous = true;
+
 		foreach ($summDef->getSegments() as $seg) {
 			if($seg->isConstant()) {
 				$val = $seg->getType();
@@ -160,8 +162,15 @@ class Key {
 					$val = $this->getLabel()->getString();
 				} else if($seg->isId()) {
 					$val = $node->getId();
+					$ambiguous &= false;
 				} else if($seg->isField()) {
-					$val = $this->getField($seg->getFieldId())->readFormattedValueOf($node);
+					$field = $this->getField($seg->getFieldId());
+					
+					$val = $field->readFormattedValueOf($node);
+					
+					if($field->isUnique()) {
+						$ambiguous &= false;
+					}
 				}
 			} elseif($seg->isNested()) {
 				if($seg->isId()) {
@@ -189,15 +198,13 @@ class Key {
 				}
 			}
 
-			if(empty($val)) {
-				return ' ['.$node->getKey().'-'.$node->getID().']';
-			}
-
 			$result .= $val;
 		}
 
 		if($appendId === true || $appendId === null && empty($result)) {
 			$result .= ' ['.$node->getKey().'-'.$node->getID().']';
+		} elseif($ambiguous === true) {
+			$result .= ' ['.$node->getID().']';
 		}
 
 		return $result;
