@@ -91,6 +91,8 @@ class MovementService {
 			throw new \Exception($targetParentId);
 		}
 
+		$this->connection->beginTransaction();
+
 		if(!empty($targetScopeId) && !empty($targetParentId)) {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
 			
@@ -120,9 +122,6 @@ class MovementService {
 		}
 
 
-
-		$this->connection->setAutoCommit(false);
-		
 		if($this->schemaDef->isKeyReflexive($keyId)) {
 			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
 
@@ -187,6 +186,6 @@ class MovementService {
 
 		}
 
-		$this->connection->setAutoCommit(true);
+		$this->connection->commit();
 	}
 }

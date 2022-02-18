@@ -358,8 +358,6 @@ class HierarchyController {
                 return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
             }
         } else {
-            dump($deletionForm->isSubmitted() && $deletionForm->isValid());
-
             return [
                 'hierarchy' => $hierarchy,
                 'key' => $key,

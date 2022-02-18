@@ -17,12 +17,21 @@ class Deletion {
 		return $this->nodeId;
 	}
 
-	public function getCascadingKeys() {
-		return $this->cascadings->getKeys();
+	public function getCascadingKeys($excludeSelf = FALSE) {
+		$allKeys = $this->cascadings->getKeys();
+		if($excludeSelf) {
+			return array_filter($allKeys, fn($k) => $k !== $this->keyId || $this->cascadings->countNodesFor($k) > 1);
+		} else {
+			return $allKeys;
+		}
 	}
 
-	public function getCascadingIdsFor(string $keyId) {
-		return $this->cascadings->getNodeIdsFor($keyId);
+	public function getCascadingIdsFor(string $keyId, $excludeSelf = FALSE) {
+		$allIds = $this->cascadings->getNodeIdsFor($keyId);
+		return ($excludeSelf && $keyId === $this->keyId) ? array_filter(
+			$allIds,
+			fn($nodeId) => $nodeId !== $this->nodeId
+		) : $allIds;
 	}
 
 	public function getCascadingNodeFor(string $keyId, string $nodeId) {

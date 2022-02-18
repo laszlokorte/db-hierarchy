@@ -27,9 +27,7 @@ class RepairService {
 	}
 
 	public function findDefectsForKey(string $keyId) {
-		$this->connection->setAutoCommit(false);
 		$result = $this->findDefectsForKeyInternal($keyId);
-    	$this->connection->setAutoCommit(true);
 
     	return $result;
 	}
@@ -60,17 +58,17 @@ class RepairService {
 	}
 
 	public function repairAll() {
-		$this->connection->setAutoCommit(false);
+		$this->connection->beginTransaction();
 		foreach ($this->getRepairableKeys() as $key) {
 			$this->repairKeyInternal($key);
 		}
-    	$this->connection->setAutoCommit(true);
+    	$this->connection->commit();
 	}
 
 	public function repairKey(string $keyId) {
-		$this->connection->setAutoCommit(false);
+		$this->connection->beginTransaction();
 		$result = $this->repairKeyInternal($keyId);
-    	$this->connection->setAutoCommit(true);
+    	$this->connection->commit();
 
     	return $result;
 	}

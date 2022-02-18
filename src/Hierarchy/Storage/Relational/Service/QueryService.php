@@ -21,7 +21,6 @@ class QueryService {
 	public function findRootNodes(string $keyId) : Data\NodeCollection {
 		$select = $this->commandBuilder->getSelectForFindNodes($keyId, null, new Constant(null));
 
-		$this->connection->setAutoCommit(true);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmtResult = $stmt->execute();
     	
@@ -38,7 +37,6 @@ class QueryService {
 	public function findAllNodes(string $keyId) : Data\NodeCollection {
 		$select = $this->commandBuilder->getSelectForFindNodes($keyId, null, null);
 
-		$this->connection->setAutoCommit(true);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmtResult = $stmt->execute();
     	
@@ -55,16 +53,12 @@ class QueryService {
 	public function findAllRootNodes() : Data\MultiCollection {
 		$groupedRows = [];
 		
-		$this->connection->setAutoCommit(true);
-
 		foreach ($this->schemaDef->getRootScopeKeyIds() as $keyId) {
 			$select = $this->commandBuilder->getSelectForFindNodes($keyId, new Constant(null), new Constant(null));
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmtResult = $stmt->execute();
 			$groupedRows[$keyId] = $stmtResult->fetchAllAssociativeIndexed();
 		}
-
-    	
 
 		return new Data\MultiCollection(
 			null, 
@@ -78,7 +72,6 @@ class QueryService {
 	public function findHierarchyNodes($keyId) : Data\NodeTree {
 		$select = $this->commandBuilder->getSelectForFindHierarchy($keyId, null, null);
 
-		$this->connection->setAutoCommit(true);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmtResult = $stmt->execute();
     	
@@ -95,16 +88,12 @@ class QueryService {
 	public function findAllHierarchyNodes() : Data\MultiTree {
 		$groupedRows = [];
 		
-		$this->connection->setAutoCommit(true);
-
 		foreach ($this->schemaDef->getAllKeyIds() as $keyId) {
 			$select = $this->commandBuilder->getSelectForFindHierarchy($keyId, null, null);
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmtResult = $stmt->execute();
 			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
 		}
-
-    	
 
 		return new Data\MultiTree(
 			$groupedRows
@@ -115,7 +104,6 @@ class QueryService {
 		$param = new Parameter('nodeId');
 		$select = $this->commandBuilder->getSelectForFindNode($keyId, $param);
 
-		$this->connection->setAutoCommit(true);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
 		$stmtResult = $stmt->execute();
@@ -133,7 +121,6 @@ class QueryService {
 		$param = new Parameter('nodeId');
 		$select = $this->commandBuilder->getSelectForFindNodeField($keyId, $fieldId, $param);
 
-		$this->connection->setAutoCommit(true);
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
 		$stmtResult = $stmt->execute();
@@ -148,8 +135,6 @@ class QueryService {
 	}
 
 	public function findNodeChildren(string $keyId, string $nodeId, string $childKeyId) : Data\NodeCollection {
-		$this->connection->setAutoCommit(true);
-
 		if($keyId === $childKeyId) {
 			$self = $this->findNode($keyId, $nodeId);
 			$scope = $self->getScope();
@@ -223,7 +208,6 @@ class QueryService {
 	}
 
 	public function findParentNodes(string $keyId, string $nodeId, ?int $limit = NULL) : Data\MultiCollection {
-		$this->connection->setAutoCommit(true);
 		$groupedNodes = [];
 		$idParam = new Parameter('_id');
 

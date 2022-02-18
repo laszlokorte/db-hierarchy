@@ -161,8 +161,6 @@ class DeletionService {
 		$leafs = [];
 		$inners = [];
 
-		$this->connection->setAutoCommit(false);
-
 		if(empty($nodeIds)) {
 			return [[], []];
 		}
@@ -191,8 +189,6 @@ class DeletionService {
 				$inners[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
 			}
 		}
-			
-		$this->connection->setAutoCommit(true);
 
 		return [$leafs, $inners];
 	}

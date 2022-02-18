@@ -10,11 +10,11 @@
         <p>Following nodes will also be deleted:</p>
 
         <dl class="keyvalue-container">
-            {% for keyId in deletion.cascadingKeys %}
+            {% for keyId in deletion.getCascadingKeys(true) %}
                 <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.string(hierarchy.getKey(keyId).isSingleton)}}</dt>
                 <dd class="keyvalue-container-field wide">
                     <ul class="inline-list separator">
-                        {% for nodeId in deletion.cascadingIdsFor(keyId) %}
+                        {% for nodeId in deletion.getCascadingIdsFor(keyId, true) %}
                             <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletion.cascadingNodeFor(keyId, nodeId))}}</a></li>
                         {% endfor %}
                     </ul>
@@ -32,7 +32,7 @@
     {% endif %}
 {% endif %}
 
-{% if deletion is defined and deletion.isBlocked %}xxx
+{% if deletion is defined and deletion.isBlocked %}
     <div class="warning-box">
         <h3 style="margin: 0">Node can not be deleted.</h3>
 

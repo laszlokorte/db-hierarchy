@@ -135,7 +135,7 @@ class UpdateService {
 		$update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
 
 		if(!$update->isEmpty()) {
-			$this->connection->setAutoCommit(false);
+			$this->connection->beginTransaction();
 			
 			$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 
@@ -159,7 +159,7 @@ class UpdateService {
 			);
 			$stmt->execute();
 
-	    	$this->connection->setAutoCommit(true);
+	    	$this->connection->commit();
 		}
 	}
 }

@@ -2,7 +2,9 @@
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} >
-        <option value="/">---</option>
+        {% if not key.isScoped %}
+            <option value="/">---</option>
+        {% endif %}
         {% for choice in choices %}
             <option value="{{choice.node.asNestingFor(key.id)}}">
                 {% for _ in range(1, choice.depth) -%}
@@ -10,6 +12,8 @@
                 {%- endfor %}
                 {{choice.key.summarize(choice.node, true)}}
             </option>
+        {% else %}
+            <option value="" disabled {% if key.isScoped %} selected{% endif %}>There is no {{label}} yet</option>
         {% endfor %}
 
     </select>
