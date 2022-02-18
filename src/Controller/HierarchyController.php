@@ -326,6 +326,7 @@ class HierarchyController {
         $deletionForm = $formFactory->create(
             DeleteNodeType::class, 
             [
+                'cascade' => 'yes',
             ], 
             [
                 'key' => $key, 
@@ -351,12 +352,13 @@ class HierarchyController {
             try {
                 $deletionService->performDeletion($deletion);
             } catch(DeletionBlockedException $e) {
+
                 $session->getFlashBag()->add('error', 'Deletion failed');
 
                 return new RedirectResponse($urlGen->generate('ask_delete_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
             }
         } else {
-            $deletionForm->get('cascade')->submit('yes');
+            dump($deletionForm->isSubmitted() && $deletionForm->isValid());
 
             return [
                 'hierarchy' => $hierarchy,

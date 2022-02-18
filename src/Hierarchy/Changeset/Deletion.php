@@ -42,7 +42,7 @@ class Deletion {
 	}
 
 	public function isBlocked() {
-		return $this->blockings->countKeys() > 1;
+		return $this->blockings->countKeys() > 0;
 	}
 
 	public function getBlockingKeys() {

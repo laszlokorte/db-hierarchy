@@ -46,7 +46,7 @@ class DeletionService {
 		}
 
 		try {
-			$this->connection->setAutoCommit(false);
+			$this->connection->beginTransaction();
 			foreach ($deletionPlan->getCascadingKeys() as $key) {
 				$nodeIds = $deletionPlan->getCascadingIdsFor($key);
 				if(empty($nodeIds)) {
@@ -74,10 +74,9 @@ class DeletionService {
 				}
 				$stmt->execute();
 			}
-			$this->connection->setAutoCommit(true);
+			$this->connection->commit();
 		} catch(\Exception $e) {
 			$this->connection->rollback();
-			$this->connection->setAutoCommit(true);
 			throw $e;
 		}
 	}
@@ -162,6 +161,8 @@ class DeletionService {
 		$leafs = [];
 		$inners = [];
 
+		$this->connection->setAutoCommit(false);
+
 		if(empty($nodeIds)) {
 			return [[], []];
 		}
@@ -190,6 +191,8 @@ class DeletionService {
 				$inners[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
 			}
 		}
+			
+		$this->connection->setAutoCommit(true);
 
 		return [$leafs, $inners];
 	}

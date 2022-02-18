@@ -196,6 +196,9 @@ class RecursiveLoader {
 
 			return $dsn ? DriverManager::getConnection([
 				'url' => $dsn,
+				'driverOptions' => [
+					PDO::ATTR_AUTOCOMMIT => false,
+				]
 			]) : $this->baseConnection;
 		}
 	}

@@ -32,7 +32,7 @@
     {% endif %}
 {% endif %}
 
-{% if deletion is defined and deletion.isBlocked %}
+{% if deletion is defined and deletion.isBlocked %}xxx
     <div class="warning-box">
         <h3 style="margin: 0">Node can not be deleted.</h3>
 
@@ -45,8 +45,8 @@
                 <dt class="keyvalue-container-label top">{{hierarchy.getKey(keyId).label.string(hierarchy.getKey(keyId).isSingleton)}}</dt>
                 <dd class="keyvalue-container-field wide">
                     <ul class="inline-list separator">
-                        {% for nodeId in deletion.blockinNodesFor(keyId).getIds() %}
-                            <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletion.blockinNodesFor(keyId, nodeId))}}</a></li>
+                        {% for nodeId in deletion.getBlockingIdsFor(keyId) %}
+                            <li><a href="{{path('show_node',{hierarchySlug: hierarchy.slug, keyId, nodeId})}}">{{hierarchy.getKey(keyId).summarize(deletion.getBlockingNodeFor(keyId, nodeId))}}</a></li>
                         {% endfor %}
                     </ul>
                 </dd>
