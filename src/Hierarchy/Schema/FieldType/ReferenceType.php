@@ -17,7 +17,7 @@ class ReferenceType implements FieldTypeInterface {
 		} else {
 			$cascade = $fieldOptions['cascade']??false ? ReferenceCoding::CLEAR : ReferenceCoding::RESTRICT;
 		}
-
+		
 		return [
 			new ColumnDefinition($fieldId . '_ref', new ReferenceCoding($fieldOptions['target'], $cascade), !$required, null)
 		];

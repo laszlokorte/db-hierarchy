@@ -27,7 +27,7 @@ class DeletionService {
 
         foreach ($cascadingDeletions as $willkey => $rows) {
 			$willIds = array_keys($rows);
-			$referenced = $this->collectReferencedNodesByIds($willkey, $willIds);
+			[$referencedLeafs, $referencedInners] = $this->collectReferencedNodesByIds($willkey, $willIds);
 
 			$cascadingDeletions = array_merge($cascadingDeletions, array_filter($referencedLeafs));
             $blockers = array_merge($blockers, $referencedInners);
@@ -173,8 +173,6 @@ class DeletionService {
 				continue;
 			}
 
-			
-
 			$select = $this->commandBuilder->getSelectForReferencedNodes($refKey, $columns, $nodeIdParams);
 
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
@@ -183,7 +181,7 @@ class DeletionService {
 			}
 			$stmtResult = $stmt->execute();
 
-			if($this->schemaDef->isKeyLeaf($refKey)) {
+			if($this->schemaDef->isKeyLeaf($refKey) && false) {
 				$leafs[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
 			} else {
 				$inners[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
