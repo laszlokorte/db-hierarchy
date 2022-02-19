@@ -24,4 +24,8 @@ class ReferenceCoding {
 	public function getCascade() {
 		return $this->cascade;
 	}
+
+	public function canCascade() {
+		return $this->cascade !== 'RESTRICT';
+	}
 }

@@ -181,10 +181,14 @@ class DeletionService {
 			}
 			$stmtResult = $stmt->execute();
 
-			if($this->schemaDef->isKeyLeaf($refKey) && false) {
-				$leafs[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
+			$canCascade = array_reduce($columns, fn($can, $col) => $can && $col->getCoding()->canCascade(), true);
+
+			$nodes = $stmtResult->fetchAllAssociativeIndexed();
+
+			if($this->schemaDef->isKeyLeaf($refKey) && $canCascade) {
+				$leafs[$refKey] = $nodes;
 			} else {
-				$inners[$refKey] = $stmtResult->fetchAllAssociativeIndexed();
+				$inners[$refKey] = $nodes;
 			}
 		}
 

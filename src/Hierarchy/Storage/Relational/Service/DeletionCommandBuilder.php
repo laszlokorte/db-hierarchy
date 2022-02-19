@@ -217,7 +217,7 @@ class DeletionCommandBuilder  {
 		foreach ($columns as $col) {
 			$conditions[] = new ElementOf(
 				new ColumnReference($nodeTable, $this->naming->fieldColumnToName($col)),
-				array_map(fn($p) => $this->coder->wrapColumnParameter($col, $p),$idParams)
+				array_map(fn($p) => $this->coder->wrapColumnParameter($col, $p), $idParams)
 			);
 		}
 		

@@ -659,7 +659,7 @@ class RecursiveLoader {
 					array_map(fn($typeId) => 
 						new FieldDefinition(
 							new LabelDefinition(ucfirst($typeId)), 
-							$typeId, true, false, ['values' => ['x','y','z'], 'target' => 'aa'])
+							$typeId, true, false, ['values' => ['x','y','z'], 'target' => 'aa', 'cascade' => true])
 						, array_keys($this->fieldTypes))
 				),
 				SummaryDefinition::parseSegments('{$self/id}')
