@@ -759,7 +759,7 @@ class HierarchyController {
 		$editForm = $formFactory->create(
             EditNodeType::class, 
             [
-                'fields' => $node->getColumnValues(),
+                'fields' => $key->getNodeFieldValues($node),
             ], 
             [
                 'key' => $key, 
@@ -813,12 +813,18 @@ class HierarchyController {
     #[ParamConverter('hierarchy')]
     #[ParamConverter('key')]
 	#[Template()]
-    public function listRootNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
+    public function listRootNodes(Request $request, Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
     {
+        if($request->query->has('deep')) {
+            $nodeCollection = $storageConnection->getQueryService()->findAllNodes($key->getId());
+        } else {
+            $nodeCollection = $storageConnection->getQueryService()->findRootNodes($key->getId());
+        }
+
     	return [
             'hierarchy' => $hierarchy,
     		'key' => $key,
-    		'nodeCollection' => $storageConnection->getQueryService()->findRootNodes($key->getId()),
+    		'nodeCollection' => $nodeCollection,
             'parentNodes' => new MultiCollection(null, null, [], null, null),
     	];
     }

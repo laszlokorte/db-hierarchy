@@ -75,13 +75,14 @@ class HierarchyExtension extends AbstractExtension
 
     public function buildEditForm($hierarchy, Node $node)
     {
+        $key = $hierarchy->getKey($node->getKey());
     	$editForm = $this->formFactory->create(
             EditNodeType::class, 
             [
-                'fields' => $node->getColumnValues(),
+                'fields' => $key->getNodeFieldValues($node),
             ], 
             [
-                'key' => $hierarchy->getKey($node->getKey()), 
+                'key' => $key, 
                 'storageConnection' => $this->schemaLoader->loadStorageConnection($hierarchy->getSlug()),
                 'action' => $this->urlGen->generate('update_node', [
                     'hierarchySlug' => $hierarchy->getSlug(), 

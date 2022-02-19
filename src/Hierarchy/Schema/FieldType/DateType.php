@@ -18,11 +18,11 @@ class DateType implements FieldTypeInterface {
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [$fieldData];
+		return [$fieldData ? $fieldData->format('Y-m-d') : null];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return $columnData[0];
+		return empty($columnData[0]) ? null : \DateTime::createFromFormat('Y-m-d', $columnData[0]);
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {

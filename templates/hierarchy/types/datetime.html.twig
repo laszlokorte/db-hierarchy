@@ -1,7 +1,7 @@
 {% block cell %}
-    {{fieldValue}}
+    {{fieldValue ? fieldValue.format('Y-m-d H:i:s') : fieldValue}}
 {% endblock %}
 
 {% block display %}
-    {{fieldValue}}
+    {{fieldValue ? fieldValue.format('Y-m-d H:i:s') : fieldValue}}
 {% endblock %}

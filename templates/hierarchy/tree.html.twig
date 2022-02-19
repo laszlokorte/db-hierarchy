@@ -46,9 +46,7 @@
         }
         ">
             <div style="display: flex; gap: 0.5ch">
-                {% if key.isOrdered %}
-                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',keyId:key.id, nestId: (scope??'-')~"*"~(parent??'-'), nodeId: node.id, order:node.order} %}
-                {% endif %}
+                
                 {% if key.isNested %}
                 <span class="dragger" 
                 data-url="{{ path('move_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}"
@@ -71,6 +69,11 @@
 
                 </span>
                 {% endif %}
+
+                {% if key.isOrdered %}
+                {% include 'hierarchy/partials/dragger.html.twig' with {hierarchy: hierarchy,then:'tree',keyId:key.id, nestId: (scope??'-')~"*"~(parent??'-'), nodeId: node.id, order:node.order} %}
+                {% endif %}
+
                 <a href="{{ path('show_node', {hierarchySlug: hierarchy.slug, keyId:key.id, nodeId: node.id}) }}" title="">{{key.summarize(node)}}</a>
             </div>
             

@@ -19,6 +19,7 @@ class RangeType implements FieldTypeInterface {
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
+		dump($this->baseType);
 		return array_merge([], 
 			$this->baseType->fieldDataToColumnData($fieldId . '_start', $fieldOptions, $fieldData['start']),
 			$this->baseType->fieldDataToColumnData($fieldId . '_end', $fieldOptions, $fieldData['end']),
