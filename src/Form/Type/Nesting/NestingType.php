@@ -16,6 +16,8 @@ use App\Hierarchy\Schema\Key;
 
 use App\Hierarchy\Data\MultiTreeOuterIterator;
 use App\Hierarchy\Data\MultiTree;
+use App\Hierarchy\Data\NodeNesting;
+
 
 use RecursiveIteratorIterator;
 use RecursiveTreeIterator;
@@ -36,6 +38,7 @@ class NestingType extends AbstractType
         $view->vars = array_replace($view->vars, [
             'choices' => $choiceList,
             'key' => $options['key'],
+            'nodeNesting' => $options['nodeNesting'],
         ]);
     }
 
@@ -49,6 +52,8 @@ class NestingType extends AbstractType
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setDefault('nodeId', null);
         $resolver->setAllowedTypes('nodeId', ['string', 'null']);
+        $resolver->setDefault('nodeNesting', null);
+        $resolver->setAllowedTypes('nodeNesting', [NodeNesting::class, 'null']);
         $resolver->setRequired('storageConnection');
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
     }

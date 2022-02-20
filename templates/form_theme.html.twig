@@ -3,15 +3,29 @@
         {{ block('widget_attributes') }}
     {%- endwith %} >
         {% if not key.isScoped %}
-            <option value="/">---</option>
+            <option value="/">--- (Root)</option>
+            {% if nodeNesting is not null and '/' == nodeNesting %}
+                <option disabled="">
+                    &nbsp;&nbsp;
+                    This Node
+                </option>
+            {% endif %}
         {% endif %}
         {% for choice in choices %}
-            <option value="{{choice.node.asNestingFor(key.id)}}">
+            <option {% if value==choice.node.asNestingFor(key.id) %} selected{% endif %} value="{{choice.node.asNestingFor(key.id)}}">
                 {% for _ in range(1, choice.depth) -%}
                     &nbsp;&nbsp;
                 {%- endfor %}
                 {{choice.key.summarize(choice.node, true)}}
             </option>
+            {% if nodeNesting is not null and choice.node.asNestingFor(key.id) == nodeNesting %}
+                <option disabled="">
+                    {% for _ in range(1, choice.depth + 2) -%}
+                        &nbsp;&nbsp;
+                    {%- endfor %}
+                    This Node
+                </option>
+            {% endif %}
         {% else %}
             <option value="" disabled {% if key.isScoped %} selected{% endif %}>There is no {{label}} yet</option>
         {% endfor %}

@@ -251,46 +251,6 @@ class HierarchyController {
     	return new RedirectResponse($urlGen->generate('show_health', ['hierarchySlug' => $hierarchy->getSlug(), 'subHierarchySlug' => $subHierarchy->getSlug()]));
     }
 
-
-
-    #[Route('/{hierarchySlug}/_all/{keyId}.json', name: 'list_all_nodes', methods: 'GET')]
-    #[ParamConverter('storageConnection')]
-    #[ParamConverter('hierarchy')]
-    #[ParamConverter('key')]
-    #[Template()]
-    public function listAllNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
-    {
-        $all = $storageConnection->getQueryService()->findAllNodes($key->getId());
-        return new JsonResponse([
-            'keyId' => $key->getId(),
-            'nodes' => array_map(fn($nodeId) => [
-                'nodeId' => $nodeId,
-                'label' => $key->summarize($all->getNode($nodeId), true),
-            ], $all->getIds()),
-        ]);
-    }
-
-    #[Route('/{hierarchySlug}/{keyId}({fieldId})/options/{scopeId}', name: 'show_node_field_options', methods: 'GET')]
-    #[ParamConverter('storageConnection')]
-    #[ParamConverter('hierarchy')]
-    #[ParamConverter('key')]
-    #[ParamConverter('field')]
-    #[Template()]
-    public function listNodeFieldOptions(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, Field $field, $scopeId = null)
-    {
-        $target = $field->getOption('target');
-        $targetKey = $hierarchy->getKey($target);
-
-        $all = $storageConnection->getQueryService()->findAllNodes($targetKey->getId());
-        return new JsonResponse([
-            'keyId' => $targetKey->getId(),
-            'nodes' => array_map(fn($nodeId) => [
-                'nodeId' => $nodeId,
-                'label' => $targetKey->summarize($all->getNode($nodeId), true),
-            ], $all->getIds()),
-        ]);
-    }
-
     #[Route('/{hierarchySlug}/{keyId}({fieldId})/{nodeId}', name: 'show_node_field', methods: 'GET')]
     #[ParamConverter('storageConnection')]
     #[ParamConverter('hierarchy')]
@@ -416,6 +376,7 @@ class HierarchyController {
             [
                 'key' => $key, 
                 'nodeId' => $nodeId, 
+                'nodeNesting' => $node->getNesting(), 
                 'storageConnection' => $storageConnection,
                 'action' => $urlGen->generate('move_node', [
                     'hierarchySlug' => $hierarchy->getSlug(), 
@@ -815,11 +776,7 @@ class HierarchyController {
 	#[Template()]
     public function listRootNodes(Request $request, Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key)
     {
-        if($request->query->has('deep')) {
-            $nodeCollection = $storageConnection->getQueryService()->findAllNodes($key->getId());
-        } else {
-            $nodeCollection = $storageConnection->getQueryService()->findRootNodes($key->getId());
-        }
+        $nodeCollection = $storageConnection->getQueryService()->findAllNodes($key->getId(), $request->query->has('deep'));
 
     	return [
             'hierarchy' => $hierarchy,

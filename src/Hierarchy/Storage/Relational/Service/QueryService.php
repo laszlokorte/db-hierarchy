@@ -18,24 +18,8 @@ class QueryService {
 
 	}
 
-	public function findRootNodes(string $keyId) : Data\NodeCollection {
-		$select = $this->commandBuilder->getSelectForFindNodes($keyId, null, new Constant(null));
-
-		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmtResult = $stmt->execute();
-    	
-		$rows = $stmtResult->fetchAllAssociativeIndexed();
-
-		return new Data\NodeCollection(
-			$keyId,
-			$rows,
-			NULL,
-			NULL
-		);
-	}
-
-	public function findAllNodes(string $keyId) : Data\NodeCollection {
-		$select = $this->commandBuilder->getSelectForFindNodes($keyId, null, null);
+	public function findAllNodes(string $keyId, bool $deep = false) : Data\NodeCollection {
+		$select = $this->commandBuilder->getSelectForFindNodes($keyId, null, $deep ? null : new Constant(null));
 
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmtResult = $stmt->execute();
@@ -245,7 +229,7 @@ class QueryService {
 		} else if($self->hasScope()) {
 			return $this->findNodeChildren($this->schemaDef->getKeyScopeId($keyId), $self->getScope(), $keyId);
 		} else {
-			return $this->findRootNodes($keyId);
+			return $this->findAllNodes($keyId);
 		}
 	}
 }

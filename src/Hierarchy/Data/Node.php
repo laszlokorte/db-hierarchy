@@ -71,4 +71,8 @@ class Node {
 		}
 	}
 
+	public function getNesting() {
+		return new NodeNesting($this->keyId, $this->scopeId, $this->parentId);
+	}
+
 }
