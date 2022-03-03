@@ -17,6 +17,7 @@
 {% endif %}
 
 {% for rootKey in hierarchy.rootKeys %}
+    {% set nodes = rootNodes.nodesFor(rootKey.id) %}
     <section>
         <h2>
         <span>
@@ -30,8 +31,7 @@
         {% endif %}
         </h2>
 
-        {% if rootKey.isSingleton %}
-{% set nodes = rootNodes.nodesFor(rootKey.id) %}
+{% if rootKey.isSingleton %}
 {% for nodeId in nodes.ids %}
 
   {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: rootKey.id~'-'~nodeId, tabs: [
