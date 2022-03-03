@@ -31,8 +31,8 @@
         </h2>
 
         {% if rootKey.isSingleton %}
-
-{% for nodeId in rootNodes.nodesFor(rootKey.id).ids %}
+{% set nodes = rootNodes.nodesFor(rootKey.id) %}
+{% for nodeId in nodes.ids %}
 
   {% embed 'hierarchy/partials/radio_tabs.html.twig' with {groupId: rootKey.id~'-'~nodeId, tabs: [
     {label: rootKey.label.empty, activeClasses: 'need-confirmation'},
@@ -54,12 +54,12 @@
   {% block tab_1 %}
       
 
-    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key:rootKey, node: rootNodes.nodesFor(rootKey.id).getNode(nodeId)} only %}
+    {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key:rootKey, node: nodes.getNode(nodeId)} only %}
   {% endblock %}
 
   {% block tab_2 %}
       
-    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, rootNodes.getNode(nodeId)), force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
+    {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, nodes.getNode(nodeId)), force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 
 {% endembed %}
@@ -84,7 +84,7 @@
             {label: 'New'},
           ]} %}
               {% block tab_0 %}
-                {% include 'hierarchy/partials/table.html.twig' with {hierarchy,key: rootKey, nodeCollection: rootNodes.nodesFor(rootKey.id), then: 'parent', listLink: true} only %}
+                {% include 'hierarchy/partials/table.html.twig' with {hierarchy,key: rootKey, nodeCollection: nodes, then: 'parent', listLink: true} only %}
               {% endblock %}
               {% block tab_1 %}
                     {% include 'hierarchy/partials/form_new.html.twig' with {hierarchy, then: 'parent', creationForm: creationForm(hierarchy, rootKey.id)} only %}
