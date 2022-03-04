@@ -48,7 +48,6 @@ class Field {
 	}
 
 	public function readValueOf(Node $object) {
-
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
 		
