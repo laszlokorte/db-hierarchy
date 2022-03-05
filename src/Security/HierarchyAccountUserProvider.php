@@ -9,8 +9,16 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Doctrine\DBAL\Connection;
+
+class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
+    public function __construct(Connection $connection, UserPasswordHasherInterface $hasher) {
+        $this->connection = $connection;
+        $this->hasher = $hasher;
+    }
+
     /**
      * Symfony calls this method if you use features like switch_user
      * or remember_me. If you're not using these features, you do not
@@ -20,10 +28,15 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
      */
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        // Load a User object from your data source or throw UserNotFoundException.
-        // The $identifier argument is whatever value is being returned by the
-        // getUserIdentifier() method in your User class.
-        throw new \Exception('TODO: fill in loadUserByIdentifier() inside '.__FILE__);
+        $stmt = $this->connection->prepare('SELECT password FROM account WHERE login = :login');
+        $result = $stmt->execute(['login' => $identifier]);
+        $password = $result->fetchOne();
+
+        if($password) {
+            return new HierarchyAccountUser($identifier, $password);
+        }
+
+        throw new UserNotFoundException();
     }
 
     /**
@@ -41,13 +54,19 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
      */
     public function refreshUser(UserInterface $user)
     {
-        if (!$user instanceof User) {
+        if (!$user instanceof HierarchyAccountUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
         }
 
-        // Return a User object after making sure its data is "fresh".
-        // Or throw a UserNotFoundException if the user no longer exists.
-        throw new \Exception('TODO: fill in refreshUser() inside '.__FILE__);
+        $stmt = $this->connection->prepare('SELECT password FROM account WHERE login = :login');
+        $result = $stmt->execute(['login' => $user->getUserIdentifier()]);
+        $password = $result->fetchOne();
+
+        if(!$password) {
+            throw new UserNotFoundException();
+        }
+
+        return $user;
     }
 
     /**
@@ -55,7 +74,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
      */
     public function supportsClass(string $class)
     {
-        return User::class === $class || is_subclass_of($class, User::class);
+        return HierarchyAccountUser::class === $class || is_subclass_of($class, HierarchyAccountUser::class);
     }
 
     /**
@@ -63,8 +82,8 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
     {
-        // TODO: when encoded passwords are in use, this method should:
-        // 1. persist the new password in the user storage
-        // 2. update the $user object with $user->setPassword($newEncodedPassword);
+        $stmt = $this->connection->prepare('UPDATE account SET password = :password WHERE login = :login');
+        $result = $stmt->execute(['login' => $user->getUserIdentifier(), 'password' => $newEncodedPassword]);
+        $user->setPassword($newEncodedPassword);
     }
 }

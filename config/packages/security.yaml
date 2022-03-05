@@ -4,18 +4,29 @@ security:
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     password_hashers:
         Symfony\Component\Security\Core\User\InMemoryUser: 'auto'
+        App\Security\InstallationAdminUser: 'auto'
+        App\Security\HierarchyAccountUser: 'auto'
     providers:
         users_in_memory:
             memory:
                 users:
-                    laszlo: { password: '$2y$13$yRXlCJKV9g3VerDxflD98uaEoXymW3KsXyHxP8MuB7/fHeZwKYoFW', roles: ['ROLE_ADMIN'] }
+                #    laszlo: { password: '$2y$13$yRXlCJKV9g3VerDxflD98uaEoXymW3KsXyHxP8MuB7/fHeZwKYoFW', roles: ['ROLE_ADMIN'] }
+        installation_admin:
+            id: App\Security\InstallationAdminProvider
+        hierarchy_account:
+            id: App\Security\HierarchyAccountUserProvider
+
+        all_users:
+            chain:
+                providers: ['hierarchy_account', 'installation_admin', 'users_in_memory']
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: all_users
             entry_point: form_login
             form_login: 
                 login_path: security_login

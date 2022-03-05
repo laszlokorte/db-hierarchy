@@ -9,8 +9,17 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+use Doctrine\DBAL\Connection;
+
 class InstallationAdminProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
+    public function __construct(Connection $connection, UserPasswordHasherInterface $hasher) {
+        $this->connection = $connection;
+        $this->hasher = $hasher;
+    }
+
     /**
      * Symfony calls this method if you use features like switch_user
      * or remember_me. If you're not using these features, you do not
@@ -20,10 +29,19 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      */
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        // Load a User object from your data source or throw UserNotFoundException.
-        // The $identifier argument is whatever value is being returned by the
-        // getUserIdentifier() method in your User class.
-        throw new \Exception('TODO: fill in loadUserByIdentifier() inside '.__FILE__);
+        if($identifier === 'admin') {
+            $stmt = $this->connection->prepare('SELECT COUNT(*) FROM account');
+            $result = $stmt->execute();
+            $numberOfAccounts = $result->fetchOne();
+            if($numberOfAccounts == 0) {
+                $admin = new InstallationAdminUser($identifier);
+                $hashed = $this->hasher->hashPassword($admin, 'admin');
+                $admin->setPassword($hashed);
+                return $admin;
+            }
+        }
+
+        throw new UserNotFoundException();
     }
 
     /**
@@ -41,13 +59,19 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      */
     public function refreshUser(UserInterface $user)
     {
-        if (!$user instanceof User) {
+        if (!$user instanceof InstallationAdminUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
         }
 
-        // Return a User object after making sure its data is "fresh".
-        // Or throw a UserNotFoundException if the user no longer exists.
-        throw new \Exception('TODO: fill in refreshUser() inside '.__FILE__);
+        $stmt = $this->connection->prepare('SELECT COUNT(*) FROM account');
+        $result = $stmt->execute();
+        $numberOfAccounts = $result->fetchOne();
+
+        if($numberOfAccounts != 0) {
+            throw new UserNotFoundException();
+        }
+
+        return $user;
     }
 
     /**
@@ -55,7 +79,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      */
     public function supportsClass(string $class)
     {
-        return User::class === $class || is_subclass_of($class, User::class);
+        return InstallationAdminUser::class === $class || is_subclass_of($class, InstallationAdminUser::class);
     }
 
     /**
@@ -63,8 +87,6 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
     {
-        // TODO: when encoded passwords are in use, this method should:
-        // 1. persist the new password in the user storage
-        // 2. update the $user object with $user->setPassword($newEncodedPassword);
+        $user->setPassword($newEncodedPassword);
     }
 }
