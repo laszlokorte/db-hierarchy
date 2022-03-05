@@ -6,28 +6,30 @@ use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
 use App\Hierarchy\Schema\Definition\StorageCodingType;
 
-class HashType implements FieldTypeInterface {
+class DsnType implements FieldTypeInterface {
 
+	private $config;
 
-	public function __construct() {
+	public function __construct($config = []) {
+		$this->config = $config;
 	}
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::BINARY), !$required, null)
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::STRING), !$required, null)
 		];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [password_hash($fieldData, PASSWORD_DEFAULT)];
+		return [$fieldData];
 	}
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return 'secret';
+		return $columnData[0] ?? '';
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
-		return 'secret';
+		return $fieldData;
 	}
 
 	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
@@ -35,7 +37,7 @@ class HashType implements FieldTypeInterface {
 	}
 
 	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'hash';
+		return 'string';
 	}
 
 	public function getDefaultOptions() {

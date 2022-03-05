@@ -26,6 +26,7 @@ class KeyFieldsType extends AbstractType
 {
     private $fieldMapping = [
         'string' => HierarchyField\StringType::class,
+        'dsn' => HierarchyField\DsnType::class,
         'text' => HierarchyField\TextType::class,
         'file' => HierarchyField\FileType::class,
         'bool' => HierarchyField\BoolType::class,
@@ -40,7 +41,7 @@ class KeyFieldsType extends AbstractType
         'time' => HierarchyField\TimeType::class,
         'email' => HierarchyField\EmailType::class,
         'color' => HierarchyField\ColorType::class,
-        'break' => HierarchyField\GeoType::class,
+        'geo' => HierarchyField\GeoType::class,
         'url' => HierarchyField\UrlType::class,
         'svg' => HierarchyField\SvgType::class,
         'sql' => HierarchyField\SqlType::class,
@@ -128,6 +129,8 @@ class KeyFieldsType extends AbstractType
                         ->add('end', Type\NumberType::class);
                         $builder->add($range);
                         break;
+                    default:
+                        throw new \Exception("unknown field type " . $field->getType());
                 }
             }
         }

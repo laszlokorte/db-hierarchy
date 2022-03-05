@@ -27,11 +27,11 @@ class StorageDefinition {
 	public function getIdColumn() {
 		switch($this->pkType) {
 			case 'serial':
-				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::SERIAL), false, null);
+				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCodingType::SERIAL), false, null);
 			case 'uuid':
-				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::UUID), false, null);
+				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCodingType::UUID), false, null);
 			case 'manual':
-				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCoding::INTEGER), false, null);
+				return new ColumnDefinition($this->pkColumn, new StorageCoding(StorageCodingType::INTEGER), false, null);
 		}
 	}
 }

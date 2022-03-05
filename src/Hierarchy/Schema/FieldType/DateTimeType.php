@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class DateTimeType implements FieldTypeInterface {
 
@@ -13,7 +14,7 @@ class DateTimeType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::DATETIME), !$required, null)
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::DATETIME), !$required, null)
 		];
 	}
 

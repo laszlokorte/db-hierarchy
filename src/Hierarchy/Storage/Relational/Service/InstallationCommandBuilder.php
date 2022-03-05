@@ -39,6 +39,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\Rank\RowNumber;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\ReferenceCoding;
+use App\Hierarchy\Schema\Definition\ReferenceCodingCascade;
 use App\Hierarchy\Schema\Definition\StorageCoding;
 
 class InstallationCommandBuilder {
@@ -192,13 +193,13 @@ class InstallationCommandBuilder {
 				$targetTableName = $this->nodeTableName($targetKeyName);
 
 				switch ($fieldColumn->getCoding()->getCascade()) {
-					case ReferenceCoding::FOLLOW:
+					case ReferenceCodingCascade::FOLLOW:
 						$onDelete = ForeignKey::CASCADE;
 						break;
-					case ReferenceCoding::CLEAR:
+					case ReferenceCodingCascade::CLEAR:
 						$onDelete = ForeignKey::SET_NULL;
 						break;
-					case ReferenceCoding::RESTRICT:
+					case ReferenceCodingCascade::RESTRICT:
 						$onDelete = ForeignKey::RESTRICT;
 						break;
 					default:

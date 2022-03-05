@@ -717,6 +717,8 @@ class HierarchyController {
         $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
         $updateService = $storageConnection->getUpdateService();
 
+        dump($key->getNodeFieldValues($node));
+
 		$editForm = $formFactory->create(
             EditNodeType::class, 
             [

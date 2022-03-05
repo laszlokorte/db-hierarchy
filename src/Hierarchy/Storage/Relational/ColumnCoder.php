@@ -142,7 +142,7 @@ class ColumnCoder {
 	}
 
 	public function getOrderColumnBindingType($keyId) {
-		return StorageCoding::INTEGER;
+		return StorageCodingType::INTEGER;
 	}
 
 	public function getColumnDefinitionBindingType(ColumnDefinition $column) {

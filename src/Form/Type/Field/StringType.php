@@ -26,8 +26,11 @@ class StringType extends AbstractType
         $resolver->setDefault('help', function (Options $options) {
             return $options['field']->getLabel()->getDescription();
         });
-        $resolver->setDefault('constraints', function (Options $options) {
-            return $options['field']->isRequired() ? [new Assert\NotBlank()] : [];
+        $resolver->setDefault('constraints', function (Options $options, $previousValue) {
+            return $options['field']->isRequired() ? [
+                new Assert\NotBlank(['message' => sprintf('%s must not be blank', $options['field']->getLabel()->getString())]),
+                ...$previousValue
+            ] : $previousValue;
         });
     }
 

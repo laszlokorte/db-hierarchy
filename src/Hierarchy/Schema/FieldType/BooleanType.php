@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class BooleanType implements FieldTypeInterface {
 
@@ -13,14 +14,14 @@ class BooleanType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition($fieldId, new StorageCoding(StorageCoding::BOOL), !$required, null)
+			new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::BOOL), !$required, null)
 		];
 	}
 
 	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
 		switch($fieldData) {
-			case 'yes': $casted = '1'; break;
-			case 'no': $casted = '0'; break;
+			case true: $casted = '1'; break;
+			case false: $casted = '0'; break;
 			default: $casted = null; break;
 		}
 		return [$casted];
@@ -28,16 +29,16 @@ class BooleanType implements FieldTypeInterface {
 
 	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
 		switch($columnData[0]) {
-			case '0': return 'no';
-			case '1': return 'yes';
+			case '0': return false;
+			case '1': return true;
 			default: return null;
 		}
 	}
 
 	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
 		switch($fieldData) {
-			case 'yes': return 'yes';
-			case 'no': return 'no';
+			case true: return 'Yes';
+			case false: return 'No';
 			default: return 'null';
 		}
 	}

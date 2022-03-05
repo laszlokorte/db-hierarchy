@@ -10,7 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Hierarchy\Schema\Field;
 
-class TimeType extends AbstractType
+class DsnType extends AbstractType
 {
 	public function configureOptions(OptionsResolver $resolver): void
     {
@@ -26,6 +26,9 @@ class TimeType extends AbstractType
         $resolver->setDefault('help', function (Options $options) {
             return $options['field']->getLabel()->getDescription();
         });
+        $resolver->setDefault('constraints', function (Options $options) {
+            return $options['field']->isRequired() ? [new Assert\NotBlank()] : [];
+        });
         $resolver->setDefault('constraints', function (Options $options, $previousValue) {
             return $options['field']->isRequired() ? [
                 new Assert\NotBlank(),
@@ -36,11 +39,11 @@ class TimeType extends AbstractType
 
     public function getParent(): string
     {
-        return Type\TimeType::class;
+        return Type\TextType::class;
     }
 
     public function getBlockPrefix()
     {
-        return 'hierarchy_time';
+        return 'hierarchy_string';
     }
 }

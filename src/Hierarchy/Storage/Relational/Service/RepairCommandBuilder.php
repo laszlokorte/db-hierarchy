@@ -211,14 +211,14 @@ class RepairCommandBuilder  {
 		return new Select([
 			new Projection(
 				$this->coder->decodeColumnType(
-					StorageCoding::INTEGER,
+					StorageCodingType::INTEGER,
 					new ColumnReference($orderView, $this->naming->normalizedOrderStoredColumnName($keyId))
 				),
 				$this->naming->normalizedOrderStoredColumnName($keyId)
 			),
 			new Projection(
 				$this->coder->decodeColumnType(
-					StorageCoding::INTEGER,
+					StorageCodingType::INTEGER,
 					new ColumnReference($orderView, $this->naming->normalizedOrderNormalizedColumnName($keyId))
 				),
 				$this->naming->normalizedOrderNormalizedColumnName($keyId)

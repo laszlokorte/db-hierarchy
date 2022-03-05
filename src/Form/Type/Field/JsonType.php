@@ -6,6 +6,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Hierarchy\Schema\Field;
 
@@ -27,6 +28,12 @@ class JsonType extends AbstractType
         });
         $resolver->setDefault('attr', function (Options $options) {
             return ['class' => 'form-field multiline monospace'];
+        });
+        $resolver->setDefault('constraints', function (Options $options, $previousValue) {
+            return $options['field']->isRequired() ? [
+                new Assert\NotBlank(),
+                ...$previousValue
+            ] : $previousValue;
         });
     }
 

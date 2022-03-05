@@ -98,6 +98,7 @@ class RecursiveLoader {
 			'svg' => new FieldType\SvgType(),
 			'sql' => new FieldType\SqlType(),
 			'icon' => new FieldType\IconType($this->icons),
+			'dsn' => new FieldType\DsnType($this->icons),
 
 
 			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
@@ -384,7 +385,7 @@ class RecursiveLoader {
 					),
 					'dsn' => new FieldDefinition(
 						new LabelDefinition('DSN','DSNs', 'What is?'), 
-						'string', true, false, [], false),
+						'dsn', true, false, [], false),
 					'label_singular' => new FieldDefinition(
 						new LabelDefinition('Label'), 
 						'string', false, false, ['autofillBy' => 'slug']),

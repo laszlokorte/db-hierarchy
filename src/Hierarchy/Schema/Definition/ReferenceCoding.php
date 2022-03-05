@@ -2,14 +2,12 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-class ReferenceCoding {
-	public const FOLLOW = 'FOLLOW';
-	public const CLEAR = 'CLEAR';
-	public const RESTRICT = 'RESTRICT';
+use App\Hierarchy\Schema\Definition\ReferenceCodingCascade;
 
+class ReferenceCoding {
 	public function __construct(
 		private string $target, 
-		private string $cascade = 'RESTRICT'
+		private string $cascade = ReferenceCodingCascade::RESTRICT
 	) {
 	}
 
@@ -26,6 +24,6 @@ class ReferenceCoding {
 	}
 
 	public function canCascade() {
-		return $this->cascade !== 'RESTRICT';
+		return $this->cascade !== ReferenceCodingCascade::RESTRICT;
 	}
 }

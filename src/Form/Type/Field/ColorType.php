@@ -6,6 +6,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Hierarchy\Schema\Field;
 
@@ -24,6 +25,12 @@ class ColorType extends AbstractType
         });
         $resolver->setDefault('help', function (Options $options) {
             return $options['field']->getLabel()->getDescription();
+        });
+        $resolver->setDefault('constraints', function (Options $options, $previousValue) {
+            return $options['field']->isRequired() ? [
+                new Assert\NotBlank(),
+                ...$previousValue
+            ] : $previousValue;
         });
     }
 

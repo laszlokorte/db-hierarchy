@@ -4,6 +4,8 @@ namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\ReferenceCoding;
+use App\Hierarchy\Schema\Definition\ReferenceCodingCascade;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class ReferenceType implements FieldTypeInterface {
 
@@ -13,9 +15,9 @@ class ReferenceType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		if($required) {
-			$cascade = $fieldOptions['cascade']??false ? ReferenceCoding::FOLLOW : ReferenceCoding::RESTRICT; 
+			$cascade = $fieldOptions['cascade']??false ? ReferenceCodingCascade::FOLLOW : ReferenceCodingCascade::RESTRICT; 
 		} else {
-			$cascade = $fieldOptions['cascade']??false ? ReferenceCoding::CLEAR : ReferenceCoding::RESTRICT;
+			$cascade = $fieldOptions['cascade']??false ? ReferenceCodingCascade::CLEAR : ReferenceCodingCascade::RESTRICT;
 		}
 		
 		return [

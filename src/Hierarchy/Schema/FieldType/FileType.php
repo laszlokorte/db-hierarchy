@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class FileType implements FieldTypeInterface {
 
@@ -15,10 +16,10 @@ class FileType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition(sprintf('%s_size', $fieldId), new StorageCoding(StorageCoding::INTEGER), !$required, null),
-			new ColumnDefinition(sprintf('%s_path', $fieldId), new StorageCoding(StorageCoding::TEXT), !$required, null),
-			new ColumnDefinition(sprintf('%s_mime_type', $fieldId), new StorageCoding(StorageCoding::TEXT), !$required, null),
-			new ColumnDefinition(sprintf('%s_name', $fieldId), new StorageCoding(StorageCoding::TEXT), !$required, null),
+			new ColumnDefinition(sprintf('%s_size', $fieldId), new StorageCoding(StorageCodingType::INTEGER), !$required, null),
+			new ColumnDefinition(sprintf('%s_path', $fieldId), new StorageCoding(StorageCodingType::TEXT), !$required, null),
+			new ColumnDefinition(sprintf('%s_mime_type', $fieldId), new StorageCoding(StorageCodingType::TEXT), !$required, null),
+			new ColumnDefinition(sprintf('%s_name', $fieldId), new StorageCoding(StorageCodingType::TEXT), !$required, null),
 		];
 	}
 

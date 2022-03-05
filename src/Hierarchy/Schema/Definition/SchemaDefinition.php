@@ -120,7 +120,7 @@ class SchemaDefinition {
 	}
 
 	public function getKeyOrderColumn($keyId) {
-		return new ColumnDefinition($this->keys[$keyId]->getOrderColumnName(), new StorageCoding(StorageCoding::INTEGER), false, 0);
+		return new ColumnDefinition($this->keys[$keyId]->getOrderColumnName(), new StorageCoding(StorageCodingType::INTEGER), false, 0);
 	}
 
 	public function getKeyOrderColumnName($keyId) {

@@ -11,3 +11,4 @@
 - sign deletion cascade
 
 - soft locking edit
+- caching

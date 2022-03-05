@@ -6,6 +6,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Hierarchy\Schema\Field;
 
@@ -36,6 +37,12 @@ class EnumType extends AbstractType
         });
         $resolver->setDefault('data', function (Options $options) {
             return current($options['field']->getOption('values'));
+        });
+        $resolver->setDefault('constraints', function (Options $options, $previousValue) {
+            return $options['field']->isRequired() ? [
+                new Assert\NotBlank(),
+                ...$previousValue
+            ] : $previousValue;
         });
     }
 

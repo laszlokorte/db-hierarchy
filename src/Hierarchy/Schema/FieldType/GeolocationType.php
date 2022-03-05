@@ -4,6 +4,7 @@ namespace App\Hierarchy\Schema\FieldType;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class GeolocationType implements FieldTypeInterface {
 
@@ -15,8 +16,8 @@ class GeolocationType implements FieldTypeInterface {
 
 	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
 		return [
-			new ColumnDefinition($fieldId.'_longitude', new StorageCoding(StorageCoding::TEXT), !$required, null),
-			new ColumnDefinition($fieldId.'_latitude', new StorageCoding(StorageCoding::TEXT), !$required, null)
+			new ColumnDefinition($fieldId.'_longitude', new StorageCoding(StorageCodingType::STRING), !$required, null),
+			new ColumnDefinition($fieldId.'_latitude', new StorageCoding(StorageCodingType::STRING), !$required, null)
 		];
 	}
 

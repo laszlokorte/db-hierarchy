@@ -2,7 +2,19 @@
 
 namespace App\Response;
 
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 class RedirectHandler {
+    public function __construct(RequestStack $requestStack, UrlGeneratorInterface $urlGen) {
+        $this->requestStack = $requestStack;
+        $this->urlGen = $urlGen;
+    }
+
+    private function setFlash(string $type, string $message) {
+        $this->requestStack->getSession()->getFlashBag()->add($type, $message);
+    }
+
 	public function redirectAfterUpdate() {
 		if($then === 'root') {
             return new RedirectResponse($urlGen->generate('hierarchy_root', ['hierarchySlug' => $hierarchy->getSlug()]));
