@@ -23,7 +23,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Setter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Projected;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 
-use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class RepairCommandBuilder  {
 

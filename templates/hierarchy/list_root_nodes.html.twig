@@ -10,7 +10,10 @@
 
 
 <h1>
-{{key.label.string(key.isSingleton)}}
+<span>
+    {%- include 'hierarchy/partials/icon.html.twig' with {icon: key.label.icon, prefix: true} only -%}
+{{key.label.string(key.isSingleton and not key.isScoped)}}
+</span>
 {%- if key.label.description is not empty -%}
 <i class="icon-link info tooltipped" aria-label="{{key.label.description}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'question'} only %}</i>
 {% endif %}
@@ -63,6 +66,8 @@
 {% include 'hierarchy/partials/sub_tabs.html.twig' with {hierarchy,active: 'list', key} only %}
 
 {% include 'hierarchy/partials/table.html.twig' with {hierarchy,nodeCollection, key, then:'root_list'} only %}
+
+{% include 'hierarchy/partials/paginator.html.twig' with {hierarchy,nodeCollection, key} only %}
 
 <div class="quickform">
 <h3>New</h3>

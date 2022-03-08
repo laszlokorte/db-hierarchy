@@ -1,0 +1,37 @@
+{% extends 'hierarchy/base.html.twig' %}
+
+{% block html_title -%}
+    Installer - {{ parent() }}
+{%- endblock %}
+
+{% block area_main %}
+
+{% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy: hierarchy,trailing: 'System'} only %}
+
+<h1>Installer</h1>
+
+<ul class="quicktab-list">
+    {# <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': subHierarchy.slug == hierarchy.slug}) }}" href="{{ path('show_system_installer', {hierarchySlug: hierarchy.slug}) }}">{{hierarchy.label.singular}}</a></li> #}
+    {% for subSchema in subSchemas %}
+        <li class="quicktab-list-item"><a class="{{ html_classes('quicktab-link', {'state-active': subHierarchy.slug == subSchema.slug}) }}" href="{{ path('show_system_installer_view', {hierarchySlug: hierarchy.slug, subHierarchySlug: subSchema.slug, viewName}) }}">{{subSchema.label.singular}}</a></li>
+    {% endfor %}
+</ul>
+
+<h2><span><a href="{{path('show_system_installer', {hierarchySlug: hierarchy.slug, subHierarchySlug: subHierarchy.slug})}}">Schema</a> / View: {{viewName}}</span></h2>
+
+<details class="details">
+    <summary class="details-summary">
+    SQL
+    </summary>
+
+    <textarea contenteditable="false" readonly style="margin: 0; color: #0a0; overflow: scroll;resize: vertical;box-sizing: border-box;height: 20vh;box-sizing: border-box;white-space: pre-wrap; padding: 2em; width: 100%">
+
+    </textarea>
+
+</details>
+
+<button class="action-button danger">Drop</button>
+<button class="action-button danger">Recreate</button>
+
+
+{% endblock %}

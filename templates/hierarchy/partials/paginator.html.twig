@@ -1,0 +1,13 @@
+<nav class="paginator">
+	{% if node is defined %}
+		<ol class="inline-list">
+			<li><a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: node.key, nodeId:node.id, childKeyId: key.id}) }}" title="">Prev</a></li>
+			<li><a href="{{ path('list_child_nodes', {hierarchySlug: hierarchy.slug, keyId: node.key, nodeId:node.id, childKeyId: key.id}) }}" title="">Next</a></li>
+		</ol>
+	{% else %}
+		<ol class="inline-list">
+			<li><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id}) }}" title="">Prev</a></li>
+			<li><a href="{{ path('list_root_nodes', {hierarchySlug: hierarchy.slug, keyId: key.id, page: 2}) }}" title="">Next</a></li>
+		</ol>
+	{% endif %}
+</nav>

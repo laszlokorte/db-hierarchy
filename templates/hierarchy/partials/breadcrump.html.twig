@@ -39,6 +39,14 @@
         {%- endfor -%}
     {%- endif -%}
 
+    {% if linkPath is defined %}
+        {% for p in linkPath %}
+            <li class="breadcrump-item">
+            <a href="{{p.path}}">{{p.title}}</a>
+            </li>
+        {% endfor %}
+    {% endif %}
+
     {%- if trailing??false -%}
     <li class="breadcrump-item">{{ trailing|title }}</li>
     {%- endif -%}

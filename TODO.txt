@@ -12,3 +12,4 @@
 
 - soft locking edit
 - caching
+- hook OrderingService into Creation/Movement/Deletion Services

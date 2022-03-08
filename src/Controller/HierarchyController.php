@@ -116,6 +116,38 @@ class HierarchyController {
     	];
     }
 
+    #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}/table/{tableName}', name: 'show_system_installer_table', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
+    #[ParamConverter('hierarchy')]
+    #[ParamConverter('subHierarchy')]
+    #[Template()]
+    public function showInstallerTable(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, string $tableName, StorageConnection $storageConnection)
+    {
+        
+        return [
+            'hierarchy' => $hierarchy,
+            'subHierarchy' => $subHierarchy,
+            'installer' => $storageConnection->getInstallationService(),
+            'tableName' => $tableName,
+        ];
+    }
+
+    #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}/view/{viewName}', name: 'show_system_installer_view', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
+    #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
+    #[ParamConverter('hierarchy')]
+    #[ParamConverter('subHierarchy')]
+    #[Template()]
+    public function showInstallerView(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, string $viewName, StorageConnection $storageConnection)
+    {
+        
+        return [
+            'hierarchy' => $hierarchy,
+            'subHierarchy' => $subHierarchy,
+            'installer' => $storageConnection->getInstallationService(),
+            'viewName' => $viewName,
+        ];
+    }
+
     #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'system_install', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[ParamConverter('hierarchy')]

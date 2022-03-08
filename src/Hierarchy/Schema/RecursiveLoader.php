@@ -109,15 +109,10 @@ class RecursiveLoader {
 			'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
 		];
 
-		$this->testHierarchy = [
-			'slug' => 'C15BBD3CA3C74843A2E260CF81ED307D',
-			'label' => new LabelDefinition(
-				'Testing', 
-				'Testing', 
-				null, 
-				'checklist', 
-				'darkred'
-			),
+		$this->predefinedHierarchies = [
+			'C15BBD3CA3C74843A2E260CF81ED307D' => $this->loadTestDefinition(),
+			'7f5c80bf9a6545408e5d6436cff3c2b7' => $this->loadFrontendDefinition(),
+			'system' => $this->loadBaseDefinition(),
 		];
 	}
 
@@ -145,11 +140,21 @@ class RecursiveLoader {
 						),
 					];
 				}
-				$this->subSchemas[] = $this->testHierarchy;
 
 			} catch(\Exception) {
-				$this->subSchemas = [$this->testHierarchy];
+				$this->subSchemas = [];
 			}
+
+			$this->subSchemas = array_merge(
+				$this->subSchemas,
+				array_map(fn($slug, $def) => [
+					'slug' => $slug,
+					'label' => $def->getSchemaLabel(),
+				], 
+				array_keys($this->predefinedHierarchies), 
+				array_values($this->predefinedHierarchies)
+				)
+			);
 		}
 		
 		return $this->subSchemas;
@@ -168,10 +173,8 @@ class RecursiveLoader {
 
 	public function loadDefinition(string $hierarchyName = 'system') {
 		if(empty($this->definitionCache[$hierarchyName])) {
-			if($hierarchyName === 'system') {
-				$this->definitionCache[$hierarchyName] = $this->loadBaseDefinition();
-			} elseif($hierarchyName === 'C15BBD3CA3C74843A2E260CF81ED307D') {
-				$this->definitionCache[$hierarchyName] = $this->loadTestDefinition();
+			if(isset($this->predefinedHierarchies[$hierarchyName])) {
+				return $this->predefinedHierarchies[$hierarchyName];
 			} else {
 				$this->definitionCache[$hierarchyName] = $this->loadDynamicDefinition($hierarchyName);
 			}
@@ -181,9 +184,7 @@ class RecursiveLoader {
 	}
 
 	public function loadHierarchyConnection(string $hierarchyName = 'system') {
-		if($hierarchyName === 'system') {
-			return $this->baseConnection;
-		} elseif($hierarchyName === 'C15BBD3CA3C74843A2E260CF81ED307D') {
+		if(isset($this->predefinedHierarchies[$hierarchyName])) {
 			return $this->baseConnection;
 		} else {
 			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
@@ -651,7 +652,13 @@ class RecursiveLoader {
 
 	private function loadTestDefinition() {
 		return new SchemaDefinition(
-			$this->testHierarchy['label'], [
+			new LabelDefinition(
+				'Testing', 
+				'Testing', 
+				null, 
+				'checklist', 
+				'darkred'
+			), [
 			'field_test' => new KeyDefinition(
 				new StorageDefinition('my_test'),
 				new LabelDefinition('Field Test', 'Field Tests', null, 'rows'),
@@ -761,6 +768,147 @@ class RecursiveLoader {
 						['target' => 'uu']),
 				],
 				SummaryDefinition::parseSegments('rr')
+			),
+		], $this->fieldTypes);
+	}
+
+	private function loadFrontendDefinition() {
+		return new SchemaDefinition(
+			new LabelDefinition(
+				'Frontend', 
+				'Frontend', 
+				null, 
+				'checklist', 
+				'brown'
+			), [
+			'site' => new KeyDefinition(
+				new StorageDefinition('site'),
+				new LabelDefinition('Site',null,null,'browser'),
+				null, new ReflexivityDefinition(), null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+			'route' => new KeyDefinition(
+				new StorageDefinition('route'),
+				new LabelDefinition('Route',null,null,'stack'),
+				new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], false
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+			'content' => new KeyDefinition(
+				new StorageDefinition('content'),
+				new LabelDefinition('Content','Content',null,'package'),
+				new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], false
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+			'resource_directory' => new KeyDefinition(
+				new StorageDefinition('resource_directory'),
+				new LabelDefinition('Resource Directory','Directories',null,'file-directory'),
+				null, new ReflexivityDefinition(), null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+			'resource' => new KeyDefinition(
+				new StorageDefinition('resource'),
+				new LabelDefinition('Resource',null,null,'file'),
+				new ScopeDefinition('resource_directory'), null, null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+					'content_type' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+			'menu' => new KeyDefinition(
+				new StorageDefinition('menu'),
+				new LabelDefinition('Menu',null,null,'list-unordered'),
+				null, null, null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+			'menu_item' => new KeyDefinition(
+				new StorageDefinition('menu_item'),
+				new LabelDefinition('Menu Item',null,null,'link'),
+				new ScopeDefinition('menu'), new ReflexivityDefinition(), null, [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+
+			'site_generator' => new KeyDefinition(
+				new StorageDefinition('site_generator'),
+				new LabelDefinition('Site Generator',null,null,'zap'),
+				new ScopeDefinition('site'), null, new OrderDefinition(singleton: true), [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+
+			'route_generator' => new KeyDefinition(
+				new StorageDefinition('route_generator'),
+				new LabelDefinition('Route Generator',null,null,'zap'),
+				new ScopeDefinition('route'), null, new OrderDefinition(singleton: true), [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+
+			'content_generator' => new KeyDefinition(
+				new StorageDefinition('content_generator'),
+				new LabelDefinition('Content Generator',null,null,'zap'),
+				new ScopeDefinition('content'), null, new OrderDefinition(singleton: true), [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
+			),
+
+			'menu_item_generator' => new KeyDefinition(
+				new StorageDefinition('menu_item_generator'),
+				new LabelDefinition('Menu Item Generator',null,null,'zap'),
+				new ScopeDefinition('menu_item'), null, new OrderDefinition(singleton: true), [
+					'slug' => new FieldDefinition(
+						new LabelDefinition('Slug'), 
+						'string', true, true, [], true
+					),
+				],
+				SummaryDefinition::parseSegments('{slug}')
 			),
 		], $this->fieldTypes);
 	}
