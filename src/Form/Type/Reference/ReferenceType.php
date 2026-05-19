@@ -8,13 +8,9 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Validator\Constraints as Assert;
 
-use Symfony\Component\Form\Extension\Core\Type;
-
 use App\Hierarchy\Storage\Relational\StorageConnection;
-use App\Hierarchy\Schema\Key;
 use App\Hierarchy\Schema\Field;
 
 use App\Hierarchy\Data\NodeCollectionIterator;

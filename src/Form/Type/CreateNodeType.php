@@ -9,7 +9,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 
 
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -52,13 +51,13 @@ class CreateNodeType extends AbstractType
 
         $builder->add(
             $builder->create('fields', KeyFieldsType::class, [
-                'by_reference' => false, 
+                'by_reference' => false,
                 'label' => false,
                 'key' => $options['key'],
                 'storageConnection' => $options['storageConnection'],
             ])
         );
-        
+
         $buttons = $builder->create('buttons', ActionType::class, [
             'label' => false,
         ]);
@@ -66,22 +65,22 @@ class CreateNodeType extends AbstractType
         if($key->isSingleton()) {
             $buttons
             ->add('create', Type\SubmitType::class, [
-                'label' => 'Save', 
+                'label' => 'Save',
                 'attr' => ['class' => 'form-button primary']
             ])
             ->add('create_stay', Type\SubmitType::class, [
-                'label' => 'Save (stay here)', 
+                'label' => 'Save (stay here)',
                 'attr' => ['class' => 'form-button']
             ]);
 
         } else {
             $buttons
             ->add('create', Type\SubmitType::class, [
-                'label' => 'Create', 
+                'label' => 'Create',
                 'attr' => ['class' => 'form-button primary']
             ])
             ->add('create_stay', Type\SubmitType::class, [
-                'label' => 'Create (stay here)', 
+                'label' => 'Create (stay here)',
                 'attr' => ['class' => 'form-button']
             ]);
         }

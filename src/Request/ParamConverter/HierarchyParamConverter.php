@@ -2,8 +2,11 @@
 
 namespace App\Request\ParamConverter;
 
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+
+use Generator;
+use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
+
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -13,27 +16,27 @@ use App\Hierarchy\Schema\Key;
 use App\Hierarchy\Schema\Field;
 use App\Hierarchy\Schema\RecursiveLoader;
 
-class HierarchyParamConverter implements ParamConverterInterface {
+class HierarchyParamConverter implements ValueResolverInterface{
 
 	public function __construct(private RecursiveLoader $schemaLoader) {
 
 	}
 
-	function apply(Request $request, ParamConverter $configuration) {
+	function resolve(Request $request, ArgumentMetadata  $configuration): Generator {
 		try {
 			$name = $configuration->getName();
-			$options = $configuration->getOptions();
+			$options = []; //$configuration->getOptions();
 
-			if($configuration->getClass() === StorageConnection::class) {
+			if($configuration->getType() === StorageConnection::class) {
 				$object = $this->schemaLoader->loadStorageConnection($request->attributes->get($options['slug'] ?? 'hierarchySlug'));
 
-				$request->attributes->set($name, $object);
-			} elseif($configuration->getClass() === Hierarchy::class) {
+				yield $object;
+			} elseif($configuration->getType() === Hierarchy::class) {
 				$name = $configuration->getName();
 				$schema = $this->schemaLoader->loadSchema($request->attributes->get($name.'Slug', 'system'));
 
-				$request->attributes->set($name, $schema);
-			} elseif($configuration->getClass() === Key::class) {
+				yield $schema;
+			} elseif($configuration->getType() === Key::class) {
 				$schemaSlug = $request->attributes->get($options['slug'] ?? 'hierarchySlug', 'system');
 				$keyId = $request->attributes->get($name.'Id');
 				$schema = $this->schemaLoader->loadSchema($schemaSlug);
@@ -42,8 +45,8 @@ class HierarchyParamConverter implements ParamConverterInterface {
 					throw new NotFoundHttpException('Key not defined:'.$keyId);
 				}
 
-				$request->attributes->set($name, $schema->getKey($keyId));
-			} elseif($configuration->getClass() === Field::class) {
+				yield $schema->getKey($keyId);
+			} elseif($configuration->getType() === Field::class) {
 				$schemaSlug = $request->attributes->get($options['slug'] ?? 'hierarchySlug', 'system');
 				$keyId = $request->attributes->get('keyId');
 				$fieldId = $request->attributes->get($name.'Id');
@@ -59,24 +62,12 @@ class HierarchyParamConverter implements ParamConverterInterface {
 					throw new NotFoundHttpException('Field not defined');
 				}
 
-				$request->attributes->set($name, $key->getField($fieldId));
-			} 
-		} catch(\Exxception $e) {
+				yield $key->getField($fieldId);
+			}
+		} catch(\Exception $e) {
 			throw new NotFoundHttpException('Hierarchy not defined');
 		}
 	}
 
-	function supports(ParamConverter $configuration) {
-		if($configuration->getClass() === StorageConnection::class) {
-			return true;
-		} elseif($configuration->getClass() === Hierarchy::class) {
-			return true;
-		} elseif($configuration->getClass() === Key::class) {
-			return true;
-		} elseif($configuration->getClass() === Field::class) {
-			return true;
-		} 
 
-		return false;
-	}
 }

@@ -7,16 +7,14 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 class HierarchyAccountUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    public function __construct(string $identifier, string $password) {
-        $this->identifier = $identifier;
-        $this->password = $password;
+    public function __construct(private string $identifier, private string $password) {
     }
 
     public function getRoles() : array {
     	return ['ROLE_ADMIN'];
     }
 
-    public function eraseCredentials() {
+    public function eraseCredentials(): void {
         $this->password = '';
     }
 
@@ -28,7 +26,7 @@ class HierarchyAccountUser implements UserInterface, PasswordAuthenticatedUserIn
     	return $this->password;
     }
 
-    public function setPassword(string $password) {
+    public function setPassword(string $password): void {
         $this->password = $password;
     }
 }

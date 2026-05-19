@@ -3,8 +3,9 @@
 namespace App\Form\Type\Reference;
 
 use Symfony\Component\Form\DataTransformerInterface;
-use Symfony\Component\Form\Exception\TransformationFailedException;
-
+/**
+ * @implements DataTransformerInterface<mixed,mixed>
+ */
 class ReferenceTransformer implements DataTransformerInterface {
 	public function transform(mixed $value) : mixed {
 

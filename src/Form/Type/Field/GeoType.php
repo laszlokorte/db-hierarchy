@@ -26,7 +26,7 @@ class GeoType extends AbstractType
             'compound' => true,
         ]);
 
-        $resolver->setRequired('field', true);
+        $resolver->setRequired('field');
         $resolver->setAllowedTypes('field', Field::class);
 
         $resolver->setDefault('required', function (Options $options) {

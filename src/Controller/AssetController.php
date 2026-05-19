@@ -2,13 +2,11 @@
 
 namespace App\Controller;
 
-use Symfony\Component\Routing\Annotation\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Symfony\Component\HttpKernel\Attribute\Cache;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Hierarchy\Schema\Hierarchy;
 
@@ -18,7 +16,6 @@ class AssetController {
 
 	#[Route('/favicon-{hierarchySlug}.svg', name: 'hierarchy_favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
     #[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
-    #[ParamConverter('hierarchy')]
 	#[Cache(expires: "tomorrow", public: true)]
 	public function favicon(Request $request, Environment $twig, Hierarchy $hierarchy) {
 		$response = new Response($twig->render('asset/favicon.svg.twig', [
@@ -38,4 +35,4 @@ class AssetController {
 	public function faviconFallback(UrlGeneratorInterface $urlGen) {
 		return new RedirectResponse($urlGen->generate('favicon_svg'));
 	}
-} 
+}

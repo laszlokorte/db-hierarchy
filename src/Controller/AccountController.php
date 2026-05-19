@@ -2,13 +2,12 @@
 
 namespace App\Controller;
 
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bridge\Twig\Attribute\Template as SymfonyTemplate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Routing\Route as Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 
@@ -18,12 +17,10 @@ use App\Hierarchy\Schema\Hierarchy;
 class AccountController {
 
 	#[Route('/_account', name: 'account_show', methods: 'GET|POST', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
-    #[ParamConverter('storageConnection')]
-    #[ParamConverter('hierarchy')]
-	#[Template()]
+	#[SymfonyTemplate()]
 	public function show(Request $request, Session $session, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, StorageConnection $storageConnection) {
 		return [
             'hierarchy' => $hierarchy,
         ];
 	}
-} 
+}

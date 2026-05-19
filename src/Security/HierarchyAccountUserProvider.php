@@ -11,12 +11,12 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\DBAL\Connection;
-
+/**
+ * @implements UserProviderInterface<UserInterface>
+ */
 class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    public function __construct(Connection $connection, UserPasswordHasherInterface $hasher) {
-        $this->connection = $connection;
-        $this->hasher = $hasher;
+    public function __construct(private Connection $connection, private UserPasswordHasherInterface $hasher) {
     }
 
     /**
@@ -82,8 +82,8 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
     {
-        $stmt = $this->connection->prepare('UPDATE account SET password = :password WHERE login = :login');
-        $result = $stmt->execute(['login' => $user->getUserIdentifier(), 'password' => $newEncodedPassword]);
-        $user->setPassword($newEncodedPassword);
+        // $stmt = $this->connection->prepare('UPDATE account SET password = :password WHERE login = :login');
+        // $result = $stmt->execute(['login' => $user->getUserIdentifier(), 'password' => $newEncodedPassword]);
+        // $user->setPassword($newEncodedPassword);
     }
 }
