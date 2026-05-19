@@ -39,7 +39,7 @@ class FileType extends AbstractType
         return Type\FileType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_file';
     }

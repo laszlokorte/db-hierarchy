@@ -1,6 +1,5 @@
 security:
     # https://symfony.com/doc/current/security/experimental_authenticators.html
-    enable_authenticator_manager: true
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     password_hashers:
         Symfony\Component\Security\Core\User\InMemoryUser: 'auto'
@@ -28,7 +27,7 @@ security:
             lazy: true
             provider: all_users
             entry_point: form_login
-            form_login: 
+            form_login:
                 login_path: security_login
                 check_path: security_login
                 enable_csrf: true

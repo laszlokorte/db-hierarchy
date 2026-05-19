@@ -24,13 +24,13 @@ use RecursiveTreeIterator;
 
 class NestingType extends AbstractType
 {
-	public function buildForm(FormBuilderInterface $builder, array $options)
+	public function buildForm(FormBuilderInterface $builder, array $options): void
     {
     	$choiceList = $this->createChoiceList($options);
     	$builder->setAttribute('choice_list', $choiceList);
     }
 
-    public function buildView(FormView $view, FormInterface $form, array $options)
+    public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         $choiceList = $form->getConfig()->getAttribute('choice_list');
 
@@ -43,7 +43,7 @@ class NestingType extends AbstractType
     }
 
     public function configureOptions(OptionsResolver $resolver): void
-    {   
+    {
         $resolver->setDefaults([
             'compound' => false,
         ]);
@@ -58,7 +58,7 @@ class NestingType extends AbstractType
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
     }
 
-    private function createChoiceList($options) {
+    private function createChoiceList($options): array {
         $key = $options['key'];
         $nodeId = $options['nodeId'];
         $movementService = $options['storageConnection']->getMovementService();
@@ -87,7 +87,7 @@ class NestingType extends AbstractType
 	    return $result;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_nesting';
     }

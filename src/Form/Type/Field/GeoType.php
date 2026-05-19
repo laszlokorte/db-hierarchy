@@ -13,7 +13,7 @@ use App\Hierarchy\Schema\Field;
 
 class GeoType extends AbstractType
 {
-	public function buildForm(FormBuilderInterface $builder, array $options) {
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		$builder->add('lat', Type\TextType::class, [
         ]);
         $builder->add('long', Type\TextType::class, [
@@ -46,7 +46,7 @@ class GeoType extends AbstractType
         });
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_geo';
     }

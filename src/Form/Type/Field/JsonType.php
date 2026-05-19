@@ -42,7 +42,7 @@ class JsonType extends AbstractType
         return Type\TextareaType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_json';
     }

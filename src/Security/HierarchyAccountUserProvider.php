@@ -52,7 +52,7 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
      *
      * @return UserInterface
      */
-    public function refreshUser(UserInterface $user)
+    public function refreshUser(UserInterface $user) : UserInterface
     {
         if (!$user instanceof HierarchyAccountUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
@@ -72,7 +72,7 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
     /**
      * Tells Symfony to use this provider for this User class.
      */
-    public function supportsClass(string $class)
+    public function supportsClass(string $class): bool
     {
         return HierarchyAccountUser::class === $class || is_subclass_of($class, HierarchyAccountUser::class);
     }

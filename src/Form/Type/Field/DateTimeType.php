@@ -44,7 +44,7 @@ class DateTimeType extends AbstractType
         return Type\DateTimeType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'hierarchy_date_time';
     }

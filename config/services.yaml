@@ -4,44 +4,44 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    html5_validation: '%env(default:html5_validation_default:bool:APP_HTML5_VALIDATION)%'
-    html5_validation_default: false
+  html5_validation: "%env(default:html5_validation_default:bool:APP_HTML5_VALIDATION)%"
+  html5_validation_default: false
 services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-        bind:
-            $html5Validation: '%html5_validation%'
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    bind:
+      $html5Validation: "%html5_validation%"
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
-    App\:
-        resource: '../src/'
-        exclude:
-            - '../src/DependencyInjection/'
-            - '../src/Entity/'
-            - '../src/Hierarchy/'
-            - '../src/Kernel.php'
-            - '../src/Tests/'
+  # makes classes in src/ available to be used as services
+  # this creates a service per class whose id is the fully-qualified class name
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Hierarchy/"
+      - "../src/Kernel.php"
+      - "../src/Tests/"
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-    App\Controller\:
-        resource: '../src/Controller'
-        tags: ['controller.service_arguments']
+  # add more service definitions when explicit configuration is needed
+  # please note that last definitions always *replace* previous ones
+  App\Controller\:
+    resource: "../src/Controller"
+    tags: ["controller.service_arguments"]
 
+  App\Doctrine\SqliteForeignKeyActivationSubscriber:
+    class: App\Doctrine\SqliteForeignKeyActivationSubscriber
+    tags:
+      - { name: doctrine.event_listener, event: postConnect }
 
-    App\Doctrine\SqliteForeignKeyActivationSubscriber:
-        class: App\Doctrine\SqliteForeignKeyActivationSubscriber
-        tags:
-            - { name: doctrine.event_listener, event: postConnect }
+  App\Hierarchy\Schema\RecursiveLoader:
+    class: App\Hierarchy\Schema\RecursiveLoader
 
-    App\Hierarchy\Schema\RecursiveLoader:
-        class: App\Hierarchy\Schema\RecursiveLoader
-
-
-    App\Hierarchy\Schema\DefaultHierarchy:
-        factory: ['@App\Hierarchy\Schema\RecursiveLoader', 'loadSchema']
-    App\Hierarchy\Schema\SchemaList:
-        factory: ['@App\Hierarchy\Schema\RecursiveLoader', 'loadSubSchemas']
+  App.Hierarchy.Schema.DefaultHierarchy:
+    class: App\Hierarchy\Schema\Hierarchy
+    factory: ['@App\Hierarchy\Schema\RecursiveLoader', "loadSchema"]
+  App.Hierarchy.Schema.SchemaList:
+    class: App\Hierarchy\Schema\Hierarchy
+    factory: ['@App\Hierarchy\Schema\RecursiveLoader', "loadSubSchemas"]

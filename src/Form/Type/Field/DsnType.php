@@ -42,7 +42,7 @@ class DsnType extends AbstractType
         return Type\TextType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_string';
     }

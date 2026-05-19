@@ -39,7 +39,7 @@ class ColorType extends AbstractType
         return Type\ColorType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'hierarchy_color';
     }

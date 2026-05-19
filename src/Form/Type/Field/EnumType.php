@@ -51,7 +51,7 @@ class EnumType extends AbstractType
         return Type\ChoiceType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_enum';
     }

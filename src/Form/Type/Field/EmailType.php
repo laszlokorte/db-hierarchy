@@ -40,7 +40,7 @@ class EmailType extends AbstractType
         return Type\EmailType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_email';
     }

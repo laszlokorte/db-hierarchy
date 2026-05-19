@@ -39,7 +39,7 @@ class IntegerType extends AbstractType
         return Type\NumberType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_integer';
     }

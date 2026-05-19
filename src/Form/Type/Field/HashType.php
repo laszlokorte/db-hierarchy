@@ -39,7 +39,7 @@ class HashType extends AbstractType
         return Type\PasswordType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_hash';
     }

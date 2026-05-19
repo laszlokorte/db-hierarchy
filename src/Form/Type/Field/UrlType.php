@@ -39,7 +39,7 @@ class UrlType extends AbstractType
         return Type\UrlType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_url';
     }

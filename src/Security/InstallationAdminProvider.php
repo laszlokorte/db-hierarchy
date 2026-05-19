@@ -57,7 +57,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      *
      * @return UserInterface
      */
-    public function refreshUser(UserInterface $user)
+    public function refreshUser(UserInterface $user) : UserInterface
     {
         if (!$user instanceof InstallationAdminUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
@@ -77,7 +77,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
     /**
      * Tells Symfony to use this provider for this User class.
      */
-    public function supportsClass(string $class)
+    public function supportsClass(string $class) : bool
     {
         return InstallationAdminUser::class === $class || is_subclass_of($class, InstallationAdminUser::class);
     }

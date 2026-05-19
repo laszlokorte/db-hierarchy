@@ -39,7 +39,7 @@ class TimeType extends AbstractType
         return Type\TimeType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix() : string
     {
         return 'hierarchy_time';
     }
