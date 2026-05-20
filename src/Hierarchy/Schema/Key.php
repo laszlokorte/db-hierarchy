@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Data\Node;
+use App\Hierarchy\Schema\Definition\LabelDefinition;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
 class Key
@@ -13,52 +14,54 @@ class Key
     ) {
     }
 
-    public function getId()
+    public function getId(): string
     {
         return $this->keyId;
     }
 
-    public function hasField(string $fieldId)
+    public function hasField(string $fieldId): bool
     {
         return $this->def->keyFieldExists($this->keyId, $fieldId);
     }
 
-    public function getField(string $fieldId)
+    public function getField(string $fieldId): Field
     {
         return new Field($this->def, $this->keyId, $fieldId);
     }
-
-    public function getFields($all = true)
+    /**
+     * @param mixed $all
+     */
+    public function getFields($all = true): array
     {
         return array_map([$this, 'getField'], $this->def->getKeyFieldIds($this->keyId, $all));
     }
 
-    public function getLabel()
+    public function getLabel(): LabelDefinition
     {
         return $this->def->getKeyLabel($this->keyId);
     }
 
-    public function isReflexive()
+    public function isReflexive() : bool
     {
         return $this->def->isKeyReflexive($this->keyId);
     }
 
-    public function isOrdered()
+    public function isOrdered(): bool
     {
         return $this->def->isKeyOrdered($this->keyId);
     }
 
-    public function getOrderColumnName()
+    public function getOrderColumnName(): string
     {
         return $this->def->getKeyOrderColumnName($this->keyId);
     }
 
-    public function isScoped()
+    public function isScoped(): bool
     {
         return $this->def->isKeyScoped($this->keyId);
     }
 
-    public function getScopeKey()
+    public function getScopeKey(): ?Key
     {
         if (!$this->isScoped()) {
             return null;
@@ -66,60 +69,72 @@ class Key
 
         return new Key($this->def, $this->def->getKeyScopeId($this->keyId));
     }
-
-    public function getScopeChildKeys($singletons = true, $skipAtoms = false)
+    /**
+     * @return Key[]
+     */
+    public function getScopeChildKeys(bool $singletons = true, bool $skipAtoms = false): array
     {
         return array_map(
             fn ($k) => new Key($this->def, $k),
             $this->def->getKeyIdsScopedInside($this->keyId, $singletons, $skipAtoms)
         );
     }
-
-    public function getNestedKeys()
+    /**
+     * @return Key[]
+     */
+    public function getNestedKeys(): array
     {
         return array_map(
             fn ($k) => new Key($this->def, $k),
             $this->def->getKeyIdsScopedInsideAndReflexiveSelf($this->keyId)
         );
     }
-
-    public function getNestingPath()
+    /**
+     * @return Key[]
+     */
+    public function getNestingPath(): array
     {
         return array_map(
             fn ($k) => new Key($this->def, $k),
             $this->def->getKeyScopePath($this->keyId, true)
         );
     }
-
-    public function getIsolations()
+    /**
+     * @return Key[]
+     */
+    public function getIsolations(): array
     {
         return array_map(
             fn ($k) => new Key($this->def, $k),
             $this->def->getKeyIsolations($this->keyId)
         );
     }
-
-    public function commonIsolation($otherKey)
+    /**
+     * @param mixed $otherKey
+     */
+    public function commonIsolation(string $otherKey): ?array
     {
         return $this->def->getCommonIsolation($this->keyId, $otherKey);
     }
 
-    public function isNested()
+    public function isNested(): bool
     {
         return $this->def->isKeyNested($this->keyId);
     }
 
-    public function isSingleton()
+    public function isSingleton() : bool
     {
         return $this->def->isKeySingleton($this->keyId);
     }
 
-    public function isAtomic()
+    public function isAtomic(): bool
     {
         return $this->def->isKeyAtomic($this->keyId);
     }
-
-    public function getReferencingKeys()
+    /**
+     * @return Key[]
+     */
+    public function getReferencingKeys(): array
     {
         return array_map(
             fn ($k) => new Key($this->def, $k),
@@ -127,7 +142,7 @@ class Key
         );
     }
 
-    public function getReferencingKey($keyId)
+    public function getReferencingKey(string $keyId): Key
     {
         if (!$this->def->isKeyReferencedBy($keyId, $this->keyId)) {
             throw new \Exception(sprintf('%s is not in %s', $keyId, implode(', ', $this->def->getReferencingKeys($this->keyId))));
@@ -136,7 +151,7 @@ class Key
         return new Key($this->def, $keyId);
     }
 
-    public function getNodeFieldValues(Node $node)
+    public function getNodeFieldValues(Node $node): array
     {
         $fieldIds = $this->def->getKeyFieldIds($this->keyId);
 
@@ -146,12 +161,12 @@ class Key
         );
     }
 
-    public function getSummary()
+    public function getSummary() : string
     {
         return $this->def->getKeySummary($this->keyId);
     }
 
-    public function summarize(Node $node, $appendId = null)
+    public function summarize(Node $node, ?string $appendId = null): string
     {
         $summDef = $this->def->getKeySummary($this->keyId);
 
@@ -207,9 +222,9 @@ class Key
         }
 
         if (true === $appendId || null === $appendId && empty($result)) {
-            $result .= ' ['.$node->getKey().'-'.$node->getID().']';
+            $result .= ' ['.$node->getKey().'-'.$node->getId().']';
         } elseif (true === $ambiguous) {
-            $result .= ' ['.$node->getID().']';
+            $result .= ' ['.$node->getId().']';
         }
 
         return $result;

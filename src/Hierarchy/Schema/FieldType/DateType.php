@@ -12,7 +12,7 @@ class DateType implements FieldTypeInterface
     {
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions)
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
     {
         return [
             new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::DATE), !$required, null),
@@ -24,26 +24,25 @@ class DateType implements FieldTypeInterface
         return [$fieldData ? $fieldData->format('Y-m-d') : null];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData)
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
     {
         return empty($columnData[0]) ? null : \DateTime::createFromFormat('Y-m-d', $columnData[0]);
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData)
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
     {
         return $fieldData;
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)
-    {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions)
+    public function getTemplateName(string $fieldId, array $fieldOptions) : string
     {
         return 'date';
     }
 
-    public function getDefaultOptions()
+    public function getDefaultOptions() : array
     {
         return [];
     }

@@ -34,8 +34,10 @@ class CreationCommandBuilder
     public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder)
     {
     }
-
-    public function getSelectForScopeParentCheck($keyId, Parameter $scopeParam, Parameter $parentParam)
+    /**
+     * @param mixed $keyId
+     */
+    public function getSelectForScopeParentCheck($keyId, Parameter $scopeParam, Parameter $parentParam): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -55,8 +57,10 @@ class CreationCommandBuilder
             )
         );
     }
-
-    public function getSelectForUniquenessCheckNew($keyId, Parameter $scopeParam, Parameter $parentParam, $fieldsToCheck)
+    /**
+     * @param mixed $fieldsToCheck
+     */
+    public function getSelectForUniquenessCheckNew(string $keyId, Parameter $scopeParam, Parameter $parentParam, $fieldsToCheck) : Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
@@ -108,7 +112,7 @@ class CreationCommandBuilder
         );
     }
 
-    public function getCommandForCreateNode(string $keyId, Parameter $idParam, Parameter $scopeParam, Parameter $parentParam)
+    public function getCommandForCreateNode(string $keyId, Parameter $idParam, Parameter $scopeParam, Parameter $parentParam): Insert
     {
         $tableName = $this->naming->nodeTableName($keyId);
 
@@ -216,7 +220,7 @@ class CreationCommandBuilder
         );
     }
 
-    public function getCommandForClosureInsert(string $keyId, Parameter $scopeParam, Parameter $parentParam, Parameter $childParam, Parameter $depthParam)
+    public function getCommandForClosureInsert(string $keyId, Parameter $scopeParam, Parameter $parentParam, Parameter $childParam, Parameter $depthParam): Insert
     {
         $closureTableName = $this->naming->closureTableName($keyId);
         $missingView = new TableReference($this->naming->closureMissingViewName($keyId));
@@ -245,7 +249,7 @@ class CreationCommandBuilder
         );
     }
 
-    public function getCommandForClosureParentInsert(string $keyId, Parameter $scopeParam, Parameter $parentParam, Parameter $childParam)
+    public function getCommandForClosureParentInsert(string $keyId, Parameter $scopeParam, Parameter $parentParam, Parameter $childParam): Insert
     {
         $closureTableName = $this->naming->closureTableName($keyId);
         $missingView = new TableReference($this->naming->closureMissingViewName($keyId));
@@ -290,7 +294,7 @@ class CreationCommandBuilder
         );
     }
 
-    public function getInsertForClosureRepair(string $keyId)
+    public function getInsertForClosureRepair(string $keyId): Insert
     {
         $closureTableName = $this->naming->closureTableName($keyId);
         $missingView = new TableReference($this->naming->closureMissingViewName($keyId));

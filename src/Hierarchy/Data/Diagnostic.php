@@ -23,7 +23,7 @@ class Diagnostic
         return $this->rows[$type];
     }
 
-    public function getColumns($type)
+    public function getColumns(string $type) : array
     {
         return $this->columns[$type];
     }

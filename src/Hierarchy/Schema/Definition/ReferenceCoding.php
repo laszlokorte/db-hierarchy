@@ -10,22 +10,22 @@ class ReferenceCoding
     ) {
     }
 
-    public function getTarget()
+    public function getTarget(): string
     {
         return $this->target;
     }
 
-    public function isReferencing($keyId)
+    public function isReferencing(string $keyId): bool
     {
         return $this->target === $keyId;
     }
 
-    public function getCascade()
+    public function getCascade(): string
     {
         return $this->cascade;
     }
 
-    public function canCascade()
+    public function canCascade(): bool
     {
         return ReferenceCodingCascade::RESTRICT !== $this->cascade;
     }

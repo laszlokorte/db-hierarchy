@@ -17,7 +17,7 @@ class UpdateService
     {
     }
 
-    public function getFreshUpdate(Node $node)
+    public function getFreshUpdate(Node $node): Update
     {
         return new Update(
             $node->getKey(),
@@ -27,8 +27,10 @@ class UpdateService
             null
         );
     }
-
-    public function getValidatedUpdate(Node $node, array $fieldData)
+    /**
+     * @param array<int,mixed> $fieldData
+     */
+    public function getValidatedUpdate(Node $node, array $fieldData): Update
     {
         // check empty fields
         // check unique fields != self
@@ -57,8 +59,13 @@ class UpdateService
             $errors
         );
     }
-
-    private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData)
+    /**
+     * @param mixed $errors
+     * @param mixed $keyId
+     * @param mixed $nodeId
+     * @param mixed $fieldData
+     */
+    private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData): void
     {
         $idParam = new Parameter('_id');
 
@@ -113,14 +120,18 @@ class UpdateService
             }
         }
     }
-
-    private function validateRequiredField(&$errors, $keyId, $fieldData)
+    /**
+     * @param array<int,mixed> $errors
+     */
+    private function validateRequiredField(array &$errors, string $keyId, mixed $fieldData): void
     {
         foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
             if (!$this->schemaDef->isKeyFieldRequired($keyId, $fieldId)) {
                 continue;
             }
 
+            $fieldsToCheck = [];
+            $valuesToCheck = [];
             $fieldsToCheck[$fieldId] = [];
             $valuesToCheck[$fieldId] = [];
 
@@ -131,8 +142,10 @@ class UpdateService
             }
         }
     }
-
-    public function updateNode(string $keyId, string $nodeId, $fieldData)
+    /**
+     * @param mixed $fieldData
+     */
+    public function updateNode(string $keyId, string $nodeId, $fieldData): void
     {
         $idParam = new Parameter('_id');
         $update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);

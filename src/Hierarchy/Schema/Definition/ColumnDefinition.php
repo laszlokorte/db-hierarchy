@@ -12,42 +12,42 @@ class ColumnDefinition
     ) {
     }
 
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getCoding()
+    public function getCoding() : StorageCoding|ReferenceCoding
     {
         return $this->coding;
     }
 
-    public function isReference()
+    public function isReference() : bool
     {
         return $this->coding instanceof ReferenceCoding;
     }
 
-    public function isNullable()
+    public function isNullable(): ?bool
     {
         return $this->nullable;
     }
 
-    public function hasDefault()
+    public function hasDefault() : bool
     {
         return null !== $this->default;
     }
 
-    public function getDefault()
+    public function getDefault(): ?string
     {
         return $this->default;
     }
 
-    public function deriveSameWithName($columnName, $keepSerial = false)
+    public function deriveSameWithName(string $columnName, bool $keepSerial = false): ColumnDefinition
     {
         return new self($columnName, $this->coding, $this->nullable, $this->default);
     }
 
-    public function isReferencing($keyId)
+    public function isReferencing(string $keyId): bool
     {
         return $this->isReference() && $this->coding->isReferencing($keyId);
     }

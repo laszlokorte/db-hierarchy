@@ -28,7 +28,7 @@ class OrderingService
         );
     }
 
-    public function getValidatedOrdering(Node $node, $targetPosition): Ordering
+    public function getValidatedOrdering(Node $node, string $targetPosition): Ordering
     {
         $scopeId = null;
         $parentId = null;

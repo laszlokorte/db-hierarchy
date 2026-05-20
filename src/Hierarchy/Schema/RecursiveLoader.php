@@ -215,7 +215,7 @@ class RecursiveLoader
         ]) : $this->baseConnection;
     }
 
-    private function loadDynamicDefinition($hierarchyName): SchemaDefinition
+    private function loadDynamicDefinition(string $hierarchyName): SchemaDefinition
     {
         $stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
         $stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);

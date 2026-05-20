@@ -32,7 +32,8 @@ class DeletionCommandBuilder
     // getSelectForCollectChildByScopeReflexive
     // getSelectForCollectChildByScope
     // getSelectForReferencedNodes
-    public function getCommandForDeleteMultipleNodes(string $keyId, array $idParams)
+
+    public function getCommandForDeleteMultipleNodes(string $keyId, array $idParams): Delete
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -46,8 +47,10 @@ class DeletionCommandBuilder
             $condition
         );
     }
-
-    public function getCommandForDeleteMultipleNodesClosure(string $keyId, array $idParams)
+    /**
+     * @param array<int,mixed> $idParams
+     */
+    public function getCommandForDeleteMultipleNodesClosure(string $keyId, array $idParams): Delete
     {
         $table = new TableReference($this->naming->closureTableName($keyId));
 
@@ -72,8 +75,10 @@ class DeletionCommandBuilder
             $condition
         );
     }
-
-    public function getSelectForCollectChildByIdReflexive(string $keyId, array $idParams)
+    /**
+     * @param array<int,mixed> $idParams
+     */
+    public function getSelectForCollectChildByIdReflexive(string $keyId, array $idParams): Select
     {
         $closureTable = new TableReference($this->naming->closureTableName($keyId));
         $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
@@ -111,8 +116,10 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$closureTable], $joins, $condition, $orders);
     }
-
-    public function getSelectForCollectSelfById(string $keyId, array $idParams)
+    /**
+     * @param array<int,mixed> $idParams
+     */
+    public function getSelectForCollectSelfById(string $keyId, array $idParams): Select
     {
         $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -137,8 +144,10 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$nodeTable], [], $condition);
     }
-
-    public function getSelectForCollectChildByScopeReflexive(string $keyId, array $scopeParams)
+    /**
+     * @param array<int,mixed> $scopeParams
+     */
+    public function getSelectForCollectChildByScopeReflexive(string $keyId, array $scopeParams): Select
     {
         $closureTable = new TableReference($this->naming->closureTableName($keyId));
         $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
@@ -176,8 +185,10 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$closureTable], $joins, $condition, $orders);
     }
-
-    public function getSelectForCollectChildByScope(string $keyId, array $scopeParams)
+    /**
+     * @param array<int,mixed> $scopeParams
+     */
+    public function getSelectForCollectChildByScope(string $keyId, array $scopeParams): Select
     {
         $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -202,8 +213,11 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$nodeTable], [], $condition);
     }
-
-    public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams)
+    /**
+     * @param mixed $columns
+     * @param array<int,mixed> $idParams
+     */
+    public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams): Select
     {
         $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 

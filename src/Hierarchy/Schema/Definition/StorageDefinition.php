@@ -11,22 +11,22 @@ class StorageDefinition
     ) {
     }
 
-    public function getTableName()
+    public function getTableName(): string
     {
         return $this->tableName;
     }
 
-    public function getIdColumnName()
+    public function getIdColumnName(): string
     {
         return $this->pkColumn;
     }
 
-    public function getIdColumnType()
+    public function getIdColumnType() : string
     {
         return $this->pkType;
     }
 
-    public function getIdColumn()
+    public function getIdColumn(): ColumnDefinition
     {
         switch ($this->pkType) {
             case 'serial':

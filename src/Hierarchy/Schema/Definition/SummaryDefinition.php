@@ -4,16 +4,21 @@ namespace App\Hierarchy\Schema\Definition;
 
 class SummaryDefinition
 {
+    /**
+     * @param array<int,mixed> $segments
+     */
     public function __construct(private array $segments)
     {
     }
-
-    public function getSegments()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getSegments() : array
     {
         return $this->segments;
     }
 
-    public static function parseSegments($string)
+    public static function parseSegments(string $string): SummaryDefinition
     {
         $pos = 0;
         $length = strlen($string);
@@ -136,7 +141,7 @@ class SummaryDefinition
         return new self($result);
     }
 
-    public function getFieldIds()
+    public function getFieldIds(): array
     {
         return array_map(
             fn ($s) => $s->getFieldId(),

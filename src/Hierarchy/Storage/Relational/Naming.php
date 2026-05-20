@@ -12,188 +12,184 @@ class Naming
     {
     }
 
-    public function hierarchyViewName($keyId)
+    public function hierarchyViewName(string $keyId): Identifier
     {
         return new Identifier(sprintf('_%s_hierarchy', $this->schemaDef->getKeyTableName($keyId)));
     }
 
-    public function closureInvalidViewName($keyId)
+    public function closureInvalidViewName(string $keyId): Identifier
     {
         return new Identifier(sprintf('_%s_invalid', $this->schemaDef->getKeyReflexivityTableName($keyId)));
     }
 
-    public function closureMissingReasonColumn($keyId)
+    public function closureMissingReasonColumn(string $keyId): Identifier
     {
         return new Identifier('_reason');
     }
 
-    public function closureInvalidIdColumn($keyId)
+    public function closureInvalidIdColumn(string $keyId): Identifier
     {
         return new Identifier('_id');
     }
 
-    public function closureInvalidParentColumn($keyId)
+    public function closureInvalidParentColumn(string $keyId): Identifier
     {
         return new Identifier('_parent');
     }
 
-    public function closureInvalidChildColumn($keyId)
+    public function closureInvalidChildColumn(string $keyId): Identifier
     {
         return new Identifier('_child');
     }
 
-    public function closureInvalidDepthColumn($keyId)
+    public function closureInvalidDepthColumn(string $keyId): Identifier
     {
         return new Identifier('_depth');
     }
 
-    public function closureMissingViewName($keyId)
+    public function closureMissingViewName(string $keyId): Identifier
     {
         return new Identifier(sprintf('_%s_missing', $this->schemaDef->getKeyReflexivityTableName($keyId)));
     }
 
-    public function normalizedOrderViewName($keyId)
+    public function normalizedOrderViewName(string $keyId): Identifier
     {
         return new Identifier(sprintf('_%s_normalized_order', $this->schemaDef->getKeyTableName($keyId)));
     }
 
-    public function normalizedOrderStoredColumnName($keyId)
+    public function normalizedOrderStoredColumnName(string $keyId): Identifier
     {
         return new Identifier('_stored_order');
     }
 
-    public function normalizedOrderNormalizedColumnName($keyId)
+    public function normalizedOrderNormalizedColumnName(string $keyId): Identifier
     {
         return new Identifier('_normalized_order');
     }
 
-    public function normalizedOrderIdColumnName($keyId)
+    public function normalizedOrderIdColumnName(string $keyId): Identifier
     {
         return new Identifier('_id');
     }
 
-    public function normalizedOrderParentColumnName($keyId)
+    public function normalizedOrderParentColumnName(string $keyId): Identifier
     {
         return new Identifier('_parent');
     }
 
-    public function normalizedOrderScopeColumnName($keyId)
+    public function normalizedOrderScopeColumnName(string $keyId): Identifier
     {
         return new Identifier('_scope');
     }
 
-    public function closureMissingIdColumn($keyId)
+    public function closureMissingIdColumn(string $keyId): Identifier
     {
         return new Identifier('_id');
     }
 
-    public function closureMissingParentColumn($keyId)
+    public function closureMissingParentColumn(string $keyId): Identifier
     {
         return new Identifier('_parent');
     }
 
-    public function closureMissingChildColumn($keyId)
+    public function closureMissingChildColumn(string $keyId): Identifier
     {
         return new Identifier('_child');
     }
 
-    public function closureMissingDepthColumn($keyId)
+    public function closureMissingDepthColumn(string $keyId): Identifier
     {
         return new Identifier('_depth');
     }
 
-    public function closureParentColumnName($keyId)
+    public function closureParentColumnName(string $keyId): Identifier
     {
         $parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
 
         return new Identifier($parentColumn->getName());
     }
 
-    public function closureChildColumnName($keyId)
+    public function closureChildColumnName(string $keyId): Identifier
     {
         $childColumn = $this->schemaDef->getKeyReflexivityChildColumn($keyId);
 
         return new Identifier($childColumn->getName());
     }
 
-    public function fieldColumnToName(ColumnDefinition $columnDefinition)
+    public function fieldColumnToName(ColumnDefinition $columnDefinition): Identifier
     {
         return new Identifier($columnDefinition->getName());
     }
 
-    public function nodeTableName($keyId)
+    public function nodeTableName(string $keyId): Identifier
     {
         return new Identifier($this->schemaDef->getKeyTableName($keyId));
     }
 
-    public function nodeTablePKName($keyId)
+    public function nodeTablePKName(string $keyId): Identifier
     {
         $pkColumn = $this->schemaDef->getKeyIdentityColumn($keyId);
 
         return new Identifier($pkColumn->getName());
     }
 
-    public function scopeTablename($keyId)
+    public function scopeTablename(string $keyId) : Identifier
     {
         return $this->nodeTableName($this->schemaDef->getKeyScopeId($keyId));
     }
 
-    public function scopeTablePKName($keyId)
+    public function scopeTablePKName(string $keyId) : Identifier
     {
         return $this->nodeTablePKName($this->schemaDef->getKeyScopeId($keyId));
     }
 
-    public function nodeOwnScopeColumnName($keyId)
+    public function nodeOwnScopeColumnName(string $keyId) : Identifier
     {
         return $this->fieldColumnToName($this->schemaDef->getKeyScopeColumn($keyId));
     }
 
-    public function nodeOwnIsolationColumnName($keyId)
+    public function nodeOwnIsolationColumnName(string $keyId) : Identifier
     {
         return $this->fieldColumnToName($this->schemaDef->getKeyIsolationColumn($keyId));
     }
 
-    public function nodeIsolationColumnNames($keyId)
-    {
-        return $this->fieldColumnToName($this->schemaDef->getKeyScopeColumn($keyId));
-    }
 
-    public function closureTableName($keyId)
+    public function closureTableName(string $keyId): Identifier
     {
         return new Identifier($this->schemaDef->getKeyReflexivityTableName($keyId));
     }
 
-    public function orderColumnName($keyId)
+    public function orderColumnName(string $keyId): Identifier
     {
         return new Identifier($this->schemaDef->getKeyOrderColumn($keyId)->getName());
     }
 
-    public function closureTablePkName($keyId)
+    public function closureTablePkName(string $keyId): Identifier
     {
         return new Identifier('id');
     }
 
-    public function closureTableDepthName($keyId)
+    public function closureTableDepthName(string $keyId): Identifier
     {
         return new Identifier('depth');
     }
 
-    public function hierarchyIdColumnName($keyId)
+    public function hierarchyIdColumnName(string $keyId): Identifier
     {
         return new Identifier('_id');
     }
 
-    public function hierarchyOrderColumnName($keyId)
+    public function hierarchyOrderColumnName(string $keyId): Identifier
     {
         return new Identifier('_order');
     }
 
-    public function hierarchyParentColumnName($keyId)
+    public function hierarchyParentColumnName(string $keyId): Identifier
     {
         return new Identifier('_parent');
     }
 
-    public function hierarchyScopeColumnName($keyId)
+    public function hierarchyScopeColumnName(string $keyId): Identifier
     {
         return new Identifier('_scope');
     }

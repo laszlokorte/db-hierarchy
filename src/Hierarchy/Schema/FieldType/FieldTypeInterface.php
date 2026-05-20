@@ -4,17 +4,36 @@ namespace App\Hierarchy\Schema\FieldType;
 
 interface FieldTypeInterface
 {
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions);
-
+    /**
+     * @param array<int,mixed> $fieldOptions
+     * @return void
+     */
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array;
+    /**
+     * @param array<int,mixed> $fieldOptions
+     * @return void
+     */
     public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData): array;
-
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData);
-
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData);
-
-    public function getSupportedFormats(string $fieldId, array $fieldOptions);
-
-    public function getTemplateName(string $fieldId, array $fieldOptions);
-
-    public function getDefaultOptions();
+    /**
+     * @param array<int,mixed> $fieldOptions
+     * @param mixed $columnData
+     * @return void
+     */
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed;
+    /**
+     * @param array<int,mixed> $fieldOptions
+     */
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string;
+    /**
+     * @param array<int,mixed> $fieldOptions
+     * @return void
+     */
+    public function getSupportedFormats(string $fieldId, array $fieldOptions) : array;    /**
+     * @param array<int,mixed> $fieldOptions
+     */
+    public function getTemplateName(string $fieldId, array $fieldOptions) : string;
+    /**
+     * @return void
+     */
+    public function getDefaultOptions() : array;
 }

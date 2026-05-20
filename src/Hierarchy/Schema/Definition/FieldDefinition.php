@@ -4,14 +4,16 @@ namespace App\Hierarchy\Schema\Definition;
 
 class FieldDefinition
 {
-    private $typeId;
-    private $required = false;
-    private $unique = false;
-    private $label;
-    private $options;
-    private $visibleInCollection;
-
-    public function __construct($label, $typeId, $required = false, $unique = false, $options = [], $visibleInCollection = true)
+    private string $typeId;
+    private bool $required = false;
+    private bool $unique = false;
+    private LabelDefinition $label;
+    private array $options;
+    private bool $visibleInCollection;
+    /**
+     * @param array<int,mixed> $options
+     */
+    public function __construct(LabelDefinition $label, string $typeId, bool $required = false, bool $unique = false, array $options = [], bool $visibleInCollection = true)
     {
         $this->label = $label;
         $this->typeId = $typeId;
@@ -21,32 +23,32 @@ class FieldDefinition
         $this->visibleInCollection = $visibleInCollection;
     }
 
-    public function getLabel()
+    public function getLabel(): LabelDefinition
     {
         return $this->label;
     }
 
-    public function isRequired()
+    public function isRequired(): bool
     {
         return $this->required;
     }
 
-    public function isUnique()
+    public function isUnique(): bool
     {
         return $this->unique;
     }
 
-    public function isVisibleInCollection()
+    public function isVisibleInCollection(): bool
     {
         return $this->visibleInCollection;
     }
 
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
 
-    public function getTypeId()
+    public function getTypeId(): string
     {
         return $this->typeId;
     }

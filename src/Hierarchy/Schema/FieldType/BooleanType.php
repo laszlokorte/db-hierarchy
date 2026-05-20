@@ -12,7 +12,7 @@ class BooleanType implements FieldTypeInterface
     {
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions)
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         return [
             new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::BOOL), !$required, null),
@@ -33,7 +33,7 @@ class BooleanType implements FieldTypeInterface
         return [$casted];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData)
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
     {
         switch ($columnData[0]) {
             case '0': return false;
@@ -42,7 +42,7 @@ class BooleanType implements FieldTypeInterface
         }
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData)
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
     {
         switch ($fieldData) {
             case true: return 'Yes';
@@ -51,16 +51,15 @@ class BooleanType implements FieldTypeInterface
         }
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)
-    {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions)
+    public function getTemplateName(string $fieldId, array $fieldOptions) : string
     {
         return 'boolean';
     }
 
-    public function getDefaultOptions()
+    public function getDefaultOptions(): array
     {
         return [];
     }

@@ -12,17 +12,17 @@ class ReflexivityDefinition
     ) {
     }
 
-    public function getParentColumnName()
+    public function getParentColumnName(): string
     {
         return $this->parentColumn;
     }
 
-    public function getChildColumnName()
+    public function getChildColumnName(): string
     {
         return $this->childColumn;
     }
 
-    public function deriveTableName($baseTableName)
+    public function deriveTableName(string $baseTableName): string
     {
         return $this->closureTable ?? sprintf('%s_closure', $baseTableName);
     }

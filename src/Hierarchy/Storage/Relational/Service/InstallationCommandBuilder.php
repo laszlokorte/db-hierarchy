@@ -45,8 +45,10 @@ class InstallationCommandBuilder
     public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private Quirks $quirks)
     {
     }
-
-    public function getTablesFor(string $keyId)
+    /**
+     * @return array<int,CreateTable>|CreateTable[]
+     */
+    public function getTablesFor(string $keyId): array
     {
         $tables = [
             $this->buildNodeTable($keyId),
@@ -58,8 +60,10 @@ class InstallationCommandBuilder
 
         return $tables;
     }
-
-    public function getViewsFor(string $keyId)
+    /**
+     * @return array<int,CreateView>|CreateView[]
+     */
+    public function getViewsFor(string $keyId): array
     {
         $views = [
             $this->buildHierarchyView($keyId),
@@ -76,8 +80,10 @@ class InstallationCommandBuilder
 
         return $views;
     }
-
-    public function getAllTables()
+    /**
+     * @return array<string>
+     * */
+    public function getAllTables(): array
     {
         $tables = [];
         foreach ($this->schemaDef->getAllKeyIdsTopological() as $keyId) {
@@ -86,8 +92,9 @@ class InstallationCommandBuilder
 
         return $tables;
     }
-
-    public function getAllViews()
+    /**
+     * @return array<string>*/
+    public function getAllViews(): array
     {
         $views = [];
         foreach ($this->schemaDef->getAllKeyIdsTopological() as $keyId) {
@@ -97,7 +104,7 @@ class InstallationCommandBuilder
         return $views;
     }
 
-    private function buildNodeTable($keyId)
+    private function buildNodeTable(string $keyId): CreateTable
     {
         $tableName = $this->nodeTableName($keyId);
         $pkColumnDef = $this->schemaDef->getKeyIdentityColumn($keyId);
@@ -249,9 +256,9 @@ class InstallationCommandBuilder
 
         if ($this->schemaDef->isKeyScoped($keyId)) {
             $ownColumnName = $this->nodeOwnScopeColumnName($keyId);
-            $targetColumnName = $this->scopeTablePKName($keyId);
+            $targetColumnName = $this->naming->scopeTablePKName($keyId);
 
-            $targetTableName = $this->scopeTableName($keyId);
+            $targetTableName = $this->naming->scopeTablename($keyId);
 
             $ownColumns = [$ownColumnName];
             $targetColumns = [$targetColumnName];
@@ -279,13 +286,12 @@ class InstallationCommandBuilder
 
         return new CreateTable($tableName, $pkColumn, $columns, $uniques, $foreignKeys);
     }
-
-    private function fieldsColumns($keyId)
+    private function fieldsColumns(string $keyId): array
     {
         return array_merge([], ...array_map(fn ($fieldId) => $this->getFieldColumns($keyId, $fieldId), $this->schemaDef->getKeyFieldIds($keyId)));
     }
 
-    private function getFieldColumns($keyId, $fieldId)
+    private function getFieldColumns(string $keyId, string $fieldId) : array
     {
         $fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
         $options = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
@@ -294,7 +300,7 @@ class InstallationCommandBuilder
         return $fieldType->getColumns($fieldId, $required, $options);
     }
 
-    private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition, $keepSerial = false)
+    private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition, $keepSerial = false): TableColumn
     {
         return new TableColumn(
             $this->fieldColumnToName($columnDefinition),
@@ -305,7 +311,8 @@ class InstallationCommandBuilder
             $keepSerial && $columnDefinition->getCoding() instanceof StorageCoding && 'SERIAL' === $columnDefinition->getCoding()->getType()
         );
     }
-
+    /**
+     * @return <missing>|string*/
     private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding)
     {
         if ($storageCoding instanceof ReferenceCoding) {
@@ -325,62 +332,62 @@ class InstallationCommandBuilder
         }
     }
 
-    private function fieldColumnToName(ColumnDefinition $columnDefinition)
+    private function fieldColumnToName(ColumnDefinition $columnDefinition): Identifier
     {
         return $this->naming->fieldColumnToName($columnDefinition);
     }
 
-    private function nodeTableName($keyId)
+    private function nodeTableName(string $keyId): Identifier
     {
         return $this->naming->nodeTableName($keyId);
     }
 
-    private function nodeTablePKName($keyId)
+    private function nodeTablePKName(string $keyId): Identifier
     {
         return $this->naming->nodeTablePKName($keyId);
     }
 
-    private function closureParentColumnName($keyId)
+    private function closureParentColumnName(string $keyId): Identifier
     {
         return $this->naming->closureParentColumnName($keyId);
     }
 
-    private function closureChildColumnName($keyId)
+    private function closureChildColumnName(string $keyId): Identifier
     {
         return $this->naming->closureChildColumnName($keyId);
     }
 
-    private function scopeTablename($keyId)
+    private function scopeTablename(string $keyId): string
     {
         return $this->naming->scopeTablename($keyId);
     }
 
-    private function scopeTablePKName($keyId)
+    private function scopeTablePKName(string $keyId): Identifier
     {
         return $this->naming->scopeTablePKName($keyId);
     }
 
-    private function nodeOwnScopeColumnName($keyId)
+    private function nodeOwnScopeColumnName(string $keyId): Identifier
     {
         return $this->naming->nodeOwnScopeColumnName($keyId);
     }
 
-    private function closureTableName($keyId)
+    private function closureTableName(string $keyId): Identifier
     {
         return $this->naming->closureTableName($keyId);
     }
 
-    private function closureTablePkName($keyId)
+    private function closureTablePkName(string $keyId): Identifier
     {
         return $this->naming->closureTablePkName($keyId);
     }
 
-    private function closureTableDepthName($keyId)
+    private function closureTableDepthName(string $keyId): Identifier
     {
         return $this->naming->closureTableDepthName($keyId);
     }
 
-    private function buildClosureTable($keyId)
+    private function buildClosureTable(string $keyId): CreateTable
     {
         $scopeColumnNames = [];
         $pkColumnName = $this->closureTablePkName($keyId);
@@ -448,7 +455,7 @@ class InstallationCommandBuilder
         return new CreateTable($this->closureTableName($keyId), $pkColumn, $columns, $uniques, $foreignKeys);
     }
 
-    private function buildHierarchyView($keyId)
+    private function buildHierarchyView(string $keyId): CreateView
     {
         $table = new TableReference($this->nodeTableName($keyId), new Identifier('t'));
         $pkId = $this->nodeTablePKName($keyId);
@@ -458,9 +465,9 @@ class InstallationCommandBuilder
         $orders = [];
 
         if ($this->schemaDef->isKeyScoped($keyId)) {
-            $scopePkId = $this->scopeTablePKName($keyId);
+            $scopePkId = $this->naming->scopeTablePKName($keyId);
 
-            $tableScope = new TableReference($this->scopeTableName($keyId), new Identifier('s'));
+            $tableScope = new TableReference($this->naming->scopeTablename($keyId), new Identifier('s'));
             $idRefScope = new ColumnReference($tableScope, $scopePkId);
             $scopeRef = new ColumnReference($table, $this->nodeOwnScopeColumnName($keyId));
             $scopeProjection = new Projection($scopeRef, $this->naming->hierarchyScopeColumnName($keyId));
@@ -572,12 +579,12 @@ class InstallationCommandBuilder
         return new CreateView($this->hierarchyViewName($keyId), $select);
     }
 
-    public function hierarchyViewName($keyId)
+    public function hierarchyViewName(string $keyId): Identifier
     {
         return $this->naming->hierarchyViewName($keyId);
     }
 
-    private function buildClosureInvalidsView($keyId)
+    private function buildClosureInvalidsView(string $keyId): CreateView
     {
         $values = [];
         $values[] = new Projection(new Constant(1));
@@ -802,12 +809,12 @@ class InstallationCommandBuilder
         return new CreateView($this->closureInvalidViewName($keyId), $select);
     }
 
-    public function closureInvalidViewName($keyId)
+    public function closureInvalidViewName(string $keyId): Identifier
     {
         return $this->naming->closureInvalidViewName($keyId);
     }
 
-    private function buildClosureMissingsView($keyId)
+    private function buildClosureMissingsView(string $keyId): CreateView
     {
         $parentColumn = $this->schemaDef->getKeyReflexivityParentColumn($keyId);
         $childColumn = $this->schemaDef->getKeyReflexivityChildColumn($keyId);
@@ -995,12 +1002,12 @@ class InstallationCommandBuilder
         return new CreateView($this->closureMissingViewName($keyId), $select);
     }
 
-    public function closureMissingViewName($keyId)
+    public function closureMissingViewName(string $keyId): Identifier
     {
         return $this->naming->closureMissingViewName($keyId);
     }
 
-    private function buildNormalizedOrderView($keyId)
+    private function buildNormalizedOrderView(string $keyId): CreateView
     {
         $table = new TableReference($this->hierarchyViewName($keyId), new Identifier('h'));
 
@@ -1024,7 +1031,7 @@ class InstallationCommandBuilder
         return new CreateView($this->normalizedOrderViewName($keyId), $select);
     }
 
-    public function normalizedOrderViewName($keyId)
+    public function normalizedOrderViewName(string $keyId): Identifier
     {
         return $this->naming->normalizedOrderViewName($keyId);
     }

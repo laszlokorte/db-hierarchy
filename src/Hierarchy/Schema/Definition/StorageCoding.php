@@ -10,12 +10,12 @@ class StorageCoding
     ) {
     }
 
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function getParameter()
+    public function getParameter(): ?string
     {
         return $this->parameter;
     }

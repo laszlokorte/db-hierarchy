@@ -6,7 +6,7 @@ use App\Hierarchy\Schema\FieldType;
 
 class Loader
 {
-    public function loadDefinition()
+    public function loadDefinition(): SchemaDefinition
     {
         return new SchemaDefinition(
             new LabelDefinition('Hierarchy', 'Hierarchies', null, null, '#058591'), [

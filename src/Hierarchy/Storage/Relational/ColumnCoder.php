@@ -4,13 +4,16 @@ namespace App\Hierarchy\Storage\Relational;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Hex;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Unhex;
+use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use Doctrine\DBAL\ParameterType;
+use UnitEnumCase;
 
 class ColumnCoder
 {
@@ -18,12 +21,12 @@ class ColumnCoder
     {
     }
 
-    public function wrapPrimaryKeyParameter($keyId, Parameter|Constant $parameter)
+    public function wrapPrimaryKeyParameter(string $keyId, Parameter|Constant $parameter)
     {
         return $this->encodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $parameter);
     }
 
-    public function wrapScopeParameter($keyId, Parameter|Constant $parameter)
+    public function wrapScopeParameter(string $keyId, Parameter|Constant $parameter)
     {
         $scopeId = $this->schemaDef->getKeyScopeId($keyId);
 
@@ -34,38 +37,38 @@ class ColumnCoder
         return $this->wrapPrimaryKeyParameter($scopeId, $parameter);
     }
 
-    public function wrapParentParameter($keyId, Parameter|Constant $parameter)
+    public function wrapParentParameter(string $keyId, Parameter|Constant $parameter)
     {
         return $this->wrapPrimaryKeyParameter($keyId, $parameter);
     }
 
-    public function wrapOrderParameter($keyId, Parameter $parameter)
+    public function wrapOrderParameter(string $keyId, Parameter $parameter): Parameter
     {
         return $parameter;
     }
 
-    public function wrapPrimaryColumn($keyId, $tableRef)
+    public function wrapPrimaryColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->nodeTablePKName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapScopeColumn($keyId, $tableRef)
+    public function wrapScopeColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->nodeOwnScopeColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyScopeColumnType($keyId), $columnRef);
     }
 
-    public function wrapOrderColumn($keyId, $tableRef)
+    public function wrapOrderColumn(string $keyId, TableReference  $tableRef): ColumnReference
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->orderColumnName($keyId));
 
         return $columnRef;
     }
 
-    public function wrapColumn(ColumnDefinition $column, $tableRef)
+    public function wrapColumn(ColumnDefinition $column, TableReference  $tableRef)
     {
         if ($column->isReference()) {
             $refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
@@ -87,35 +90,35 @@ class ColumnCoder
         return $this->encodeColumnType($column->getCoding()->getType(), $parameter);
     }
 
-    public function wrapClosureParentColumn($keyId, $tableRef)
+    public function wrapClosureParentColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->closureParentColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapClosureChildColumn($keyId, $tableRef)
+    public function wrapClosureChildColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->closureChildColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapClosureDepthColumn($keyId, $tableRef)
+    public function wrapClosureDepthColumn(string $keyId, TableReference  $tableRef): ColumnReference
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->closureTableDepthName($keyId));
 
         return $columnRef;
     }
 
-    public function wrapHierarchyPrimaryColumn($keyId, $tableRef)
+    public function wrapHierarchyPrimaryColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyIdColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapHierarchyScopeColumn($keyId, $tableRef)
+    public function wrapHierarchyScopeColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyScopeColumnName($keyId));
 
@@ -126,14 +129,14 @@ class ColumnCoder
         return $this->decodeColumnType($this->schemaDef->getKeyScopeColumnType($keyId), $columnRef);
     }
 
-    public function wrapHierarchyOrderColumn($keyId, $tableRef)
+    public function wrapHierarchyOrderColumn(string $keyId, TableReference  $tableRef): ColumnReference
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyOrderColumnName($keyId));
 
         return $columnRef;
     }
 
-    public function wrapHierarchyParentColumn($keyId, $tableRef)
+    public function wrapHierarchyParentColumn(string $keyId, TableReference  $tableRef)
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyParentColumnName($keyId));
 
@@ -155,7 +158,7 @@ class ColumnCoder
         return $this->getPrimaryColumnBindingType($keyId);
     }
 
-    public function getOrderColumnBindingType($keyId)
+    public function getOrderColumnBindingType($keyId): string
     {
         return StorageCodingType::INTEGER;
     }

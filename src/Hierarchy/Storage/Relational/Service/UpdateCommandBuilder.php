@@ -34,7 +34,7 @@ class UpdateCommandBuilder
     // getSelectForUniquenessCheckEdit
     // getCommandForUpdateNode
 
-    public function getSelectForUniquenessCheckEdit($keyId, Parameter $idParam, $fieldsToCheck)
+    public function getSelectForUniquenessCheckEdit(string $keyId, Parameter $idParam, $fieldsToCheck): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h1'));
@@ -93,7 +93,7 @@ class UpdateCommandBuilder
         );
     }
 
-    public function getCommandForUpdateNode(string $keyId, Parameter $idParam)
+    public function getCommandForUpdateNode(string $keyId, Parameter $idParam): Update
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
 

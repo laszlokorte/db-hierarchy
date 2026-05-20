@@ -22,62 +22,62 @@ class SummarySegment
     ) {
     }
 
-    public function isFieldType()
+    public function isFieldType(): bool
     {
         return self::FLD === $this->type;
     }
 
-    public function isLabel()
+    public function isLabel(): bool
     {
         return self::LBL === $this->type;
     }
 
-    public function isField()
+    public function isField(): bool
     {
         return self::FLD === $this->type;
     }
 
-    public function isId()
+    public function isId(): bool
     {
         return self::ID === $this->type;
     }
 
-    public function isConstant()
+    public function isConstant(): bool
     {
         return self::CONSTANT === $this->direction;
     }
 
-    public function isLocal()
+    public function isLocal(): bool
     {
         return self::CONSTANT === $this->direction || self::SLF === $this->direction;
     }
 
-    public function getFieldId()
+    public function getFieldId(): ?string
     {
         return $this->fieldId;
     }
 
-    public function getDirection()
+    public function getDirection(): string
     {
         return $this->direction;
     }
 
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function isNested()
+    public function isNested(): bool
     {
         return self::NST === $this->direction;
     }
 
-    public function isParent()
+    public function isParent(): bool
     {
         return self::PAR === $this->direction;
     }
 
-    public function isScope()
+    public function isScope(): bool
     {
         return self::SCP === $this->direction;
     }

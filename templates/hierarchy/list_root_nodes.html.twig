@@ -11,7 +11,7 @@
 
 <h1>
 <span>
-    {%- include 'hierarchy/partials/icon.html.twig' with {icon: key.label.icon, prefix: true} only -%}
+{%- include 'hierarchy/partials/icon.html.twig' with {icon: key.label.icon, prefix: true} only -%}
 {{key.label.string(key.isSingleton and not key.isScoped)}}
 </span>
 {%- if key.label.description is not empty -%}
@@ -34,7 +34,7 @@
     </li>
 {% endblock %}
 {% block tab_0 %}
-    
+
     {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, key.id, nodeId), cancel_tab: defaultTabId|default(null), key} only %}
 {% endblock %}
 {% block tab_1 %}
