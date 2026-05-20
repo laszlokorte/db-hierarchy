@@ -10,6 +10,7 @@ class FieldDefinition
     private LabelDefinition $label;
     private array $options;
     private bool $visibleInCollection;
+
     /**
      * @param array<int,mixed> $options
      */

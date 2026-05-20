@@ -133,26 +133,25 @@ class Naming
         return new Identifier($pkColumn->getName());
     }
 
-    public function scopeTablename(string $keyId) : Identifier
+    public function scopeTablename(string $keyId): Identifier
     {
         return $this->nodeTableName($this->schemaDef->getKeyScopeId($keyId));
     }
 
-    public function scopeTablePKName(string $keyId) : Identifier
+    public function scopeTablePKName(string $keyId): Identifier
     {
         return $this->nodeTablePKName($this->schemaDef->getKeyScopeId($keyId));
     }
 
-    public function nodeOwnScopeColumnName(string $keyId) : Identifier
+    public function nodeOwnScopeColumnName(string $keyId): Identifier
     {
         return $this->fieldColumnToName($this->schemaDef->getKeyScopeColumn($keyId));
     }
 
-    public function nodeOwnIsolationColumnName(string $keyId) : Identifier
+    public function nodeOwnIsolationColumnName(string $keyId): Identifier
     {
         return $this->fieldColumnToName($this->schemaDef->getKeyIsolationColumn($keyId));
     }
-
 
     public function closureTableName(string $keyId): Identifier
     {

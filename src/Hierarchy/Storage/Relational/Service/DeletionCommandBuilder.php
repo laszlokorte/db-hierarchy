@@ -47,6 +47,7 @@ class DeletionCommandBuilder
             $condition
         );
     }
+
     /**
      * @param array<int,mixed> $idParams
      */
@@ -75,6 +76,7 @@ class DeletionCommandBuilder
             $condition
         );
     }
+
     /**
      * @param array<int,mixed> $idParams
      */
@@ -116,6 +118,7 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$closureTable], $joins, $condition, $orders);
     }
+
     /**
      * @param array<int,mixed> $idParams
      */
@@ -144,6 +147,7 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$nodeTable], [], $condition);
     }
+
     /**
      * @param array<int,mixed> $scopeParams
      */
@@ -185,6 +189,7 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$closureTable], $joins, $condition, $orders);
     }
+
     /**
      * @param array<int,mixed> $scopeParams
      */
@@ -213,8 +218,8 @@ class DeletionCommandBuilder
 
         return new Select($projections, [$nodeTable], [], $condition);
     }
+
     /**
-     * @param mixed $columns
      * @param array<int,mixed> $idParams
      */
     public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams): Select

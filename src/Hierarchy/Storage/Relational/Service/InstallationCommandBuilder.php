@@ -45,6 +45,7 @@ class InstallationCommandBuilder
     public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private Quirks $quirks)
     {
     }
+
     /**
      * @return array<int,CreateTable>|CreateTable[]
      */
@@ -60,6 +61,7 @@ class InstallationCommandBuilder
 
         return $tables;
     }
+
     /**
      * @return array<int,CreateView>|CreateView[]
      */
@@ -80,6 +82,7 @@ class InstallationCommandBuilder
 
         return $views;
     }
+
     /**
      * @return array<string>
      * */
@@ -92,6 +95,7 @@ class InstallationCommandBuilder
 
         return $tables;
     }
+
     /**
      * @return array<string>*/
     public function getAllViews(): array
@@ -286,12 +290,13 @@ class InstallationCommandBuilder
 
         return new CreateTable($tableName, $pkColumn, $columns, $uniques, $foreignKeys);
     }
+
     private function fieldsColumns(string $keyId): array
     {
         return array_merge([], ...array_map(fn ($fieldId) => $this->getFieldColumns($keyId, $fieldId), $this->schemaDef->getKeyFieldIds($keyId)));
     }
 
-    private function getFieldColumns(string $keyId, string $fieldId) : array
+    private function getFieldColumns(string $keyId, string $fieldId): array
     {
         $fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
         $options = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
@@ -311,6 +316,7 @@ class InstallationCommandBuilder
             $keepSerial && $columnDefinition->getCoding() instanceof StorageCoding && 'SERIAL' === $columnDefinition->getCoding()->getType()
         );
     }
+
     /**
      * @return <missing>|string*/
     private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding)

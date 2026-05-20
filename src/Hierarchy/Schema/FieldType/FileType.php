@@ -15,7 +15,7 @@ class FileType implements FieldTypeInterface
         $this->config = $config;
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         return [
             new ColumnDefinition(sprintf('%s_size', $fieldId), new StorageCoding(StorageCodingType::INTEGER), !$required, null),
@@ -37,7 +37,7 @@ class FileType implements FieldTypeInterface
         ];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         if (empty($columnData[0])) {
             return null;
@@ -51,20 +51,21 @@ class FileType implements FieldTypeInterface
         ], $columnData);
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return $fieldData;
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'file';
     }
 
-    public function getDefaultOptions():array
+    public function getDefaultOptions(): array
     {
         return [];
     }

@@ -12,10 +12,10 @@ class SvgType implements FieldTypeInterface
      * @param array<int,mixed> $config
      */
     public function __construct(private array $config = [])
-      {
-      }
+    {
+    }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         return [
             new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::TEXT), !$required, null),
@@ -27,25 +27,26 @@ class SvgType implements FieldTypeInterface
         return [$fieldData];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         return $columnData[0];
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return $fieldData;
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'svg';
     }
 
-    public function getDefaultOptions():array
+    public function getDefaultOptions(): array
     {
         return [];
     }

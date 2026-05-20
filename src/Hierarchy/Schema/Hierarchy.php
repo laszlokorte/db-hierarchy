@@ -13,12 +13,12 @@ class Hierarchy
     ) {
     }
 
-    public function getLabel() : LabelDefinition
+    public function getLabel(): LabelDefinition
     {
         return $this->def->getSchemaLabel();
     }
 
-    public function hasKey(string $keyId) : bool
+    public function hasKey(string $keyId): bool
     {
         return $this->def->keyExists($keyId);
     }
@@ -38,7 +38,7 @@ class Hierarchy
         return array_map([$this, 'getKey'], $this->def->getAllKeyIds());
     }
 
-    public function getAllKeyIdsTopological() : array
+    public function getAllKeyIdsTopological(): array
     {
         return $this->def->getAllKeyIdsTopological();
     }

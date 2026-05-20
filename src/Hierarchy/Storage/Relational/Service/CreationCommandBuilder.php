@@ -34,9 +34,7 @@ class CreationCommandBuilder
     public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder)
     {
     }
-    /**
-     * @param mixed $keyId
-     */
+
     public function getSelectForScopeParentCheck($keyId, Parameter $scopeParam, Parameter $parentParam): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
@@ -57,10 +55,8 @@ class CreationCommandBuilder
             )
         );
     }
-    /**
-     * @param mixed $fieldsToCheck
-     */
-    public function getSelectForUniquenessCheckNew(string $keyId, Parameter $scopeParam, Parameter $parentParam, $fieldsToCheck) : Select
+
+    public function getSelectForUniquenessCheckNew(string $keyId, Parameter $scopeParam, Parameter $parentParam, $fieldsToCheck): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId));

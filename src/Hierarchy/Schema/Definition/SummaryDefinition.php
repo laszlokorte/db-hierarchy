@@ -10,10 +10,11 @@ class SummaryDefinition
     public function __construct(private array $segments)
     {
     }
+
     /**
      * @return array<int,mixed>
      */
-    public function getSegments() : array
+    public function getSegments(): array
     {
         return $this->segments;
     }

@@ -14,17 +14,17 @@ class ScopeDefinition
         $this->columnName = $columnName ?? $scopeKeyId.'_id';
     }
 
-    public function getScopeKeyId() : string
+    public function getScopeKeyId(): string
     {
         return $this->scopeKeyId;
     }
 
-    public function getColumnName() : ?string
+    public function getColumnName(): ?string
     {
         return $this->columnName;
     }
 
-    public function isIsolating() : bool
+    public function isIsolating(): bool
     {
         return $this->isolating;
     }

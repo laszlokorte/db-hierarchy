@@ -12,7 +12,7 @@ class ReferenceType implements FieldTypeInterface
     {
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         if ($required) {
             $cascade = $fieldOptions['cascade'] ?? false ? ReferenceCodingCascade::FOLLOW : ReferenceCodingCascade::RESTRICT;
@@ -30,7 +30,7 @@ class ReferenceType implements FieldTypeInterface
         return [$fieldData ?: null];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         return [
             'id' => $columnData[0],
@@ -38,20 +38,21 @@ class ReferenceType implements FieldTypeInterface
         ];
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return $fieldOptions['target'].'-'.$fieldData['id'];
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'reference';
     }
 
-    public function getDefaultOptions():array
+    public function getDefaultOptions(): array
     {
         return [];
     }

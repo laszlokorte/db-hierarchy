@@ -46,12 +46,12 @@ class Field
         return $this->def->isKeyFieldUnique($this->keyId, $this->fieldId);
     }
 
-    public function getOption(string $name) : mixed
+    public function getOption(string $name): mixed
     {
         return $this->def->getKeyFieldOption($this->keyId, $this->fieldId, $name);
     }
 
-    public function readValueOf(Node $object) : mixed
+    public function readValueOf(Node $object): mixed
     {
         $type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
         $options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
@@ -59,7 +59,7 @@ class Field
         return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn ($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
     }
 
-    public function readFormattedValueOf(Node $object) : mixed
+    public function readFormattedValueOf(Node $object): mixed
     {
         $type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
         $options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
@@ -76,7 +76,7 @@ class Field
         return '' !== $v && null !== $v;
     }
 
-    public function readObjectOf(NodeField $nodeField) : mixed
+    public function readObjectOf(NodeField $nodeField): mixed
     {
         $type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
         $options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
@@ -88,7 +88,7 @@ class Field
     // 	return implode(';', array_map(fn($col) => $collection->getColumnValue($nodeId, $col->getName()), $this->getColumns()));
     // }
 
-    private function getColumns() : array
+    private function getColumns(): array
     {
         $type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
         $options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
@@ -97,7 +97,7 @@ class Field
         return $type->getColumns($this->fieldId, $required, $options);
     }
 
-    public function getTemplateName() : string
+    public function getTemplateName(): string
     {
         $type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
         $options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);

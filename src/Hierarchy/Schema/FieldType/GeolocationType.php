@@ -15,7 +15,7 @@ class GeolocationType implements FieldTypeInterface
         $this->config = $config;
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         return [
             new ColumnDefinition($fieldId.'_longitude', new StorageCoding(StorageCodingType::STRING), !$required, null),
@@ -28,7 +28,7 @@ class GeolocationType implements FieldTypeInterface
         return [$fieldData['lon'], $fieldData['lat']];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         return [
             'lon' => $columnData[0],
@@ -36,20 +36,21 @@ class GeolocationType implements FieldTypeInterface
         ];
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return $fieldData;
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'geolocation';
     }
 
-    public function getDefaultOptions():array
+    public function getDefaultOptions(): array
     {
         return [];
     }

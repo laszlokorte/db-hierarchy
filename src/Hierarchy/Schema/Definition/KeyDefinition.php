@@ -5,25 +5,26 @@ namespace App\Hierarchy\Schema\Definition;
 class KeyDefinition
 {
     private $templateString = '';
+
     /**
      * @param array<int,mixed> $fields
      */
-    public function __construct(private StorageDefinition $storage, private LabelDefinition $label, private ?ScopeDefinition $scope, private ?ReflexivityDefinition $reflexivity, private ?OrderDefinition $order, private array $fields, private SummaryDefinition $summary) {
+    public function __construct(private StorageDefinition $storage, private LabelDefinition $label, private ?ScopeDefinition $scope, private ?ReflexivityDefinition $reflexivity, private ?OrderDefinition $order, private array $fields, private SummaryDefinition $summary)
+    {
         if (array_diff($summary->getFieldIds(), array_keys($fields))) {
             throw new \Exception(sprintf('unknown fields in key summary: %s', implode(', ', array_diff($summary->getFieldIds(), array_keys($fields)))));
         }
     }
-    /**
-     * @param mixed $fieldId
-     */
+
     public function fieldExists($fieldId): bool
     {
         return array_key_exists($fieldId, $this->fields);
     }
+
     /**
      * @return int[]|string[]
      */
-    public function getFieldIds() : array
+    public function getFieldIds(): array
     {
         return array_keys($this->fields);
     }
@@ -33,7 +34,7 @@ class KeyDefinition
         return null !== $this->order && !$this->order->isSingleton();
     }
 
-    public function getOrderColumnName() : string
+    public function getOrderColumnName(): string
     {
         return $this->order->getColumnName();
     }
@@ -43,7 +44,7 @@ class KeyDefinition
         return $this->order->getDirection();
     }
 
-    public function isScoped() : bool
+    public function isScoped(): bool
     {
         return null !== $this->scope;
     }
@@ -63,19 +64,17 @@ class KeyDefinition
         return $this->isScoped() ? $this->scope->getScopeKeyId() : null;
     }
 
-    public function getScopeColumnName() : string
+    public function getScopeColumnName(): string
     {
         return $this->scope->getColumnName();
     }
-    /**
-     * @param mixed $keyId
-     */
+
     public function isScopedInside($keyId): bool
     {
         return $this->isScoped() && $this->scope->getScopeKeyId() === $keyId;
     }
 
-    public function isReflexive() : bool
+    public function isReflexive(): bool
     {
         return null !== $this->reflexivity;
     }
@@ -85,37 +84,37 @@ class KeyDefinition
         return count($this->fields) < 2;
     }
 
-    public function getReflexivityTableName() : string
+    public function getReflexivityTableName(): string
     {
         return $this->reflexivity->deriveTableName($this->getTableName());
     }
 
-    public function getReflexivityParentColumnName() : string
+    public function getReflexivityParentColumnName(): string
     {
         return $this->reflexivity->getParentColumnName();
     }
 
-    public function getReflexivityChildColumnName() : string
+    public function getReflexivityChildColumnName(): string
     {
         return $this->reflexivity->getChildColumnName();
     }
 
-    public function getTableName() : string
+    public function getTableName(): string
     {
         return $this->storage->getTableName();
     }
 
-    public function getIdColumnName() : string
+    public function getIdColumnName(): string
     {
         return $this->storage->getIdColumnName();
     }
 
-    public function getIdColumnType() : string
+    public function getIdColumnType(): string
     {
         return $this->storage->getIdColumnType();
     }
 
-    public function getIdColumn() : ColumnDefinition
+    public function getIdColumn(): ColumnDefinition
     {
         return $this->storage->getIdColumn();
     }
@@ -124,45 +123,33 @@ class KeyDefinition
     {
         return $this->label;
     }
-    /**
-     * @param mixed $fieldId
-     */
-    public function getFieldLabel($fieldId) : LabelDefinition
+
+    public function getFieldLabel($fieldId): LabelDefinition
     {
         return $this->fields[$fieldId]->getLabel();
     }
-    /**
-     * @param mixed $fieldId
-     */
-    public function isFieldRequired($fieldId) : bool
+
+    public function isFieldRequired($fieldId): bool
     {
         return $this->fields[$fieldId]->isRequired();
     }
-    /**
-     * @param mixed $fieldId
-     */
-    public function isFieldUnique($fieldId) : bool
+
+    public function isFieldUnique($fieldId): bool
     {
         return $this->fields[$fieldId]->isUnique();
     }
-    /**
-     * @param mixed $fieldId
-     */
-    public function isFieldVisibleInCollection($fieldId) : bool
+
+    public function isFieldVisibleInCollection($fieldId): bool
     {
         return $this->fields[$fieldId]->isVisibleInCollection();
     }
-    /**
-     * @param mixed $fieldId
-     */
-    public function getFieldTypeId($fieldId) : string
+
+    public function getFieldTypeId($fieldId): string
     {
         return $this->fields[$fieldId]->getTypeId();
     }
-    /**
-     * @param mixed $fieldId
-     */
-    public function getFieldOptions($fieldId) : array
+
+    public function getFieldOptions($fieldId): array
     {
         return $this->fields[$fieldId]->getOptions();
     }

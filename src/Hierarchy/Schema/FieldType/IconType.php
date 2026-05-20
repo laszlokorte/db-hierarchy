@@ -12,7 +12,7 @@ class IconType implements FieldTypeInterface
     {
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         return [
             new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::ENUM), !$required, null),
@@ -24,25 +24,26 @@ class IconType implements FieldTypeInterface
         return [$fieldData];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         return $columnData[0];
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return $fieldData;
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'icon';
     }
 
-    public function getDefaultOptions():array
+    public function getDefaultOptions(): array
     {
         return ['values' => $this->icons];
     }

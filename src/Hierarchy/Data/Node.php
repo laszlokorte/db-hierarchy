@@ -47,6 +47,7 @@ class Node
     {
         return !empty($this->parentId);
     }
+
     /**
      * @return array<int,mixed>
      */
@@ -55,10 +56,11 @@ class Node
         return $this->columns;
     }
 
-    public function getColumnValue(string $columnName) : mixed
+    public function getColumnValue(string $columnName): mixed
     {
         return $this->columns[$columnName];
     }
+
     /**
      * @return array<string,string>
      */
@@ -78,7 +80,7 @@ class Node
         );
     }
 
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->scopeId.'/'.$this->nodeId;
     }

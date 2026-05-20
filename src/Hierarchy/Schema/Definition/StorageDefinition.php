@@ -21,7 +21,7 @@ class StorageDefinition
         return $this->pkColumn;
     }
 
-    public function getIdColumnType() : string
+    public function getIdColumnType(): string
     {
         return $this->pkType;
     }

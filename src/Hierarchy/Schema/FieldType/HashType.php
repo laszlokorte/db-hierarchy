@@ -12,7 +12,7 @@ class HashType implements FieldTypeInterface
     {
     }
 
-    public function getColumns(string $fieldId, bool $required, array $fieldOptions) : array
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
     {
         return [
             new ColumnDefinition($fieldId, new StorageCoding(StorageCodingType::BINARY), !$required, null),
@@ -24,25 +24,26 @@ class HashType implements FieldTypeInterface
         return [password_hash($fieldData, PASSWORD_DEFAULT)];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         return 'secret';
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return 'secret';
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions)    :array {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'hash';
     }
 
-    public function getDefaultOptions():array
+    public function getDefaultOptions(): array
     {
         return [];
     }

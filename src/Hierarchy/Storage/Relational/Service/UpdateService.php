@@ -27,6 +27,7 @@ class UpdateService
             null
         );
     }
+
     /**
      * @param array<int,mixed> $fieldData
      */
@@ -59,12 +60,7 @@ class UpdateService
             $errors
         );
     }
-    /**
-     * @param mixed $errors
-     * @param mixed $keyId
-     * @param mixed $nodeId
-     * @param mixed $fieldData
-     */
+
     private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData): void
     {
         $idParam = new Parameter('_id');
@@ -120,6 +116,7 @@ class UpdateService
             }
         }
     }
+
     /**
      * @param array<int,mixed> $errors
      */
@@ -142,9 +139,7 @@ class UpdateService
             }
         }
     }
-    /**
-     * @param mixed $fieldData
-     */
+
     public function updateNode(string $keyId, string $nodeId, $fieldData): void
     {
         $idParam = new Parameter('_id');

@@ -33,7 +33,7 @@ class BooleanType implements FieldTypeInterface
         return [$casted];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         switch ($columnData[0]) {
             case '0': return false;
@@ -42,7 +42,7 @@ class BooleanType implements FieldTypeInterface
         }
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         switch ($fieldData) {
             case true: return 'Yes';
@@ -51,10 +51,11 @@ class BooleanType implements FieldTypeInterface
         }
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions): array    {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'boolean';
     }

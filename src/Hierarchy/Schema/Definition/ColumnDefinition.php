@@ -17,12 +17,12 @@ class ColumnDefinition
         return $this->name;
     }
 
-    public function getCoding() : StorageCoding|ReferenceCoding
+    public function getCoding(): StorageCoding|ReferenceCoding
     {
         return $this->coding;
     }
 
-    public function isReference() : bool
+    public function isReference(): bool
     {
         return $this->coding instanceof ReferenceCoding;
     }
@@ -32,7 +32,7 @@ class ColumnDefinition
         return $this->nullable;
     }
 
-    public function hasDefault() : bool
+    public function hasDefault(): bool
     {
         return null !== $this->default;
     }

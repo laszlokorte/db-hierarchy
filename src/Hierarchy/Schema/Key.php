@@ -28,9 +28,7 @@ class Key
     {
         return new Field($this->def, $this->keyId, $fieldId);
     }
-    /**
-     * @param mixed $all
-     */
+
     public function getFields($all = true): array
     {
         return array_map([$this, 'getField'], $this->def->getKeyFieldIds($this->keyId, $all));
@@ -41,7 +39,7 @@ class Key
         return $this->def->getKeyLabel($this->keyId);
     }
 
-    public function isReflexive() : bool
+    public function isReflexive(): bool
     {
         return $this->def->isKeyReflexive($this->keyId);
     }
@@ -69,6 +67,7 @@ class Key
 
         return new Key($this->def, $this->def->getKeyScopeId($this->keyId));
     }
+
     /**
      * @return Key[]
      */
@@ -79,6 +78,7 @@ class Key
             $this->def->getKeyIdsScopedInside($this->keyId, $singletons, $skipAtoms)
         );
     }
+
     /**
      * @return Key[]
      */
@@ -89,6 +89,7 @@ class Key
             $this->def->getKeyIdsScopedInsideAndReflexiveSelf($this->keyId)
         );
     }
+
     /**
      * @return Key[]
      */
@@ -99,6 +100,7 @@ class Key
             $this->def->getKeyScopePath($this->keyId, true)
         );
     }
+
     /**
      * @return Key[]
      */
@@ -109,6 +111,7 @@ class Key
             $this->def->getKeyIsolations($this->keyId)
         );
     }
+
     /**
      * @param mixed $otherKey
      */
@@ -122,7 +125,7 @@ class Key
         return $this->def->isKeyNested($this->keyId);
     }
 
-    public function isSingleton() : bool
+    public function isSingleton(): bool
     {
         return $this->def->isKeySingleton($this->keyId);
     }
@@ -131,6 +134,7 @@ class Key
     {
         return $this->def->isKeyAtomic($this->keyId);
     }
+
     /**
      * @return Key[]
      */
@@ -161,7 +165,7 @@ class Key
         );
     }
 
-    public function getSummary() : string
+    public function getSummary(): string
     {
         return $this->def->getKeySummary($this->keyId);
     }

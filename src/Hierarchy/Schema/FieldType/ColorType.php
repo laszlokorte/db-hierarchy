@@ -9,9 +9,7 @@ use App\Hierarchy\Schema\Definition\StorageCodingType;
 class ColorType implements FieldTypeInterface
 {
     private $config;
-    /**
-     * @param mixed $config
-     */
+
     public function __construct($config = [])
     {
         $this->config = $config;
@@ -29,20 +27,21 @@ class ColorType implements FieldTypeInterface
         return [$fieldData];
     }
 
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) : mixed
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed
     {
         return $columnData[0];
     }
 
-    public function format(string $fieldId, array $fieldOptions, mixed $fieldData) : string
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData): string
     {
         return $fieldData;
     }
 
-    public function getSupportedFormats(string $fieldId, array $fieldOptions): array    {
+    public function getSupportedFormats(string $fieldId, array $fieldOptions): array
+    {
     }
 
-    public function getTemplateName(string $fieldId, array $fieldOptions) : string
+    public function getTemplateName(string $fieldId, array $fieldOptions): string
     {
         return 'color';
     }
