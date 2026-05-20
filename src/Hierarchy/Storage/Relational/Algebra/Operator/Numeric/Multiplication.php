@@ -2,8 +2,9 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric;
 
-use App\Hierarchy\Storage\Relational\Algebra\Operator\BinaryInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\AssociativeInterface;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\BinaryInterface;
 
-class Multiplication implements BinaryInterface, AssociativeInterface {
+class Multiplication implements BinaryInterface, AssociativeInterface
+{
 }

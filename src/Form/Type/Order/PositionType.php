@@ -2,23 +2,18 @@
 
 namespace App\Form\Type\Order;
 
+use App\Hierarchy\Data\NodeCollectionIterator;
+use App\Hierarchy\Schema\Key;
+use App\Hierarchy\Storage\Relational\StorageConnection;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
-
-use Symfony\Component\Form\Extension\Core\Type;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
-use App\Hierarchy\Schema\Key;
-
-use App\Hierarchy\Data\NodeCollectionIterator;
 
 class PositionType extends AbstractType
 {
-	public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $key = $options['key'];
         $storageConnection = $options['storageConnection'];
@@ -43,7 +38,7 @@ class PositionType extends AbstractType
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-    	$choiceList = $form->getConfig()->getAttribute('choice_list');
+        $choiceList = $form->getConfig()->getAttribute('choice_list');
 
         $view->vars = array_replace($view->vars, [
             'choices' => $choiceList,
@@ -51,7 +46,7 @@ class PositionType extends AbstractType
         ]);
     }
 
-    public function getBlockPrefix() : string
+    public function getBlockPrefix(): string
     {
         return 'hierarchy_position';
     }

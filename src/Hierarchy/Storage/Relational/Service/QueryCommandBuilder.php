@@ -2,238 +2,240 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
-use App\Hierarchy\Storage\Relational\Naming;
-use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
-use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
-use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
-use App\Hierarchy\Storage\Relational\Algebra\TableReference;
-use App\Hierarchy\Storage\Relational\Algebra\Projection;
-use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
-use App\Hierarchy\Storage\Relational\Algebra\Select;
-use App\Hierarchy\Storage\Relational\Algebra\Order;
-use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
-use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
-use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\String\Concat;
+use App\Hierarchy\Storage\Relational\Algebra\Order;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Select;
+use App\Hierarchy\Storage\Relational\Algebra\TableReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Naming;
 
+class QueryCommandBuilder
+{
+    public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder)
+    {
+    }
 
+    // getSelectForFindNodes
+    // getSelectForFindHierarchy
+    // getSelectForFindNode
+    // getSelectForFindNodeField
+    // getSelectForFindReflexiveParentNodes
 
-class QueryCommandBuilder  {
+    public function getSelectForFindNodes(string $keyId, Parameter|Constant|null $scope, Parameter|Constant|null $parent)
+    {
+        $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+        $tableN = new TableReference($this->naming->nodeTableName($keyId));
 
-	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
-	}
+        $projections = [];
+        $projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
 
-	// getSelectForFindNodes
-	// getSelectForFindHierarchy
-	// getSelectForFindNode
-	// getSelectForFindNodeField
-	// getSelectForFindReflexiveParentNodes
+        $joins = [];
+        $joins[] = new Join($tableH, new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+        ));
 
-	public function getSelectForFindNodes(string $keyId, null|Parameter|Constant $scope, null|Parameter|Constant $parent) {
-		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
-		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+        $conditionFragments = [];
 
-		$projections = [];
-		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
+        if (null !== $scope) {
+            $conditionFragments[] = new BinaryOperation(
+                new Equal(true),
+                new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
+                $this->coder->wrapScopeParameter($keyId, $scope)
+            );
+        }
 
-		$joins = [];
-		$joins[] = new Join($tableH, new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
-		));
+        if (null !== $parent) {
+            $conditionFragments[] = new BinaryOperation(
+                new Equal(true),
+                new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
+                $this->coder->wrapParentParameter($keyId, $parent)
+            );
+        }
 
-		$conditionFragments = [];
+        if (empty($conditionFragments)) {
+            $condition = null;
+        } else {
+            $condition = new AssociativeOperation(
+                new Conjunction(), $conditionFragments
+            );
+        }
 
-		if($scope !== null) {
-			$conditionFragments[] = new BinaryOperation(
-				new Equal(TRUE),
-				new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)),
-				$this->coder->wrapScopeParameter($keyId, $scope)
-			);
-		}
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
+            }
+        }
 
-		if($parent !== null) {
-			$conditionFragments[] = new BinaryOperation(
-			new Equal(TRUE),
-			new ColumnReference($tableH, $this->naming->hierarchyParentColumnName($keyId)),
-			$this->coder->wrapParentParameter($keyId, $parent)
-		);
-		}
-		
-		
-		if(empty($conditionFragments)) {
-			$condition = NULL;
-		} else {
-			$condition = new AssociativeOperation(
-				new Conjunction(), $conditionFragments
-			);
-		}
+        $orders = [
+            new Order(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), true),
+            new Order(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), false),
+        ];
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
-			}
-		}
+        return new Select($projections, [$tableN], $joins, $condition, $orders);
+    }
 
-		$orders = [
-			new Order(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), true),
-			new Order(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), false)
-		];
+    public function getSelectForFindHierarchy(string $keyId, Parameter|Constant|null $scope, Parameter|Constant|null $parent)
+    {
+        $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+        $tableN = new TableReference($this->naming->nodeTableName($keyId));
 
-		return new Select($projections, [$tableN], $joins, $condition, $orders);
-	}
+        $projections = [];
+        $projections[] = new Projection(new AssociativeOperation(
+            new Concat(), [
+                new FunctionApplication(new Coalesce(), [
+                    $this->coder->wrapHierarchyScopeColumn($keyId, $tableH),
+                    new Constant('-'),
+                ]),
+                new Constant('/'),
+                new FunctionApplication(new Coalesce(), [
+                    $this->coder->wrapHierarchyParentColumn($keyId, $tableH),
+                    new Constant('-'),
+                ]),
+            ]), new Identifier('_treeIndex'));
+        $projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
 
-	public function getSelectForFindHierarchy(string $keyId, null|Parameter|Constant $scope, null|Parameter|Constant $parent) {
-		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
-		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+        $joins = [];
+        $joins[] = new Join($tableH, new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+        ));
 
-		$projections = [];
-		$projections[] = new Projection(new AssociativeOperation(
-			new Concat(), [
-			new FunctionApplication(new Coalesce(),  [
-				$this->coder->wrapHierarchyScopeColumn($keyId, $tableH),
-				new Constant('-'),
-			]),
-			new Constant('/'),
-			new FunctionApplication(new Coalesce(), [
-				$this->coder->wrapHierarchyParentColumn($keyId, $tableH),
-				new Constant('-'),
-			]),
-		]), new Identifier('_treeIndex'));
-		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
+        $condition = new Constant(1);
 
-		$joins = [];
-		$joins[] = new Join($tableH, new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
-		));
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
+            }
+        }
 
-		$condition = new Constant(1);
+        $orders = [
+            new Order(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), true),
+            new Order(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), false),
+        ];
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
-			}
-		}
+        return new Select($projections, [$tableN], $joins, $condition, $orders);
+    }
 
-		$orders = [
-			new Order(new ColumnReference($tableH, $this->naming->hierarchyScopeColumnName($keyId)), true),
-			new Order(new ColumnReference($tableH, $this->naming->hierarchyOrderColumnName($keyId)), false)
-		];
+    public function getSelectForFindNode(string $keyId, Parameter|Constant $idParameter)
+    {
+        $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+        $tableN = new TableReference($this->naming->nodeTableName($keyId));
 
-		return new Select($projections, [$tableN], $joins, $condition, $orders);
-	}
+        $projections = [];
+        $projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
 
-	public function getSelectForFindNode(string $keyId, Parameter|Constant $idParameter) {
-		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
-		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+        $joins = [];
+        $joins[] = new Join($tableH, new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+        ));
 
-		$projections = [];
-		$projections[] = new Projection($this->coder->wrapHierarchyPrimaryColumn($keyId, $tableH), $this->naming->hierarchyIdColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyOrderColumn($keyId, $tableH), $this->naming->hierarchyOrderColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyParentColumn($keyId, $tableH), $this->naming->hierarchyParentColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
+        $condition = new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
+            $this->coder->wrapPrimaryKeyParameter($keyId, $idParameter)
+        );
 
-		$joins = [];
-		$joins[] = new Join($tableH, new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
-		));
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
+            }
+        }
 
-		$condition = new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
-			$this->coder->wrapPrimaryKeyParameter($keyId, $idParameter)
-		);
+        return new Select($projections, [$tableN], $joins, $condition);
+    }
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
-			}
-		}
+    public function getSelectForFindNodeField(string $keyId, string $fieldId, Parameter|Constant $idParam)
+    {
+        $tableN = new TableReference($this->naming->nodeTableName($keyId));
 
-		return new Select($projections, [$tableN], $joins, $condition);
-	}
+        $projections = [];
 
-	public function getSelectForFindNodeField(string $keyId, string $fieldId, Parameter|Constant $idParam) {
-		$tableN = new TableReference($this->naming->nodeTableName($keyId));
+        $condition = new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
+            $this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
+        );
 
-		$projections = [];
+        foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+            $projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
+        }
 
-		$condition = new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId)),
-			$this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
-		);
+        return new Select($projections, [$tableN], [], $condition);
+    }
 
-		foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-			$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
-		}
+    public function getSelectForFindReflexiveParentNodes(string $keyId, Parameter|Constant $id)
+    {
+        $tableN = new TableReference($this->naming->nodeTableName($keyId));
+        $tableC = new TableReference($this->naming->closureTableName($keyId));
+        $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
 
-		return new Select($projections, [$tableN], [], $condition);
-	}
+        $projections = [];
 
-	public function getSelectForFindReflexiveParentNodes(string $keyId, Parameter|Constant $id) {
-		$tableN = new TableReference($this->naming->nodeTableName($keyId));
-		$tableC = new TableReference($this->naming->closureTableName($keyId));
-		$tableH = new TableReference($this->naming->hierarchyViewName($keyId));
+        $projections[] = new Projection($this->coder->wrapPrimaryColumn($keyId, $tableN), $this->naming->hierarchyIdColumnName($keyId));
+        $projections[] = new Projection($this->coder->wrapClosureParentColumn($keyId, $tableC), $this->naming->hierarchyParentColumnName($keyId));
 
-		$projections = [];
+        if ($this->schemaDef->isKeyScoped($keyId)) {
+            $projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
+        } else {
+            $projections[] = new Projection(new Constant(null), $this->naming->hierarchyScopeColumnName($keyId));
+        }
 
-		$projections[] = new Projection($this->coder->wrapPrimaryColumn($keyId, $tableN), $this->naming->hierarchyIdColumnName($keyId));
-		$projections[] = new Projection($this->coder->wrapClosureParentColumn($keyId, $tableC), $this->naming->hierarchyParentColumnName($keyId));
+        $joins = [];
+        $joins[] = new Join($tableC, new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+        ));
 
-		if($this->schemaDef->isKeyScoped($keyId)) {
-			$projections[] = new Projection($this->coder->wrapHierarchyScopeColumn($keyId, $tableH), $this->naming->hierarchyScopeColumnName($keyId));
-		} else {
-			$projections[] = new Projection(new Constant(null), $this->naming->hierarchyScopeColumnName($keyId));
-		}
+        $joins[] = new Join($tableH, new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
+            new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
+        ));
 
-		$joins = [];
-		$joins[] = new Join($tableC, new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableC, $this->naming->closureParentColumnName($keyId)),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
-		));
+        $condition = new BinaryOperation(
+            new Equal(),
+            new ColumnReference($tableC, $this->naming->closureChildColumnName($keyId)),
+            $this->coder->wrapPrimaryKeyParameter($keyId, $id)
+        );
 
-		$joins[] = new Join($tableH, new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableH, $this->naming->hierarchyIdColumnName($keyId)),
-			new ColumnReference($tableN, $this->naming->nodeTablePKName($keyId))
-		));
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
+            }
+        }
 
-		$condition = new BinaryOperation(
-			new Equal(),
-			new ColumnReference($tableC, $this->naming->closureChildColumnName($keyId)),
-			$this->coder->wrapPrimaryKeyParameter($keyId, $id)
-		);
+        $orders = [
+            new Order(new ColumnReference($tableC, $this->naming->closureTableDepthName($keyId)), false),
+        ];
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection($this->coder->wrapColumn($column, $tableN), new Identifier($column->getName()));
-			}
-		}
-
-		$orders = [
-			new Order(new ColumnReference($tableC, $this->naming->closureTableDepthName($keyId)), false)
-		];
-
-		return new Select($projections, [$tableN], $joins, $condition, $orders);
-	}
-
+        return new Select($projections, [$tableN], $joins, $condition, $orders);
+    }
 }

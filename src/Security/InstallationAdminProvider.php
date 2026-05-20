@@ -2,22 +2,22 @@
 
 namespace App\Security;
 
+use Doctrine\DBAL\Connection;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-
-use Doctrine\DBAL\Connection;
 /**
  * @implements UserProviderInterface<UserInterface>
  */
 class InstallationAdminProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    public function __construct(private Connection $connection, private UserPasswordHasherInterface $hasher) {
+    public function __construct(private Connection $connection, private UserPasswordHasherInterface $hasher)
+    {
     }
 
     /**
@@ -29,14 +29,15 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      */
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        if($identifier === 'admin') {
+        if ('admin' === $identifier) {
             $stmt = $this->connection->prepare('SELECT COUNT(*) FROM account');
             $result = $stmt->executeQuery();
             $numberOfAccounts = $result->fetchOne();
-            if($numberOfAccounts == 0) {
+            if (0 == $numberOfAccounts) {
                 $admin = new InstallationAdminUser($identifier);
                 $hashed = $this->hasher->hashPassword($admin, 'admin');
                 $admin->setPassword($hashed);
+
                 return $admin;
             }
         }
@@ -54,10 +55,8 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      *
      * If your firewall is "stateless: true" (for a pure API), this
      * method is not called.
-     *
-     * @return UserInterface
      */
-    public function refreshUser(UserInterface $user) : UserInterface
+    public function refreshUser(UserInterface $user): UserInterface
     {
         if (!$user instanceof InstallationAdminUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
@@ -67,7 +66,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
         $result = $stmt->executeQuery();
         $numberOfAccounts = $result->fetchOne();
 
-        if($numberOfAccounts != 0) {
+        if (0 != $numberOfAccounts) {
             throw new UserNotFoundException();
         }
 
@@ -77,7 +76,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
     /**
      * Tells Symfony to use this provider for this User class.
      */
-    public function supportsClass(string $class) : bool
+    public function supportsClass(string $class): bool
     {
         return InstallationAdminUser::class === $class || is_subclass_of($class, InstallationAdminUser::class);
     }
@@ -87,6 +86,6 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
     {
-      //  $user->setPassword($newEncodedPassword);
+        //  $user->setPassword($newEncodedPassword);
     }
 }

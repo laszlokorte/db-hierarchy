@@ -2,164 +2,167 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
-use App\Hierarchy\Schema\Definition\SchemaDefinition;
-use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
-use App\Hierarchy\Storage\Relational\ColumnCoder;
-use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
-
 use App\Hierarchy\Changeset\Update;
 use App\Hierarchy\Data\Node;
-
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 
-class UpdateService {
-	public function __construct(private SchemaDefinition $schemaDef, private UpdateCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+class UpdateService
+{
+    public function __construct(private SchemaDefinition $schemaDef, private UpdateCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder)
+    {
+    }
 
-	}
+    public function getFreshUpdate(Node $node)
+    {
+        return new Update(
+            $node->getKey(),
+            $node->getId(),
+            [],
+            $node->getColumnValues(),
+            null
+        );
+    }
 
-	public function getFreshUpdate(Node $node) {
-		return new Update(
-			$node->getKey(),
-			$node->getId(),
-			[],
-			$node->getColumnValues(),
-			null
-		);
-	}
+    public function getValidatedUpdate(Node $node, array $fieldData)
+    {
+        // check empty fields
+        // check unique fields != self
+        $keyId = $node->getKey();
+        $nodeId = $node->getId();
+        $errors = [];
 
-	public function getValidatedUpdate(Node $node, array $fieldData) {
-		// check empty fields
-		// check unique fields != self
-		$keyId = $node->getKey();
-		$nodeId = $node->getId();
-		$errors = [];
+        $this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
+        $this->validateRequiredField($errors, $keyId, $fieldData);
 
-		$this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
-		$this->validateRequiredField($errors, $keyId, $fieldData);
+        $newColumnData = [];
 
-		$newColumnData = [];
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            $columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $ci => $column) {
+                $newColumnData[$column->getName()] = $columnData[$ci];
+            }
+        }
 
-			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
-				$newColumnData[$column->getName()] = $columnData[$ci];
-			}
-		}
+        return new Update(
+            $keyId,
+            $nodeId,
+            $newColumnData,
+            $node->getColumnValues(),
+            $errors
+        );
+    }
 
-		return new Update(
-			$keyId,
-			$nodeId,
-			$newColumnData,
-			$node->getColumnValues(),
-			$errors
-		);
-	}
+    private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData)
+    {
+        $idParam = new Parameter('_id');
 
-	private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData) {
+        $fieldsToCheck = [];
+        $valuesToCheck = [];
 
-		$idParam = new Parameter('_id');
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            if (!$this->schemaDef->isKeyFieldUnique($keyId, $fieldId)) {
+                continue;
+            }
 
-		$fieldsToCheck = [];
-		$valuesToCheck = [];
+            $columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			if(!$this->schemaDef->isKeyFieldUnique($keyId,  $fieldId)) {
-				continue;
-			}
+            if (empty(array_filter($columnData))) {
+                continue;
+            }
 
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+            $fieldsToCheck[$fieldId] = [];
+            $valuesToCheck[$fieldId] = [];
 
-			if(empty(array_filter($columnData))) {
-				continue;
-			}
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $ci => $column) {
+                $fieldsToCheck[$fieldId][] = new Parameter($column->getName());
+                $valuesToCheck[$fieldId][] = $columnData[$ci];
+            }
+        }
 
-			$fieldsToCheck[$fieldId] = [];
-			$valuesToCheck[$fieldId] = [];
+        $select = $this->commandBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
+        $stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
-			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
-				$fieldsToCheck[$fieldId][] = new Parameter($column->getName());
-				$valuesToCheck[$fieldId][] = $columnData[$ci];
-			}
-		}
+        $stmt->bindValue(
+            $this->dialect->parameterToString($idParam),
+            $nodeId, ParameterType::INTEGER
+        );
 
-		$select = $this->commandBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
-		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+        foreach ($fieldsToCheck as $fieldId => $params) {
+            foreach ($params as $i => $param) {
+                $stmt->bindValue(
+                    $this->dialect->parameterToString($param),
+                    $valuesToCheck[$fieldId][$i]
+                );
+            }
+        }
 
-    	$stmt->bindValue(
-			$this->dialect->parameterToString($idParam),
-			$nodeId, ParameterType::INTEGER
-		);
+        $stmtResult = $stmt->executeQuery();
+        $result = $stmtResult->fetchAssociative();
 
-		foreach ($fieldsToCheck as $fieldId => $params) {
-			foreach($params AS $i => $param) {
-				$stmt->bindValue(
-					$this->dialect->parameterToString($param),
-					$valuesToCheck[$fieldId][$i]
-				);
-			}
-		}
+        if ($result) {
+            foreach ($fieldsToCheck as $fieldId => $params) {
+                if ($result[$fieldId]) {
+                    $errors[$fieldId][] = 'not unique';
+                }
+            }
+        }
+    }
 
-		$stmtResult = $stmt->executeQuery();
-		$result = $stmtResult->fetchAssociative();
+    private function validateRequiredField(&$errors, $keyId, $fieldData)
+    {
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            if (!$this->schemaDef->isKeyFieldRequired($keyId, $fieldId)) {
+                continue;
+            }
 
-		if($result) {
-			foreach ($fieldsToCheck as $fieldId => $params) {
-				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique';
-				}
-			}
-		}
-	}
+            $fieldsToCheck[$fieldId] = [];
+            $valuesToCheck[$fieldId] = [];
 
-	private function validateRequiredField(&$errors, $keyId, $fieldData) {
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			if(!$this->schemaDef->isKeyFieldRequired($keyId,  $fieldId)) {
-				continue;
-			}
+            $columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-			$fieldsToCheck[$fieldId] = [];
-			$valuesToCheck[$fieldId] = [];
+            if (empty(array_filter($columnData, fn ($d) => '' !== $d && null !== $d))) {
+                $errors[$fieldId][] = 'is required';
+            }
+        }
+    }
 
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+    public function updateNode(string $keyId, string $nodeId, $fieldData)
+    {
+        $idParam = new Parameter('_id');
+        $update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
 
-			if(empty(array_filter($columnData, fn($d) => $d !== '' && $d !== null))) {
-				$errors[$fieldId][] = 'is required';
-			}
-		}
-	}
+        if (!$update->isEmpty()) {
+            $this->connection->beginTransaction();
 
-	public function updateNode(string $keyId, string $nodeId, $fieldData) {
-		$idParam = new Parameter('_id');
-		$update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);
+            $stmt = $this->connection->prepare($this->dialect->updateToString($update));
 
-		if(!$update->isEmpty()) {
-			$this->connection->beginTransaction();
+            foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+                $fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+                $fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+                $required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+                $columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
 
-			$stmt = $this->connection->prepare($this->dialect->updateToString($update));
+                foreach ($fieldType->getColumns($fieldId, $required, $fieldOptions) as $ci => $column) {
+                    $stmt->bindValue(
+                        $this->dialect->parameterToString(new Parameter($column->getName())),
+                        $columnData[$ci]
+                    );
+                }
+            }
 
-			foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-				$fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
-				$fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
-				$required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
-				$columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
+            $stmt->bindValue(
+                $this->dialect->parameterToString($idParam),
+                $nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
+            );
+            $stmt->executeQuery();
 
-				foreach($fieldType->getColumns($fieldId, $required, $fieldOptions) AS $ci => $column) {
-					$stmt->bindValue(
-						$this->dialect->parameterToString(new Parameter($column->getName())),
-						$columnData[$ci]
-					);
-				}
-			}
-
-			$stmt->bindValue(
-				$this->dialect->parameterToString($idParam),
-				$nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
-			);
-			$stmt->executeQuery();
-
-	    	$this->connection->commit();
-		}
-	}
+            $this->connection->commit();
+        }
+    }
 }

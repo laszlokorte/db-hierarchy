@@ -2,21 +2,19 @@
 
 namespace App\Hierarchy\Storage\Relational;
 
-use App\Hierarchy\Schema\Definition\SchemaDefinition;
-use App\Hierarchy\Schema\Definition\ColumnDefinition;
-use App\Hierarchy\Storage\Relational\Algebra\Identifier;
+class Quirks
+{
+    public function __construct(private bool $noDeferredForeignKeys, private bool $noAlteredForeignKeys)
+    {
+    }
 
+    public function noDeferredFK()
+    {
+        return $this->noDeferredForeignKeys;
+    }
 
-class Quirks {
-	public function __construct(private bool $noDeferredForeignKeys, private bool $noAlteredForeignKeys) {
-
-	}
-
-	public function noDeferredFK() {
-		return $this->noDeferredForeignKeys;
-	}
-
-	public function noAlteredFK() {
-		return $this->noAlteredForeignKeys;
-	}
+    public function noAlteredFK()
+    {
+        return $this->noAlteredForeignKeys;
+    }
 }

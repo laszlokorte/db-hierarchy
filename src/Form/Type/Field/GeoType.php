@@ -2,27 +2,27 @@
 
 namespace App\Form\Type\Field;
 
+use App\Hierarchy\Schema\Field;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
-use App\Hierarchy\Schema\Field;
-
 class GeoType extends AbstractType
 {
-	public function buildForm(FormBuilderInterface $builder, array $options): void {
-		$builder->add('lat', Type\TextType::class, [
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder->add('lat', Type\TextType::class, [
         ]);
         $builder->add('long', Type\TextType::class, [
         ]);
-	}
+    }
 
-	public function configureOptions(OptionsResolver $resolver): void
+    public function configureOptions(OptionsResolver $resolver): void
     {
-    	$resolver->setDefaults([
+        $resolver->setDefaults([
             'compound' => true,
         ]);
 
@@ -30,23 +30,35 @@ class GeoType extends AbstractType
         $resolver->setAllowedTypes('field', Field::class);
 
         $resolver->setDefault('required', function (Options $options) {
-            return $options['field']->isRequired();
+            /** @var Field $field */
+            $field = $options['field'];
+
+            return $field->isRequired();
         });
         $resolver->setDefault('label', function (Options $options) {
-            return $options['field']->getLabel()->getString();
+            /** @var Field $field */
+            $field = $options['field'];
+
+            return $field->getLabel()->getString();
         });
         $resolver->setDefault('help', function (Options $options) {
-            return $options['field']->getLabel()->getDescription();
+            /** @var Field $field */
+            $field = $options['field'];
+
+            return $field->getLabel()->getDescription();
         });
         $resolver->setDefault('constraints', function (Options $options, $previousValue) {
-            return $options['field']->isRequired() ? [
+            /** @var Field $field */
+            $field = $options['field'];
+
+            return $field->isRequired() ? [
                 new Assert\NotBlank(),
-                ...$previousValue
+                ...$previousValue,
             ] : $previousValue;
         });
     }
 
-    public function getBlockPrefix() : string
+    public function getBlockPrefix(): string
     {
         return 'hierarchy_geo';
     }

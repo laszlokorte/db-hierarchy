@@ -4,5 +4,6 @@ namespace App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison;
 
 use App\Hierarchy\Storage\Relational\Algebra\Operator\BinaryInterface;
 
-class GreaterThan implements BinaryInterface {
+class GreaterThan implements BinaryInterface
+{
 }

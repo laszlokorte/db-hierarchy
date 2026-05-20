@@ -4,75 +4,89 @@ namespace App\Hierarchy\Data;
 
 use App\Hierarchy\Changeset\Update;
 
-class Node {
+class Node
+{
+    public function __construct(private string $keyId, private string $nodeId, private array $columns, private ?string $scopeId = null, private ?string $parentId = null, private ?int $order = null)
+    {
+    }
 
-	public function __construct(private string $keyId, private string $nodeId, private array $columns, private ?string $scopeId = NULL, private ?string $parentId = NULL, private ?int $order = null) {
-	}
+    public function getKey()
+    {
+        return $this->keyId;
+    }
 
-	public function getKey() {
-		return $this->keyId;
-	}
+    public function getId()
+    {
+        return $this->nodeId;
+    }
 
-	public function getId() {
-		return $this->nodeId;
-	}
+    public function getScope()
+    {
+        return $this->scopeId;
+    }
 
-	public function getScope() {
-		return $this->scopeId;
-	}
+    public function getOrder()
+    {
+        return $this->order;
+    }
 
-	public function getOrder() {
-		return $this->order;
-	}
+    public function getParent()
+    {
+        return $this->parentId;
+    }
 
-	public function getParent() {
-		return $this->parentId;
-	}
+    public function hasScope()
+    {
+        return !empty($this->scopeId);
+    }
 
-	public function hasScope() {
-		return !empty($this->scopeId);
-	}
+    public function hasParent()
+    {
+        return !empty($this->parentId);
+    }
 
-	public function hasParent() {
-		return !empty($this->parentId);
-	}
+    public function getColumnValues()
+    {
+        return $this->columns;
+    }
 
-	public function getColumnValues() {
-		return $this->columns;
-	}
+    public function getColumnValue($columnName)
+    {
+        return $this->columns[$columnName];
+    }
 
-	public function getColumnValue($columnName) {
-		return $this->columns[$columnName];
-	}
+    public function pathArgs()
+    {
+        return ['keyId' => $this->keyId, 'nodeId' => $this->nodeId];
+    }
 
-	public function pathArgs() {
-		return ['keyId' => $this->keyId, 'nodeId' => $this->nodeId];
-	}
+    public function newUpdate()
+    {
+        return new Update(
+            $this->keyId,
+            $this->nodeId,
+            [],
+            $this->columns,
+            []
+        );
+    }
 
-	public function newUpdate() {
-		return new Update(
-			$this->keyId, 
-			$this->nodeId,
-			[],
-			$this->columns,
-			[]
-		);
-	}
+    public function __toString()
+    {
+        return $this->scopeId.'/'.$this->nodeId;
+    }
 
-	public function __toString() {
-		return $this->scopeId . '/' . $this->nodeId;
-	}
+    public function asNestingFor(string $keyId)
+    {
+        if ($this->keyId === $keyId) {
+            return new NodeNesting($keyId, $this->scopeId, $this->nodeId);
+        }
 
-	public function asNestingFor(string $keyId) {
-		if($this->keyId === $keyId) {
-			return new NodeNesting($keyId, $this->scopeId, $this->nodeId);
-		} else {
-			return new NodeNesting($keyId, $this->nodeId, null);
-		}
-	}
+        return new NodeNesting($keyId, $this->nodeId, null);
+    }
 
-	public function getNesting() {
-		return new NodeNesting($this->keyId, $this->scopeId, $this->parentId);
-	}
-
+    public function getNesting()
+    {
+        return new NodeNesting($this->keyId, $this->scopeId, $this->parentId);
+    }
 }

@@ -2,65 +2,77 @@
 
 namespace App\Hierarchy\Data;
 
-class MultiCollection {
-	public function __construct(
-		private ?string $keyId, 
-		private ?string $nodeId, 
-		private array $groupedRows, 
-		private ?string $scopeId = NULL, 
-		private ?string $parentId = NULL
-	) {
-	}
+class MultiCollection
+{
+    public function __construct(
+        private ?string $keyId,
+        private ?string $nodeId,
+        private array $groupedRows,
+        private ?string $scopeId = null,
+        private ?string $parentId = null,
+    ) {
+    }
 
-	public function getKey() {
-		return $this->keyId;
-	}
+    public function getKey()
+    {
+        return $this->keyId;
+    }
 
-	public function getId() {
-		return $this->nodeId;
-	}
+    public function getId()
+    {
+        return $this->nodeId;
+    }
 
-	public function getScope() {
-		return $this->scopeId;
-	}
+    public function getScope()
+    {
+        return $this->scopeId;
+    }
 
-	public function getParent() {
-		return $this->parentId;
-	}
+    public function getParent()
+    {
+        return $this->parentId;
+    }
 
-	public function getKeys() {
-		return array_keys($this->groupedRows);
-	}
+    public function getKeys()
+    {
+        return array_keys($this->groupedRows);
+    }
 
-	public function countKeys() {
-		return count($this->groupedRows);
-	}
+    public function countKeys()
+    {
+        return count($this->groupedRows);
+    }
 
-	public function getNodesFor($keyId) {
-		if($keyId === $this->keyId) {
-			return new NodeCollection(
-				$this->keyId, $this->groupedRows[$keyId]??[], $this->scopeId, $this->nodeId
-			);
-		} else {
-			return new NodeCollection(
-				$keyId, $this->groupedRows[$keyId]??[], $this->nodeId, null
-			);
-		}
-	}
+    public function getNodesFor($keyId)
+    {
+        if ($keyId === $this->keyId) {
+            return new NodeCollection(
+                $this->keyId, $this->groupedRows[$keyId] ?? [], $this->scopeId, $this->nodeId
+            );
+        }
 
-	public function getNodeIdsFor($keyId) {
-		return array_keys($this->groupedRows[$keyId]??[]);
-	}
+        return new NodeCollection(
+            $keyId, $this->groupedRows[$keyId] ?? [], $this->nodeId, null
+        );
+    }
 
-	public function hasNodesFor($keyId) {
-		return !empty($this->groupedRows[$keyId]);
-	}
+    public function getNodeIdsFor($keyId)
+    {
+        return array_keys($this->groupedRows[$keyId] ?? []);
+    }
 
-	public function countNodesFor($keyId) {
-		return count($this->groupedRows[$keyId]);
-	}
+    public function hasNodesFor($keyId)
+    {
+        return !empty($this->groupedRows[$keyId]);
+    }
 
-	public function isEmpty() {
-		return empty($this->groupedRows);
-	}
+    public function countNodesFor($keyId)
+    {
+        return count($this->groupedRows[$keyId]);
+    }
+
+    public function isEmpty()
+    {
+        return empty($this->groupedRows);
+    }
 }

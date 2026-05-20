@@ -5,51 +5,55 @@ namespace App\Hierarchy\Schema\FieldType;
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\ReferenceCoding;
 use App\Hierarchy\Schema\Definition\ReferenceCodingCascade;
-use App\Hierarchy\Schema\Definition\StorageCodingType;
 
-class ReferenceType implements FieldTypeInterface {
+class ReferenceType implements FieldTypeInterface
+{
+    public function __construct()
+    {
+    }
 
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions)
+    {
+        if ($required) {
+            $cascade = $fieldOptions['cascade'] ?? false ? ReferenceCodingCascade::FOLLOW : ReferenceCodingCascade::RESTRICT;
+        } else {
+            $cascade = $fieldOptions['cascade'] ?? false ? ReferenceCodingCascade::CLEAR : ReferenceCodingCascade::RESTRICT;
+        }
 
-	public function __construct() {
-	}
+        return [
+            new ColumnDefinition($fieldId.'_ref', new ReferenceCoding($fieldOptions['target'], $cascade), !$required, null),
+        ];
+    }
 
-	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
-		if($required) {
-			$cascade = $fieldOptions['cascade']??false ? ReferenceCodingCascade::FOLLOW : ReferenceCodingCascade::RESTRICT; 
-		} else {
-			$cascade = $fieldOptions['cascade']??false ? ReferenceCodingCascade::CLEAR : ReferenceCodingCascade::RESTRICT;
-		}
-		
-		return [
-			new ColumnDefinition($fieldId . '_ref', new ReferenceCoding($fieldOptions['target'], $cascade), !$required, null)
-		];
-	}
+    public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData): array
+    {
+        return [$fieldData ?: null];
+    }
 
-	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [$fieldData?:null];
-	}
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData)
+    {
+        return [
+            'id' => $columnData[0],
+            'key' => $fieldOptions['target'],
+        ];
+    }
 
-	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return [
-			'id' => $columnData[0],
-			'key' => $fieldOptions['target'],
-		];
-	}
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData)
+    {
+        return $fieldOptions['target'].'-'.$fieldData['id'];
+    }
 
-	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
-		return $fieldOptions['target'] . '-' . $fieldData['id'];
-	}
+    public function getSupportedFormats(string $fieldId, array $fieldOptions)
+    {
+    }
 
-	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
+    public function getTemplateName(string $fieldId, array $fieldOptions)
+    {
+        return 'reference';
+    }
 
-	}
-
-	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'reference';
-	}
-
-	public function getDefaultOptions() {
-		return [];
-	}
-
+    public function getDefaultOptions()
+    {
+        return [];
+    }
 }

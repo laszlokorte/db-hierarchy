@@ -2,18 +2,14 @@
 
 namespace App\Form\Type;
 
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\FormType;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
+use App\Hierarchy\Storage\Relational\StorageConnection;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class CreateChildNodeType extends AbstractType
 {
@@ -23,7 +19,7 @@ class CreateChildNodeType extends AbstractType
 
         $builder->add(
             $builder->create('fields', KeyFieldsType::class, [
-                'by_reference' => false, 
+                'by_reference' => false,
                 'label' => false,
                 'key' => $options['key'],
                 'storageConnection' => $options['storageConnection'],
@@ -34,12 +30,12 @@ class CreateChildNodeType extends AbstractType
 
         $buttons
             ->add('create', SubmitType::class, [
-                'label' => 'Create', 
-                'attr' => ['class' => 'form-button primary']
+                'label' => 'Create',
+                'attr' => ['class' => 'form-button primary'],
             ])
             ->add('create_stay', SubmitType::class, [
-                'label' => 'Create (stay here)', 
-                'attr' => ['class' => 'form-button']
+                'label' => 'Create (stay here)',
+                'attr' => ['class' => 'form-button'],
             ]);
 
         $builder->add($buttons);

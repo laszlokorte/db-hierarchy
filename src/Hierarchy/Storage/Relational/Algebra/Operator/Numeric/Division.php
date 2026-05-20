@@ -4,5 +4,6 @@ namespace App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric;
 
 use App\Hierarchy\Storage\Relational\Algebra\Operator\BinaryInterface;
 
-class Division implements BinaryInterface {
+class Division implements BinaryInterface
+{
 }

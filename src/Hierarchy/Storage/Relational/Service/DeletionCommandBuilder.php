@@ -2,239 +2,233 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
-use App\Hierarchy\Storage\Relational\Naming;
-use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Storage\Relational\Algebra\Delete;
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
+use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Disjunction;
+use App\Hierarchy\Storage\Relational\Algebra\Order;
+use App\Hierarchy\Storage\Relational\Algebra\Projection;
+use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\TableReference;
-use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
-use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Disjunction;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
-use App\Hierarchy\Storage\Relational\Algebra\Projection;
-use App\Hierarchy\Storage\Relational\Algebra\Identifier;
-use App\Hierarchy\Storage\Relational\Algebra\Select;
-use App\Hierarchy\Storage\Relational\Algebra\Join;
-use App\Hierarchy\Storage\Relational\Algebra\Delete;
-use App\Hierarchy\Storage\Relational\Algebra\Order;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ElementOf;
+use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Naming;
 
-class DeletionCommandBuilder  {
+class DeletionCommandBuilder
+{
+    public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder)
+    {
+    }
 
-	public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder) {
-	}
+    // getCommandForDeleteMultipleNodesClosure
+    // getCommandForDeleteMultipleNodes
+    // getSelectForCollectChildByIdReflexive
+    // getSelectForCollectSelfById
+    // getSelectForCollectChildByScopeReflexive
+    // getSelectForCollectChildByScope
+    // getSelectForReferencedNodes
+    public function getCommandForDeleteMultipleNodes(string $keyId, array $idParams)
+    {
+        $table = new TableReference($this->naming->nodeTableName($keyId));
 
-	// getCommandForDeleteMultipleNodesClosure
-	// getCommandForDeleteMultipleNodes
-	// getSelectForCollectChildByIdReflexive
-	// getSelectForCollectSelfById
-	// getSelectForCollectChildByScopeReflexive
-	// getSelectForCollectChildByScope
-	// getSelectForReferencedNodes
-	public function getCommandForDeleteMultipleNodes(string $keyId, array $idParams) {
-		$table = new TableReference($this->naming->nodeTableName($keyId));
+        $condition = new ElementOf(
+            new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+            array_map(fn ($p) => $this->coder->wrapPrimaryKeyParameter($keyId, $p), $idParams)
+        );
 
-		$condition = new ElementOf(
-			new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
-			array_map(fn($p) => 
-			$this->coder->wrapPrimaryKeyParameter($keyId, $p), $idParams)
-		);
+        return new Delete(
+            $table,
+            $condition
+        );
+    }
 
-		return new Delete(
-			$table,
-			$condition
-		);
-	}
+    public function getCommandForDeleteMultipleNodesClosure(string $keyId, array $idParams)
+    {
+        $table = new TableReference($this->naming->closureTableName($keyId));
 
-	public function getCommandForDeleteMultipleNodesClosure(string $keyId, array $idParams) {
-		$table = new TableReference($this->naming->closureTableName($keyId));
+        $condition = new BinaryOperation(
+            new Disjunction(),
+            new ElementOf(
+                new ColumnReference($table, $this->naming->closureParentColumnName($keyId)),
+                array_map(fn ($p) => $this->coder->wrapPrimaryKeyParameter($keyId, $p),
+                    $idParams
+                )
+            ),
+            new ElementOf(
+                new ColumnReference($table, $this->naming->closureChildColumnName($keyId)),
+                array_map(fn ($p) => $this->coder->wrapPrimaryKeyParameter($keyId, $p),
+                    $idParams
+                )
+            )
+        );
 
-		$condition = new BinaryOperation(
-			new Disjunction(),
-			new ElementOf(
-				new ColumnReference($table, $this->naming->closureParentColumnName($keyId)),
-				array_map(fn($p) => 
-					$this->coder->wrapPrimaryKeyParameter($keyId, $p),
-					 $idParams
-				)
-			),
-			new ElementOf(
-				new ColumnReference($table, $this->naming->closureChildColumnName($keyId)),
-				array_map(fn($p) => 
-					$this->coder->wrapPrimaryKeyParameter($keyId, $p),
-					 $idParams
-				)
-			)
-		);
+        return new Delete(
+            $table,
+            $condition
+        );
+    }
 
-		return new Delete(
-			$table,
-			$condition
-		);
-	}
+    public function getSelectForCollectChildByIdReflexive(string $keyId, array $idParams)
+    {
+        $closureTable = new TableReference($this->naming->closureTableName($keyId));
+        $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
-	public function getSelectForCollectChildByIdReflexive(string $keyId, array $idParams) {
-		$closureTable = new TableReference($this->naming->closureTableName($keyId));
-		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+        $condition = new ElementOf(
+            new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
+            array_map(fn ($p) => $this->coder->wrapPrimaryKeyParameter($keyId, $p),
+                $idParams
+            )
+        );
 
+        $projections = [
+            new Projection($this->coder->wrapClosureChildColumn($keyId, $closureTable), $this->naming->hierarchyIdColumnName($keyId)),
+        ];
 
-		$condition = new ElementOf(
-			new ColumnReference($closureTable, $this->naming->closureParentColumnName($keyId)),
-			array_map(fn($p) => 
-				$this->coder->wrapPrimaryKeyParameter($keyId, $p),
-				$idParams
-			)
-		);
+        $joins = [
+            new Join($nodeTable, new BinaryOperation(
+                new Equal(),
+                new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
+                new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId))
+            )),
+        ];
 
-		$projections = [
-			new Projection($this->coder->wrapClosureChildColumn($keyId, $closureTable), $this->naming->hierarchyIdColumnName($keyId))
-		];
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection(
+                    $this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+                );
+            }
+        }
 
-		$joins = [
-			new Join($nodeTable, new BinaryOperation(
-				new Equal(),
-				new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
-				new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId))
-			))
-		];
+        $orders = [
+            new Order(new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)), false),
+        ];
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(
-					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
-				);
-			}
-		}
+        return new Select($projections, [$closureTable], $joins, $condition, $orders);
+    }
 
-		$orders = [
-			new Order(new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)), false),
-		];
+    public function getSelectForCollectSelfById(string $keyId, array $idParams)
+    {
+        $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
-		return new Select($projections, [$closureTable], $joins, $condition, $orders);
-	}
+        $condition = new ElementOf(
+            new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)),
+            array_map(fn ($p) => $this->coder->wrapPrimaryKeyParameter($keyId, $p),
+                $idParams
+            )
+        );
 
-	public function getSelectForCollectSelfById(string $keyId, array $idParams) {
-		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+        $projections = [
+            new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId)),
+        ];
 
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection(
+                    $this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+                );
+            }
+        }
 
-		$condition = new ElementOf(
-			new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId)),
-			array_map(fn($p) => 
-				$this->coder->wrapPrimaryKeyParameter($keyId, $p),
-				$idParams
-			)
-		);
+        return new Select($projections, [$nodeTable], [], $condition);
+    }
 
-		$projections = [
-			new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId))
-		];
+    public function getSelectForCollectChildByScopeReflexive(string $keyId, array $scopeParams)
+    {
+        $closureTable = new TableReference($this->naming->closureTableName($keyId));
+        $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(
-					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
-				);
-			}
-		}
+        $condition = new ElementOf(
+            new ColumnReference($closureTable, $this->naming->nodeOwnScopeColumnName($keyId)),
+            array_map(fn ($p) => $this->coder->wrapScopeParameter($keyId, $p),
+                $scopeParams
+            )
+        );
 
-		return new Select($projections, [$nodeTable], [], $condition);
-	}
+        $projections = [
+            new Projection($this->coder->wrapClosureChildColumn($keyId, $closureTable), $this->naming->hierarchyIdColumnName($keyId)),
+        ];
 
-	public function getSelectForCollectChildByScopeReflexive(string $keyId, array $scopeParams) {
-		$closureTable = new TableReference($this->naming->closureTableName($keyId));
-		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+        $joins = [
+            new Join($nodeTable, new BinaryOperation(
+                new Equal(),
+                new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
+                new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId))
+            )),
+        ];
 
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection(
+                    $this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+                );
+            }
+        }
 
-		$condition = new ElementOf(
-			new ColumnReference($closureTable, $this->naming->nodeOwnScopeColumnName($keyId)),
-			array_map(fn($p) => 
-				$this->coder->wrapScopeParameter($keyId, $p),
-				$scopeParams
-			)
-		);
-		
-		$projections = [
-			new Projection($this->coder->wrapClosureChildColumn($keyId, $closureTable), $this->naming->hierarchyIdColumnName($keyId))
-		];
+        $orders = [
+            new Order(new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)), false),
+        ];
 
-		$joins = [
-			new Join($nodeTable, new BinaryOperation(
-				new Equal(),
-				new ColumnReference($closureTable, $this->naming->closureChildColumnName($keyId)),
-				new ColumnReference($nodeTable, $this->naming->nodeTablePKName($keyId))
-			))
-		];
+        return new Select($projections, [$closureTable], $joins, $condition, $orders);
+    }
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(
-					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
-				);
-			}
-		}
+    public function getSelectForCollectChildByScope(string $keyId, array $scopeParams)
+    {
+        $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
-		$orders = [
-			new Order(new ColumnReference($closureTable, $this->naming->closureTableDepthName($keyId)), false),
-		];
+        $condition = new ElementOf(
+            new ColumnReference($nodeTable, $this->naming->nodeOwnScopeColumnName($keyId)),
+            array_map(fn ($p) => $this->coder->wrapScopeParameter($keyId, $p),
+                $scopeParams
+            )
+        );
 
-		return new Select($projections, [$closureTable], $joins, $condition, $orders);
-	}
+        $projections = [
+            new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId)),
+        ];
 
-	public function getSelectForCollectChildByScope(string $keyId, array $scopeParams) {
-		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection(
+                    $this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+                );
+            }
+        }
 
-		$condition = new ElementOf(
-			new ColumnReference($nodeTable, $this->naming->nodeOwnScopeColumnName($keyId)),
-			array_map(fn($p) => 
-				$this->coder->wrapScopeParameter($keyId, $p),
-				$scopeParams
-			)
-		);
-		
-		$projections = [
-			new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId))
-		];
+        return new Select($projections, [$nodeTable], [], $condition);
+    }
 
+    public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams)
+    {
+        $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 
+        $conditions = [];
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(
-					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
-				);
-			}
-		}
+        // TOOODOOOO
+        foreach ($columns as $col) {
+            $conditions[] = new ElementOf(
+                new ColumnReference($nodeTable, $this->naming->fieldColumnToName($col)),
+                array_map(fn ($p) => $this->coder->wrapColumnParameter($col, $p), $idParams)
+            );
+        }
 
-		return new Select($projections, [$nodeTable], [], $condition);
-	}
+        $projections = [
+            new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId)),
+        ];
 
-	public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams) {
-		$nodeTable = new TableReference($this->naming->nodeTableName($keyId));
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $projections[] = new Projection(
+                    $this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
+                );
+            }
+        }
 
-		$conditions = [];
-
-		// TOOODOOOO
-		foreach ($columns as $col) {
-			$conditions[] = new ElementOf(
-				new ColumnReference($nodeTable, $this->naming->fieldColumnToName($col)),
-				array_map(fn($p) => $this->coder->wrapColumnParameter($col, $p), $idParams)
-			);
-		}
-		
-		$projections = [
-			new Projection($this->coder->wrapPrimaryColumn($keyId, $nodeTable), $this->naming->hierarchyIdColumnName($keyId))
-		];
-
-
-
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $column) {
-				$projections[] = new Projection(
-					$this->coder->wrapColumn($column, $nodeTable), new Identifier($column->getName())
-				);
-			}
-		}
-
-		return new Select($projections, [$nodeTable], [], new AssociativeOperation(new Disjunction(), $conditions));
-	}
+        return new Select($projections, [$nodeTable], [], new AssociativeOperation(new Disjunction(), $conditions));
+    }
 }

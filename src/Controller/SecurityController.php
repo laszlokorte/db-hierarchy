@@ -7,22 +7,23 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
-class SecurityController {
+class SecurityController
+{
     /**
      * @return array<string,mixed>
      */
     #[Route('/_login', name: 'security_login', methods: 'GET|POST', priority: 1000)]
-	#[Template('security/login_form.html.twig')]
-	public function loginForm(Request $request, AuthenticationUtils $authenticationUtils) : array {
-		return [
-			'error' => $authenticationUtils->getLastAuthenticationError(),
-		    'lastUsername' => $authenticationUtils->getLastUsername(),
-		];
-	}
-    /**
-     * @return void
-     */
+    #[Template('security/login_form.html.twig')]
+    public function loginForm(Request $request, AuthenticationUtils $authenticationUtils): array
+    {
+        return [
+            'error' => $authenticationUtils->getLastAuthenticationError(),
+            'lastUsername' => $authenticationUtils->getLastUsername(),
+        ];
+    }
+
     #[Route('/_logout', name: 'security_logout', methods: 'GET', priority: 1000)]
-	public function logoutForm(Request $request, AuthenticationUtils $authenticationUtils): void {
-	}
+    public function logoutForm(Request $request, AuthenticationUtils $authenticationUtils): void
+    {
+    }
 }

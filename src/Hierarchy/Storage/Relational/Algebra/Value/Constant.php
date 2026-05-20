@@ -2,18 +2,20 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Value;
 
-class Constant implements ValueInterface {
-	public function __construct(
-		private mixed $value
-	) {
+class Constant implements ValueInterface
+{
+    public function __construct(
+        private mixed $value,
+    ) {
+    }
 
-	}
+    public function getValue()
+    {
+        return $this->value;
+    }
 
-	public function getValue() {
-		return $this->value;
-	}
-
-	public function isNull() {
-		return $this->value === null;
-	}
+    public function isNull()
+    {
+        return null === $this->value;
+    }
 }

@@ -2,28 +2,34 @@
 
 namespace App\Hierarchy\Changeset;
 
-class Ordering {
-	public function __construct(private $keyId, private string $nodeId, private int $targetOrder, private ?array $errors) {
-		
-	}
+class Ordering
+{
+    public function __construct(private $keyId, private string $nodeId, private int $targetOrder, private ?array $errors)
+    {
+    }
 
-	public function getKeyId() {
-		return $this->keyId;
-	}
+    public function getKeyId()
+    {
+        return $this->keyId;
+    }
 
-	public function getNodeId() {
-		return $this->nodeId;
-	}
+    public function getNodeId()
+    {
+        return $this->nodeId;
+    }
 
-	public function hasBeenValidated() {
-		return $this->errors !== null;
-	}
+    public function hasBeenValidated()
+    {
+        return null !== $this->errors;
+    }
 
-	public function isValid() {
-		return empty($this->errors);
-	}
+    public function isValid()
+    {
+        return empty($this->errors);
+    }
 
-	public function getAllErrors() {
-		return $this->errors;
-	}
+    public function getAllErrors()
+    {
+        return $this->errors;
+    }
 }

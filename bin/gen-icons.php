@@ -1,5 +1,6 @@
 <?php
-$dir = new DirectoryIterator(dirname(__FILE__) . '/public/icons');
+
+$dir = new DirectoryIterator(dirname(__FILE__).'/public/icons');
 
 $dom = new DOMDocument('1.0', 'utf-8');
 $dom->preserveWhiteSpace = false;

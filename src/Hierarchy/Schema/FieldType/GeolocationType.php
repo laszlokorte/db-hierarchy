@@ -6,46 +6,52 @@ use App\Hierarchy\Schema\Definition\ColumnDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
 use App\Hierarchy\Schema\Definition\StorageCodingType;
 
-class GeolocationType implements FieldTypeInterface {
+class GeolocationType implements FieldTypeInterface
+{
+    private $config;
 
-	private $config;
+    public function __construct($config = [])
+    {
+        $this->config = $config;
+    }
 
-	public function __construct($config = []) {
-		$this->config = $config;
-	}
+    public function getColumns(string $fieldId, bool $required, array $fieldOptions)
+    {
+        return [
+            new ColumnDefinition($fieldId.'_longitude', new StorageCoding(StorageCodingType::STRING), !$required, null),
+            new ColumnDefinition($fieldId.'_latitude', new StorageCoding(StorageCodingType::STRING), !$required, null),
+        ];
+    }
 
-	public function getColumns(string $fieldId, bool $required, array $fieldOptions) {
-		return [
-			new ColumnDefinition($fieldId.'_longitude', new StorageCoding(StorageCodingType::STRING), !$required, null),
-			new ColumnDefinition($fieldId.'_latitude', new StorageCoding(StorageCodingType::STRING), !$required, null)
-		];
-	}
+    public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData): array
+    {
+        return [$fieldData['lon'], $fieldData['lat']];
+    }
 
-	public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData) : array {
-		return [$fieldData['lon'], $fieldData['lat']];
-	}
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData)
+    {
+        return [
+            'lon' => $columnData[0],
+            'lat' => $columnData[1],
+        ];
+    }
 
-	public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData) {
-		return [
-			'lon' => $columnData[0],
-			'lat' => $columnData[1],
-		];
-	}
+    public function format(string $fieldId, array $fieldOptions, mixed $fieldData)
+    {
+        return $fieldData;
+    }
 
-	public function format(string $fieldId, array $fieldOptions, mixed $fieldData) {
-		return $fieldData;
-	}
+    public function getSupportedFormats(string $fieldId, array $fieldOptions)
+    {
+    }
 
-	public function getSupportedFormats(string $fieldId, array $fieldOptions) {
+    public function getTemplateName(string $fieldId, array $fieldOptions)
+    {
+        return 'geolocation';
+    }
 
-	}
-
-	public function getTemplateName(string $fieldId, array $fieldOptions) {
-		return 'geolocation';
-	}
-
-	public function getDefaultOptions() {
-		return [];
-	}
-
+    public function getDefaultOptions()
+    {
+        return [];
+    }
 }

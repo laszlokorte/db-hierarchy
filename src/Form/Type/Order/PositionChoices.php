@@ -2,6 +2,6 @@
 
 namespace App\Form\Type\Order;
 
-class PositionChoices {
-	
+class PositionChoices
+{
 }

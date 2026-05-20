@@ -2,25 +2,17 @@
 
 namespace App\Form\Type;
 
-use App\Form\Type\Reference\ReferenceType;
-
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\Extension\Core\Type\FormType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
-
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type;
-
-use Symfony\Component\Validator\Constraints as Assert;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
-use App\Hierarchy\Schema\Key;
-
 use App\Form\Type\Field as HierarchyField;
+use App\Form\Type\Reference\ReferenceType;
+use App\Hierarchy\Schema\Key;
+use App\Hierarchy\Storage\Relational\StorageConnection;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class KeyFieldsType extends AbstractType
 {
@@ -55,13 +47,13 @@ class KeyFieldsType extends AbstractType
 
         foreach ($key->getFields() as $field) {
             $type = $field->getType();
-            if(isset($this->fieldMapping[$type])) {
+            if (isset($this->fieldMapping[$type])) {
                 $builder->add($field->getId(), $this->fieldMapping[$type], [
                     'field' => $field,
                 ]);
             } else {
-                switch($field->getType()) {
-                    case "reference":
+                switch ($field->getType()) {
+                    case 'reference':
                         $builder
                         ->add($field->getId(), ReferenceType::class, [
                             'field' => $field,
@@ -69,7 +61,7 @@ class KeyFieldsType extends AbstractType
                             'nodeId' => null,
                         ]);
                         break;
-                    case "timeRange":
+                    case 'timeRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
                             'required' => $field->isRequired(),
@@ -79,7 +71,7 @@ class KeyFieldsType extends AbstractType
                         ->add('end', Type\TimeType::class);
                         $builder->add($range);
                         break;
-                    case "dateRange":
+                    case 'dateRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
                             'required' => $field->isRequired(),
@@ -89,7 +81,7 @@ class KeyFieldsType extends AbstractType
                         ->add('end', Type\DateType::class);
                         $builder->add($range);
                         break;
-                    case "dateTimeRange":
+                    case 'dateTimeRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
                             'required' => $field->isRequired(),
@@ -99,7 +91,7 @@ class KeyFieldsType extends AbstractType
                         ->add('end', Type\DateTimeType::class);
                         $builder->add($range);
                         break;
-                    case "integerRange":
+                    case 'integerRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
                             'required' => $field->isRequired(),
@@ -109,7 +101,7 @@ class KeyFieldsType extends AbstractType
                         ->add('end', Type\NumberType::class);
                         $builder->add($range);
                         break;
-                    case "floatRange":
+                    case 'floatRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
                             'required' => $field->isRequired(),
@@ -119,7 +111,7 @@ class KeyFieldsType extends AbstractType
                         ->add('end', Type\NumberType::class);
                         $builder->add($range);
                         break;
-                    case "decimalRange":
+                    case 'decimalRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
                             'required' => $field->isRequired(),
@@ -130,7 +122,7 @@ class KeyFieldsType extends AbstractType
                         $builder->add($range);
                         break;
                     default:
-                        throw new \Exception("unknown field type " . $field->getType());
+                        throw new \Exception('unknown field type '.$field->getType());
                 }
             }
         }

@@ -2,5 +2,6 @@
 
 namespace App\Form\Type\Nesting;
 
-class NestingChoices {
+class NestingChoices
+{
 }

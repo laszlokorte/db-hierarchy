@@ -2,223 +2,221 @@
 
 namespace App\Hierarchy\Schema;
 
-use App\Hierarchy\Schema\FieldType;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
-use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\Definition\FieldDefinition;
+use App\Hierarchy\Schema\Definition\KeyDefinition;
 use App\Hierarchy\Schema\Definition\LabelDefinition;
 use App\Hierarchy\Schema\Definition\OrderDefinition;
 use App\Hierarchy\Schema\Definition\ReflexivityDefinition;
-use App\Hierarchy\Schema\Definition\KeyDefinition;
-use App\Hierarchy\Schema\Definition\StorageDefinition;
-use App\Hierarchy\Schema\Definition\FieldDefinition;
-use App\Hierarchy\Schema\Definition\SummaryDefinition;
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ScopeDefinition;
-
+use App\Hierarchy\Schema\Definition\StorageDefinition;
+use App\Hierarchy\Schema\Definition\SummaryDefinition;
+use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Util\ResultFetcher;
-
-use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\ParameterType;
 
-use PDO;
+class RecursiveLoader
+{
+    private array $fieldTypes;
 
-class RecursiveLoader {
-	private array $fieldTypes;
+    private $subSchemas;
+    private $connectionCache = [];
 
-	private $subSchemas;
-	private $connectionCache = [];
+    private array $icons = [
+        'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-left', 'arrow-right',
+        'arrow-switch', 'arrow-up', 'beaker', 'bell', 'bell-slash', 'blocked', 'bold',
+        'book', 'bookmark', 'bookmark-slash', 'briefcase', 'broadcast', 'browser',
+        'bug', 'calendar', 'check', 'check-circle', 'check-circle-fill', 'checklist',
+        'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle',
+        'circle-slash', 'clippy', 'clock', 'code', 'code-review', 'code-square',
+        'codescan', 'codescan-checkmark', 'codespaces', 'columns', 'comment',
+        'comment-discussion', 'container', 'cpu', 'credit-card', 'cross-reference',
+        'dash', 'database', 'dependabot', 'desktop-download', 'device-camera',
+        'device-camera-video', 'device-desktop', 'device-mobile', 'diamond',
+        'diff', 'diff-added', 'diff-ignored', 'diff-modified', 'diff-removed',
+        'diff-renamed', 'dot', 'dot-fill', 'download', 'duplicate', 'ellipsis',
+        'eye', 'eye-closed', 'file', 'file-badge', 'file-binary', 'file-code',
+        'file-diff', 'file-directory', 'file-submodule', 'file-symlink-file',
+        'file-zip', 'filter', 'flame', 'fold', 'fold-down', 'fold-up', 'gear',
+        'gift', 'git-branch', 'git-commit', 'git-compare', 'git-merge',
+        'git-pull-request', 'git-pull-request-closed', 'git-pull-request-draft',
+        'globe', 'grabber', 'graph', 'hash', 'heading', 'heart', 'heart-fill',
+        'history', 'home', 'horizontal-rule', 'hourglass', 'hubot', 'image', 'inbox',
+        'infinity', 'info', 'issue-closed', 'issue-draft', 'issue-opened',
+        'issue-reopened', 'italic', 'kebab-horizontal', 'key', 'key-asterisk', 'law',
+        'light-bulb', 'link', 'link-external', 'list-ordered', 'list-unordered',
+        'location', 'lock', 'logo-gist', 'logo-github', 'mail', 'mark-github',
+        'markdown', 'megaphone', 'mention', 'meter', 'milestone', 'mirror', 'moon',
+        'mortar-board', 'multi-select', 'mute', 'no-entry', 'north-star', 'note',
+        'number', 'organization', 'package', 'package-dependencies',
+        'package-dependents', 'paintbrush', 'paper-airplane', 'pencil',
+        'people', 'person', 'person-add', 'pin', 'play', 'plug', 'plus',
+        'plus-circle', 'project', 'pulse', 'question', 'quote', 'reply', 'repo',
+        'repo-clone', 'repo-forked', 'repo-pull', 'repo-push', 'repo-template',
+        'report', 'rocket', 'rows', 'rss', 'ruby', 'screen-full', 'screen-normal',
+        'search', 'select-single', 'server', 'share', 'share-android', 'shield',
+        'shield-check', 'shield-lock', 'shield-x', 'sidebar-collapse',
+        'sidebar-expand', 'sign-in', 'sign-out', 'skip', 'smiley', 'sort-asc',
+        'sort-desc', 'square', 'square-fill', 'squirrel', 'star', 'star-fill', 'stop',
+        'stopwatch', 'strikethrough', 'sun', 'sync', 'table', 'tag', 'tasklist',
+        'telescope', 'terminal', 'three-bars', 'thumbsdown', 'thumbsup', 'tools',
+        'trash', 'triangle-down', 'triangle-left', 'triangle-right', 'triangle-up',
+        'typography', 'unfold', 'unlock', 'unmute', 'unverified', 'upload', 'verified',
+        'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill', 'zap',
+    ];
 
-	private array $icons = [
-		'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-left', 'arrow-right',
-		'arrow-switch', 'arrow-up', 'beaker', 'bell', 'bell-slash', 'blocked', 'bold',
-		'book', 'bookmark', 'bookmark-slash', 'briefcase', 'broadcast', 'browser',
-		'bug', 'calendar', 'check', 'check-circle', 'check-circle-fill', 'checklist',
-		'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle',
-		'circle-slash', 'clippy', 'clock', 'code', 'code-review', 'code-square',
-		'codescan', 'codescan-checkmark', 'codespaces', 'columns', 'comment',
-		'comment-discussion', 'container', 'cpu', 'credit-card', 'cross-reference',
-		'dash', 'database', 'dependabot', 'desktop-download', 'device-camera',
-		'device-camera-video', 'device-desktop', 'device-mobile', 'diamond',
-		'diff', 'diff-added', 'diff-ignored', 'diff-modified', 'diff-removed',
-		'diff-renamed', 'dot', 'dot-fill', 'download', 'duplicate', 'ellipsis',
-		'eye', 'eye-closed', 'file', 'file-badge', 'file-binary', 'file-code',
-		'file-diff', 'file-directory', 'file-submodule', 'file-symlink-file',
-		'file-zip', 'filter', 'flame', 'fold', 'fold-down', 'fold-up', 'gear',
-		'gift', 'git-branch', 'git-commit', 'git-compare', 'git-merge',
-		'git-pull-request', 'git-pull-request-closed', 'git-pull-request-draft',
-		'globe', 'grabber', 'graph', 'hash', 'heading', 'heart', 'heart-fill',
-		'history', 'home', 'horizontal-rule', 'hourglass', 'hubot', 'image', 'inbox',
-		'infinity', 'info', 'issue-closed', 'issue-draft', 'issue-opened',
-		'issue-reopened', 'italic', 'kebab-horizontal', 'key', 'key-asterisk', 'law',
-		'light-bulb', 'link', 'link-external', 'list-ordered', 'list-unordered',
-		'location', 'lock', 'logo-gist', 'logo-github', 'mail', 'mark-github',
-		'markdown', 'megaphone', 'mention', 'meter', 'milestone', 'mirror', 'moon',
-		'mortar-board', 'multi-select', 'mute', 'no-entry', 'north-star', 'note',
-		'number', 'organization', 'package', 'package-dependencies',
-		'package-dependents', 'paintbrush', 'paper-airplane', 'pencil',
-		'people', 'person', 'person-add', 'pin', 'play', 'plug', 'plus',
-		'plus-circle', 'project', 'pulse', 'question', 'quote', 'reply', 'repo',
-		'repo-clone', 'repo-forked', 'repo-pull', 'repo-push', 'repo-template',
-		'report', 'rocket', 'rows', 'rss', 'ruby', 'screen-full', 'screen-normal',
-		'search', 'select-single', 'server', 'share', 'share-android', 'shield',
-		'shield-check', 'shield-lock', 'shield-x', 'sidebar-collapse',
-		'sidebar-expand', 'sign-in', 'sign-out', 'skip', 'smiley', 'sort-asc',
-		'sort-desc', 'square', 'square-fill', 'squirrel', 'star', 'star-fill', 'stop',
-		'stopwatch', 'strikethrough', 'sun', 'sync', 'table', 'tag', 'tasklist',
-		'telescope', 'terminal', 'three-bars', 'thumbsdown', 'thumbsup', 'tools',
-		'trash', 'triangle-down', 'triangle-left', 'triangle-right', 'triangle-up',
-		'typography', 'unfold', 'unlock', 'unmute', 'unverified', 'upload', 'verified',
-		'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill', 'zap',
-	];
+    public function __construct(Connection $baseConnection)
+    {
+        $this->baseConnection = $baseConnection;
 
-	public function __construct(Connection $baseConnection) {
-		$this->baseConnection = $baseConnection;
+        $this->fieldTypes = [
+            'string' => new FieldType\StringType(),
+            'text' => new FieldType\TextType(),
+            'file' => new FieldType\FileType(),
+            'reference' => new FieldType\ReferenceType(),
 
-		$this->fieldTypes = [
-			'string' => new FieldType\StringType(),
-			'text' => new FieldType\TextType(),
-			'file' => new FieldType\FileType(),
-			'reference' => new FieldType\ReferenceType(),
+            'bool' => new FieldType\BooleanType(),
+            'date' => new FieldType\DateType(),
+            'datetime' => new FieldType\DateTimeType(),
+            'decimal' => new FieldType\DecimalType(),
+            'enum' => new FieldType\EnumType(),
+            'float' => new FieldType\FloatType(),
+            'hash' => new FieldType\HashType(),
+            'integer' => new FieldType\IntegerType(),
+            'json' => new FieldType\JsonType(),
+            'time' => new FieldType\TimeType(),
+            'email' => new FieldType\EmailType(),
+            'color' => new FieldType\ColorType(),
+            'geo' => new FieldType\GeolocationType(),
+            'url' => new FieldType\UrlType(),
+            'svg' => new FieldType\SvgType(),
+            'sql' => new FieldType\SqlType(),
+            'icon' => new FieldType\IconType($this->icons),
+            'dsn' => new FieldType\DsnType($this->icons),
 
-			'bool' => new FieldType\BooleanType(),
-			'date' => new FieldType\DateType(),
-			'datetime' => new FieldType\DateTimeType(),
-			'decimal' => new FieldType\DecimalType(),
-			'enum' => new FieldType\EnumType(),
-			'float' => new FieldType\FloatType(),
-			'hash' => new FieldType\HashType(),
-			'integer' => new FieldType\IntegerType(),
-			'json' => new FieldType\JsonType(),
-			'time' => new FieldType\TimeType(),
-			'email' => new FieldType\EmailType(),
-			'color' => new FieldType\ColorType(),
-			'geo' => new FieldType\GeolocationType(),
-			'url' => new FieldType\UrlType(),
-			'svg' => new FieldType\SvgType(),
-			'sql' => new FieldType\SqlType(),
-			'icon' => new FieldType\IconType($this->icons),
-			'dsn' => new FieldType\DsnType($this->icons),
+            'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
+            'dateRange' => new FieldType\RangeType(new FieldType\DateType()),
+            'dateTimeRange' => new FieldType\RangeType(new FieldType\DateTimeType()),
+            'integerRange' => new FieldType\RangeType(new FieldType\IntegerType()),
+            'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
+            'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
+        ];
 
+        $this->predefinedHierarchies = [
+            'C15BBD3CA3C74843A2E260CF81ED307D' => $this->loadTestDefinition(),
+            '7f5c80bf9a6545408e5d6436cff3c2b7' => $this->loadFrontendDefinition(),
+            'system' => $this->loadBaseDefinition(),
+        ];
+    }
 
-			'timeRange' => new FieldType\RangeType(new FieldType\TimeType()),
-			'dateRange' => new FieldType\RangeType(new FieldType\DateType()),
-			'dateTimeRange' => new FieldType\RangeType(new FieldType\DateTimeType()),
-			'integerRange' => new FieldType\RangeType(new FieldType\IntegerType()),
-			'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
-			'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
-		];
+    public function loadSchema(string $hierarchyName = 'system')
+    {
+        return new Hierarchy($this->loadDefinition($hierarchyName), $hierarchyName);
+    }
 
-		$this->predefinedHierarchies = [
-			'C15BBD3CA3C74843A2E260CF81ED307D' => $this->loadTestDefinition(),
-			'7f5c80bf9a6545408e5d6436cff3c2b7' => $this->loadFrontendDefinition(),
-			'system' => $this->loadBaseDefinition(),
-		];
-	}
+    public function loadSubSchemas()
+    {
+        if (null === $this->subSchemas) {
+            try {
+                $stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
+                $result = $stmt->executeQuery();
+                $rows = $result->fetchAllAssociative();
 
-	public function loadSchema(string $hierarchyName = 'system') {
-		return new Hierarchy($this->loadDefinition($hierarchyName), $hierarchyName);
-	}
+                $this->subSchemas = [];
+                foreach ($rows as $row) {
+                    $this->subSchemas[] = [
+                        'slug' => $row['slug'],
+                        'label' => new LabelDefinition(
+                            $row['label_singular'] ?: ucfirst($row['slug']),
+                            $row['label_plural'] ?: null,
+                            $row['label_description'],
+                            $row['label_icon'],
+                            $row['label_color']
+                        ),
+                    ];
+                }
+            } catch (\Exception) {
+                $this->subSchemas = [];
+            }
 
-	public function loadSubSchemas() {
-		if($this->subSchemas === null) {
-			try {
-				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
-				$result = $stmt->executeQuery();
-				$rows = $result->fetchAllAssociative();
+            $this->subSchemas = array_merge(
+                $this->subSchemas,
+                array_map(fn ($slug, $def) => [
+                    'slug' => $slug,
+                    'label' => $def->getSchemaLabel(),
+                ],
+                    array_keys($this->predefinedHierarchies),
+                    array_values($this->predefinedHierarchies)
+                )
+            );
+        }
 
-				$this->subSchemas = [];
-				foreach ($rows as $row) {
-					$this->subSchemas[] = [
-						'slug' => $row['slug'],
-						'label' => new LabelDefinition(
-							$row['label_singular']?:ucfirst($row['slug']),
-							$row['label_plural']?:null,
-							$row['label_description'],
-							$row['label_icon'],
-							$row['label_color']
-						),
-					];
-				}
+        return $this->subSchemas;
+    }
 
-			} catch(\Exception) {
-				$this->subSchemas = [];
-			}
+    public function loadStorageConnection(string $hierarchyName = 'system')
+    {
+        if (empty($this->connectionCache[$hierarchyName])) {
+            $this->connectionCache[$hierarchyName] = new StorageConnection(
+                $this->loadDefinition($hierarchyName),
+                $this->loadHierarchyConnection($hierarchyName)
+            );
+        }
 
-			$this->subSchemas = array_merge(
-				$this->subSchemas,
-				array_map(fn($slug, $def) => [
-					'slug' => $slug,
-					'label' => $def->getSchemaLabel(),
-				],
-				array_keys($this->predefinedHierarchies),
-				array_values($this->predefinedHierarchies)
-				)
-			);
-		}
+        return $this->connectionCache[$hierarchyName];
+    }
 
-		return $this->subSchemas;
-	}
+    public function loadDefinition(string $hierarchyName = 'system')
+    {
+        if (empty($this->definitionCache[$hierarchyName])) {
+            if (isset($this->predefinedHierarchies[$hierarchyName])) {
+                return $this->predefinedHierarchies[$hierarchyName];
+            }
+            $this->definitionCache[$hierarchyName] = $this->loadDynamicDefinition($hierarchyName);
+        }
 
-	public function loadStorageConnection(string $hierarchyName = 'system') {
-		if(empty($this->connectionCache[$hierarchyName])) {
-			$this->connectionCache[$hierarchyName] = new StorageConnection(
-				$this->loadDefinition($hierarchyName),
-				$this->loadHierarchyConnection($hierarchyName)
-			);
-		}
+        return $this->definitionCache[$hierarchyName];
+    }
 
-		return $this->connectionCache[$hierarchyName];
-	}
+    public function loadHierarchyConnection(string $hierarchyName = 'system')
+    {
+        if (isset($this->predefinedHierarchies[$hierarchyName])) {
+            return $this->baseConnection;
+        }
+        $stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
+        $stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
+        $result = $stmt->executeQuery();
+        $dsn = $result->fetchOne();
 
-	public function loadDefinition(string $hierarchyName = 'system') {
-		if(empty($this->definitionCache[$hierarchyName])) {
-			if(isset($this->predefinedHierarchies[$hierarchyName])) {
-				return $this->predefinedHierarchies[$hierarchyName];
-			} else {
-				$this->definitionCache[$hierarchyName] = $this->loadDynamicDefinition($hierarchyName);
-			}
-		}
+        if (false === $dsn) {
+            throw new \Exception();
+        }
 
-		return $this->definitionCache[$hierarchyName];
-	}
+        return $dsn ? DriverManager::getConnection([
+            'url' => $dsn,
+            'driverOptions' => [
+                \PDO::ATTR_AUTOCOMMIT => false,
+            ],
+        ]) : $this->baseConnection;
+    }
 
-	public function loadHierarchyConnection(string $hierarchyName = 'system') {
-		if(isset($this->predefinedHierarchies[$hierarchyName])) {
-			return $this->baseConnection;
-		} else {
-			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
-			$stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
-			$result = $stmt->executeQuery();
-			$dsn = $result->fetchOne();
+    private function loadDynamicDefinition($hierarchyName)
+    {
+        $stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
+        $stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
+        $result = $stmt->executeQuery();
 
-			if($dsn===false) {
-				throw new \Exception();
-			}
+        $row = $result->fetchAssociative();
 
-			return $dsn ? DriverManager::getConnection([
-				'url' => $dsn,
-				'driverOptions' => [
-					PDO::ATTR_AUTOCOMMIT => false,
-				]
-			]) : $this->baseConnection;
-		}
-	}
+        if (!$row) {
+            throw new \Exception();
+        }
 
-	private function loadDynamicDefinition($hierarchyName) {
-		$stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
-		$stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
-		$result = $stmt->executeQuery();
+        $hierarchyId = $row['id'];
 
-		$row = $result->fetchAssociative();
-
-		if(!$row) {
-			throw new \Exception();
-		}
-
-		$hierarchyId = $row['id'];
-
-		$keyStmt = $this->baseConnection->prepare('
+        $keyStmt = $this->baseConnection->prepare('
 			SELECT
 				collection.slug AS slug,
 				collection.table_name AS table_name,
@@ -252,12 +250,12 @@ class RecursiveLoader {
 			ON scope_definition.scope_key_ref = scope_collection.id
 			WHERE collection.hierarchy_id = UNHEX(:hid) AND collection.slug <> ""
 			');
-		$keyStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
-		$keyResult = $keyStmt->executeQuery();
+        $keyStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
+        $keyResult = $keyStmt->executeQuery();
 
-		$keyRows = $keyResult->fetchAllAssociative();
+        $keyRows = $keyResult->fetchAllAssociative();
 
-		$fieldStmt = $this->baseConnection->prepare('
+        $fieldStmt = $this->baseConnection->prepare('
 			SELECT collection.slug AS collection_slug,
 				field.slug AS slug,
 				field.label_singular AS label_singular,
@@ -274,642 +272,638 @@ class RecursiveLoader {
 			ON collection.id = field.collection_id
 			WHERE collection.hierarchy_id = UNHEX(:hid) AND field.slug <> ""
 		');
-		$fieldStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
-		$fieldResult = $fieldStmt->executeQuery();
-		$fieldRows = ResultFetcher::fetchGrouped($fieldResult);
+        $fieldStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
+        $fieldResult = $fieldStmt->executeQuery();
+        $fieldRows = ResultFetcher::fetchGrouped($fieldResult);
 
+        $keys = [];
 
-		$keys = [];
+        foreach ($keyRows as $keyRow) {
+            $fields = [];
 
-		foreach ($keyRows as $keyRow) {
-			$fields = [];
+            foreach ($fieldRows[$keyRow['slug']] ?? [] as $fieldRow) {
+                $fields[$fieldRow['slug']] = new FieldDefinition(
+                    new LabelDefinition(
+                        $fieldRow['label_singular'] ?: ucfirst($fieldRow['slug']),
+                        $fieldRow['label_plural'] ?: null,
+                        $fieldRow['label_description'],
+                        $fieldRow['label_icon'],
+                        $fieldRow['label_color']
+                    ),
+                    $fieldRow['type'],
+                    $fieldRow['is_required'],
+                    $fieldRow['is_unique'],
+                    json_decode($fieldRow['options'], true) ?? []
+                );
+            }
 
-			foreach($fieldRows[$keyRow['slug']]??[] AS $fieldRow) {
-				$fields[$fieldRow['slug']] = new FieldDefinition(
-					new LabelDefinition(
-						$fieldRow['label_singular']?:ucfirst($fieldRow['slug']),
-						$fieldRow['label_plural']?:null,
-						$fieldRow['label_description'],
-						$fieldRow['label_icon'],
-						$fieldRow['label_color']
-					),
-					$fieldRow['type'],
-					$fieldRow['is_required'],
-					$fieldRow['is_unique'],
-					json_decode($fieldRow['options'], true)??[]
-				);
-			}
+            $keys[$keyRow['slug']] = new KeyDefinition(
+                new StorageDefinition(
+                    $keyRow['table_name'] ?: $keyRow['slug'],
+                    $keyRow['pk_name'] ?: 'id',
+                    $keyRow['pk_type']
+                ),
+                new LabelDefinition(
+                    $keyRow['label_singular'] ?: ucfirst($keyRow['slug']),
+                    $keyRow['label_plural'] ?: null,
+                    $keyRow['label_description'] ?: null,
+                    $keyRow['label_icon'] ?: null,
+                    $keyRow['label_color'] ?: null
+                ),
+                $keyRow['scope_id'] ? new ScopeDefinition(
+                    $keyRow['scope_slug'],
+                    $keyRow['scope_column_name'] ?: sprintf('%s_id', $keyRow['scope_slug'])
+                ) : null,
+                $keyRow['reflexivity_id'] ? new ReflexivityDefinition(
+                    $keyRow['reflexivity_parent_column'] ?: 'parent',
+                    $keyRow['reflexivity_child_column'] ?: 'child',
+                    $keyRow['reflexivity_depth_column'] ?: 'depth'
+                ) : null,
+                $keyRow['order_id'] ? new OrderDefinition(
+                    $keyRow['order_column_name'] ?: ($keyRow['order_singleton'] ? 'priority' : 'singleton'),
+                    $keyRow['order_singleton']
+                ) : null,
+                $fields,
+                SummaryDefinition::parseSegments($keyRow['summary'])
+            );
+        }
 
-			$keys[$keyRow['slug']] = new KeyDefinition(
-				new StorageDefinition(
-					$keyRow['table_name']?:$keyRow['slug'],
-					$keyRow['pk_name']?:'id',
-					$keyRow['pk_type']
-				),
-				new LabelDefinition(
-					$keyRow['label_singular']?:ucfirst($keyRow['slug']),
-					$keyRow['label_plural']?:null,
-					$keyRow['label_description']?:null,
-					$keyRow['label_icon']?:null,
-					$keyRow['label_color']?:null
-				),
-				$keyRow['scope_id'] ? new ScopeDefinition(
-					$keyRow['scope_slug'],
-					$keyRow['scope_column_name']?:sprintf('%s_id', $keyRow['scope_slug'])
-				) : null,
-				$keyRow['reflexivity_id'] ? new ReflexivityDefinition(
-					$keyRow['reflexivity_parent_column']?:'parent',
-					$keyRow['reflexivity_child_column']?:'child',
-					$keyRow['reflexivity_depth_column']?:'depth'
-				) : null,
-				$keyRow['order_id'] ? new OrderDefinition(
-					$keyRow['order_column_name']?:($keyRow['order_singleton']?'priority':'singleton'),
-					$keyRow['order_singleton']
-				) : null,
-				$fields,
-				SummaryDefinition::parseSegments($keyRow['summary'])
-			);
-		}
+        $def = new SchemaDefinition(
+            new LabelDefinition(
+                $row['label_singular'] ?: ucfirst($hierarchyName),
+                $row['label_plural'] ?: null,
+                $row['label_description'],
+                $row['label_icon'],
+                $row['label_color']
+            ),
+            $keys,
+            $this->fieldTypes
+        );
 
-		$def = new SchemaDefinition(
-			new LabelDefinition(
-				$row['label_singular']?:ucfirst($hierarchyName),
-				$row['label_plural']?:null,
-				$row['label_description'],
-				$row['label_icon'],
-				$row['label_color']
-			),
-			$keys,
-			$this->fieldTypes
-		);
+        $def->validate();
 
-		$def->validate();
+        return $def;
+    }
 
-		return $def;
-	}
+    private function loadBaseDefinition()
+    {
+        $settings = ['accent_color' => null, 'title' => null, 'intro' => null];
+        try {
+            $stmt = $this->baseConnection->prepare('SELECT title, url, accent_color, intro FROM settings');
+            $settingResult = $stmt->executeQuery();
 
-	private function loadBaseDefinition() {
-		$settings = ['accent_color' => null,'title' => null,'intro' => null];
-		try {
-			$stmt = $this->baseConnection->prepare('SELECT title, url, accent_color, intro FROM settings');
-			$settingResult = $stmt->executeQuery();
+            $settingsRow = $settingResult->fetchAssociative();
 
-			$settingsRow = $settingResult->fetchAssociative();
+            if ($settingsRow) {
+                $settings = array_merge($settings, $settingsRow);
+            }
+        } catch (\Exception $e) {
+        }
 
-			if($settingsRow) {
-				$settings = array_merge($settings, $settingsRow);
-			}
-		} catch(\Exception $e) {
+        return new SchemaDefinition(
+            new LabelDefinition(
+                $settings['title'] ?: 'Hierarchy Manager',
+                $settings['title'] ?: 'Hierarchie Managers',
+                $settings['intro'],
+                'favicon',
+                $settings['accent_color'] ?: '#00805A'
+            ), [
+                'hierarchy' => new KeyDefinition(
+                    new StorageDefinition('hierarchy'),
+                    new LabelDefinition(
+                        'Hierarchy',
+                        'Hierarchies',
+                        'What is a hierarchy?',
+                        'archive'
+                    ),
+                    null, null, new OrderDefinition('priority', 'DESC'), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], false
+                        ),
+                        'dsn' => new FieldDefinition(
+                            new LabelDefinition('DSN', 'DSNs', 'What is?'),
+                            'dsn', true, false, [], false),
+                        'label_singular' => new FieldDefinition(
+                            new LabelDefinition('Label'),
+                            'string', false, false, ['autofillBy' => 'slug']),
+                        'label_plural' => new FieldDefinition(
+                            new LabelDefinition('Label Plural'),
+                            'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
+                        'label_description' => new FieldDefinition(
+                            new LabelDefinition('Description'),
+                            'text', false, false, [], false),
+                        'label_icon' => new FieldDefinition(
+                            new LabelDefinition('Icon'),
+                            'icon', false, false),
+                        'label_color' => new FieldDefinition(
+                            new LabelDefinition('Color'),
+                            'color', false, false),
+                    ], SummaryDefinition::parseSegments('{slug}')
+                ),
+                'setting' => new KeyDefinition(
+                    new StorageDefinition('settings'),
+                    new LabelDefinition('Settings', 'Custom', null, 'gear', null, 'Default'),
+                    null, null, new OrderDefinition(singleton: true), [
+                        'title' => new FieldDefinition(
+                            new LabelDefinition('Title'),
+                            'string', false, false),
+                        'url' => new FieldDefinition(
+                            new LabelDefinition('Url'),
+                            'url', false, false),
+                        'accent_color' => new FieldDefinition(
+                            new LabelDefinition('Accent Color'),
+                            'color', false, false),
+                        'intro' => new FieldDefinition(
+                            new LabelDefinition('Introduction Text'),
+                            'text', false, false),
+                    ], SummaryDefinition::parseSegments('Settings')
+                ),
+                'account' => new KeyDefinition(
+                    new StorageDefinition('account'),
+                    new LabelDefinition('Account', 'Accounts', null, 'people'),
+                    null, null, null, [
+                        'login' => new FieldDefinition(
+                            new LabelDefinition('Login'),
+                            'string', true, true),
+                        'password' => new FieldDefinition(
+                            new LabelDefinition('Password'),
+                            'hash', true, false),
+                        'full_name' => new FieldDefinition(
+                            new LabelDefinition('Full Name'),
+                            'string', false, false),
+                        'email' => new FieldDefinition(
+                            new LabelDefinition(' E-mail'),
+                            'email', false, false),
+                        'role' => new FieldDefinition(
+                            new LabelDefinition('Role', 'Roles', null, null, null, 'None'),
+                            'reference', true, false,
+                            ['target' => 'role', 'style' => 'expanded', 'explicit' => true]),
+                    ], SummaryDefinition::parseSegments('{login}')
+                ),
+                'role' => new KeyDefinition(
+                    new StorageDefinition('role'),
+                    new LabelDefinition('Role', 'Roles', null, 'mortar-board'),
+                    null, null, null, [
+                        'title' => new FieldDefinition(
+                            new LabelDefinition('Title'),
+                            'string', true, true),
+                        'is_admin' => new FieldDefinition(
+                            new LabelDefinition('Admin'),
+                            'bool', true, false),
+                    ], SummaryDefinition::parseSegments('{title}')
+                ),
+                'hierarchy_permission' => new KeyDefinition(
+                    new StorageDefinition('hierarchy_permission'),
+                    new LabelDefinition('Hierarchy Permission', 'Hierarchy Permissions'),
+                    new ScopeDefinition('role'), null, null, [
+                        'hierarchy' => new FieldDefinition(
+                            new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true,
+                            ['target' => 'hierarchy']),
+                        'type' => new FieldDefinition(
+                            new LabelDefinition('Type', 'Types'),
+                            'enum', true, false, ['values' => ['permit', 'restrict'], 'explicit' => true]),
+                    ], SummaryDefinition::parseSegments('{hierarchy}/{type}')
+                ),
+                'collection_permission' => new KeyDefinition(
+                    new StorageDefinition('collection_permission'),
+                    new LabelDefinition('Collection Permission', 'Collection Permissions'),
+                    new ScopeDefinition('role'), null, null, [
+                        'collection' => new FieldDefinition(
+                            new LabelDefinition('Collection', 'Collections'),
+                            'reference', true, true,
+                            ['target' => 'collection']),
+                        'type' => new FieldDefinition(
+                            new LabelDefinition('Type', 'Types'),
+                            'enum', true, false,
+                            ['values' => ['permit', 'restrict']]),
+                    ], SummaryDefinition::parseSegments('{collection}/{type}')
+                ),
+                'field_permission' => new KeyDefinition(
+                    new StorageDefinition('field_permission'),
+                    new LabelDefinition('Field Permission', 'Field Permissions'),
+                    new ScopeDefinition('role'), null, null, [
+                        'field' => new FieldDefinition(
+                            new LabelDefinition('Field', 'Fields'),
+                            'reference', true, true,
+                            ['target' => 'field']),
+                        'type' => new FieldDefinition(
+                            new LabelDefinition('Type', 'Types'),
+                            'enum', true, false,
+                            ['values' => ['permit', 'restrict']]),
+                    ], SummaryDefinition::parseSegments('{field}/{type}')
+                ),
+                'collection' => new KeyDefinition(
+                    new StorageDefinition('collection'),
+                    new LabelDefinition('Collection'),
+                    new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', 'DESC'), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'), 'string', true, true, [], false),
+                        'table_name' => new FieldDefinition(
+                            new LabelDefinition('Table Name'),
+                            'string', true, true, ['autofillBy' => 'slug'], false),
+                        'pk_type' => new FieldDefinition(
+                            new LabelDefinition('Primary Key Type'),
+                            'enum', true, false, ['values' => ['serial', 'uuid', 'manual']], false),
+                        'pk_name' => new FieldDefinition(
+                            new LabelDefinition('Primary Key Column Name'),
+                            'string', true, false, [], false),
+                        'summary' => new FieldDefinition(
+                            new LabelDefinition('Summary Template'),
+                            'string', false, false, [], false),
+                        'label_singular' => new FieldDefinition(
+                            new LabelDefinition('Label'),
+                            'string', false, false, ['autofillBy' => 'slug']),
+                        'label_plural' => new FieldDefinition(
+                            new LabelDefinition('Label Plural'),
+                            'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
+                        'label_description' => new FieldDefinition(
+                            new LabelDefinition('Description'),
+                            'text', false, false, [], false),
+                        'label_icon' => new FieldDefinition(
+                            new LabelDefinition('Icon'),
+                            'icon', false, false),
+                        'label_color' => new FieldDefinition(
+                            new LabelDefinition('Color'),
+                            'color', false, false),
+                    ], SummaryDefinition::parseSegments('{slug}')
+                ),
+                'scope_definition' => new KeyDefinition(
+                    new StorageDefinition('scope_definition'),
+                    new LabelDefinition('Scope', 'Yes', null, null, null, 'None'),
+                    new ScopeDefinition('collection', null, true), null, new OrderDefinition(singleton: true), [
+                        'scope_key' => new FieldDefinition(
+                            new LabelDefinition('Parent', 'Parents'),
+                            'reference', true, false,
+                            ['target' => 'collection']),
+                        'scope_column_name' => new FieldDefinition(
+                            new LabelDefinition('Scope Column'),
+                            'string', false, false),
+                        'can_change' => new FieldDefinition(
+                            new LabelDefinition('Can change'),
+                            'bool', true, false),
+                        'isolating' => new FieldDefinition(
+                            new LabelDefinition('Is Isolating'),
+                            'bool', true, false),
+                    ], SummaryDefinition::parseSegments('{scope_key}')
+                ),
+                'order_definition' => new KeyDefinition(
+                    new StorageDefinition('order_definition'),
+                    new LabelDefinition('Order', 'Yes', null, null, null, 'None'),
+                    new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+                        'is_singleton' => new FieldDefinition(
+                            new LabelDefinition('Singleton'),
+                            'bool', true, false),
+                        'order_column_name' => new FieldDefinition(
+                            new LabelDefinition('Order column Name'),
+                            'string', true, false),
+                    ], SummaryDefinition::parseSegments('')
+                ),
+                'reflexivity_definition' => new KeyDefinition(
+                    new StorageDefinition('reflexivity_definition'),
+                    new LabelDefinition('Reflexivity', 'Yes', null, null, null, 'None'),
+                    new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+                        'parent_name' => new FieldDefinition(
+                            new LabelDefinition('Parent Column'),
+                            'string', false, false),
+                        'child_name' => new FieldDefinition(
+                            new LabelDefinition('Parent Column'),
+                            'string', false, false),
+                        'depth_name' => new FieldDefinition(
+                            new LabelDefinition('Depth Column'),
+                            'string', false, false),
+                        'closure_table_name' => new FieldDefinition(
+                            new LabelDefinition('Closure Table Name', null, 'For nested collections an addition table is needed.'),
+                            'string', false, false),
+                        'can_change' => new FieldDefinition(
+                            new LabelDefinition('Can change parent'),
+                            'bool', true, false),
+                    ], SummaryDefinition::parseSegments('{$self/label}')
+                ),
+                'field' => new KeyDefinition(
+                    new StorageDefinition('field'),
+                    new LabelDefinition('Field'),
+                    new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', 'DESC'), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], false),
+                        'type' => new FieldDefinition(
+                            new LabelDefinition('Type'),
+                            'enum', true, false,
+                            ['style' => 'compact', 'values' => array_keys($this->fieldTypes),
+                            ]),
+                        'is_required' => new FieldDefinition(
+                            new LabelDefinition('Required'),
+                            'bool', true, false, [], false),
+                        'is_unique' => new FieldDefinition(
+                            new LabelDefinition('Unique'),
+                            'bool', true, false, [], false),
+                        'options' => new FieldDefinition(
+                            new LabelDefinition('Options'),
+                            'json', false, false, [], false),
+                        'label_singular' => new FieldDefinition(
+                            new LabelDefinition('Label'),
+                            'string', false, true, ['autofillBy' => 'slug']),
+                        'label_plural' => new FieldDefinition(
+                            new LabelDefinition('Label Plural'),
+                            'string', false, true, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
+                        'label_description' => new FieldDefinition(
+                            new LabelDefinition('Description'),
+                            'text', false, false, [], false),
+                        'label_icon' => new FieldDefinition(
+                            new LabelDefinition('Icon'),
+                            'icon', false, false),
+                        'label_color' => new FieldDefinition(
+                            new LabelDefinition('Color'),
+                            'color', false, false),
+                    ], SummaryDefinition::parseSegments('{slug}')
+                ),
 
-		}
+                'collection_extension' => new KeyDefinition(
+                    new StorageDefinition('collection_extension'),
+                    new LabelDefinition('Extension'),
+                    new ScopeDefinition('collection', null, true), null, null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true),
+                    ], SummaryDefinition::parseSegments('{slug}')
+                ),
 
-		return new SchemaDefinition(
-			new LabelDefinition(
-				$settings['title']?:'Hierarchy Manager',
-				$settings['title']?:'Hierarchie Managers',
-				$settings['intro'],
-				'favicon',
-				$settings['accent_color']?:'#00805A'
-			), [
-			'hierarchy' => new KeyDefinition(
-				new StorageDefinition('hierarchy'),
-				new LabelDefinition(
-					'Hierarchy',
-					'Hierarchies',
-					'What is a hierarchy?',
-					'archive'
-				),
-				null, null, new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], false
-					),
-					'dsn' => new FieldDefinition(
-						new LabelDefinition('DSN','DSNs', 'What is?'),
-						'dsn', true, false, [], false),
-					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label'),
-						'string', false, false, ['autofillBy' => 'slug']),
-					'label_plural' => new FieldDefinition(
-						new LabelDefinition('Label Plural'),
-						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
-					'label_description' => new FieldDefinition(
-						new LabelDefinition('Description'),
-						'text', false, false, [], false),
-					'label_icon' => new FieldDefinition(
-						new LabelDefinition('Icon'),
-						'icon', false, false),
-					'label_color' => new FieldDefinition(
-						new LabelDefinition('Color'),
-						'color', false, false),
-				], SummaryDefinition::parseSegments('{slug}')
-			),
-			'setting' => new KeyDefinition(
-				new StorageDefinition('settings'),
-				new LabelDefinition('Settings', 'Custom', null, 'gear', null, 'Default'),
-				null, null, new OrderDefinition(singleton: true), [
-					'title' => new FieldDefinition(
-						new LabelDefinition('Title'),
-						'string', false, false),
-					'url' => new FieldDefinition(
-						new LabelDefinition('Url'),
-						'url', false, false),
-					'accent_color' => new FieldDefinition(
-						new LabelDefinition('Accent Color'),
-						'color', false, false),
-					'intro' => new FieldDefinition(
-						new LabelDefinition('Introduction Text'),
-						'text', false, false),
-				], SummaryDefinition::parseSegments('Settings')
-			),
-			'account' => new KeyDefinition(
-				new StorageDefinition('account'),
-				new LabelDefinition('Account', 'Accounts', null, 'people'),
-				null, null, null, [
-					'login' => new FieldDefinition(
-						new LabelDefinition('Login'),
-						'string', true, true),
-					'password' => new FieldDefinition(
-						new LabelDefinition('Password'),
-						'hash', true, false),
-					'full_name' => new FieldDefinition(
-						new LabelDefinition('Full Name'),
-						'string', false, false),
-					'email' => new FieldDefinition(
-						new LabelDefinition(' E-mail'),
-						'email', false, false),
-					'role' => new FieldDefinition(
-						new LabelDefinition('Role', 'Roles', null, null, null, 'None'),
-						'reference', true, false,
-						['target' => 'role','style' => 'expanded', 'explicit' => true]),
-				], SummaryDefinition::parseSegments('{login}')
-			),
-			'role' => new KeyDefinition(
-				new StorageDefinition('role'),
-				new LabelDefinition('Role', 'Roles', null, 'mortar-board'),
-				null, null, null, [
-					'title' => new FieldDefinition(
-						new LabelDefinition('Title'),
-						'string', true, true),
-					'is_admin' => new FieldDefinition(
-						new LabelDefinition('Admin'),
-						'bool', true, false),
-				], SummaryDefinition::parseSegments('{title}')
-			),
-			'hierarchy_permission' => new KeyDefinition(
-				new StorageDefinition('hierarchy_permission'),
-				new LabelDefinition('Hierarchy Permission', 'Hierarchy Permissions'),
-				new ScopeDefinition('role'), null, null, [
-					'hierarchy' => new FieldDefinition(
-						new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true,
-						['target' => 'hierarchy']),
-					'type' => new FieldDefinition(
-						new LabelDefinition('Type', 'Types'),
-						'enum', true, false, ['values' => ['permit', 'restrict'],'explicit' => true]),
-				], SummaryDefinition::parseSegments('{hierarchy}/{type}')
-			),
-			'collection_permission' => new KeyDefinition(
-				new StorageDefinition('collection_permission'),
-				new LabelDefinition('Collection Permission', 'Collection Permissions'),
-				new ScopeDefinition('role'), null, null, [
-					'collection' => new FieldDefinition(
-						new LabelDefinition('Collection', 'Collections'),
-						'reference', true, true,
-						['target' => 'collection']),
-					'type' => new FieldDefinition(
-						new LabelDefinition('Type', 'Types'),
-						'enum', true, false,
-						['values' => ['permit', 'restrict']]),
-				], SummaryDefinition::parseSegments('{collection}/{type}')
-			),
-			'field_permission' => new KeyDefinition(
-				new StorageDefinition('field_permission'),
-				new LabelDefinition('Field Permission', 'Field Permissions'),
-				new ScopeDefinition('role'), null, null, [
-					'field' => new FieldDefinition(
-						new LabelDefinition('Field', 'Fields'),
-						'reference', true, true,
-						['target' => 'field']),
-					'type' => new FieldDefinition(
-						new LabelDefinition('Type', 'Types'),
-						'enum', true, false,
-						['values' => ['permit', 'restrict']]),
-				], SummaryDefinition::parseSegments('{field}/{type}')
-			),
-			'collection' => new KeyDefinition(
-				new StorageDefinition('collection'),
-				new LabelDefinition('Collection'),
-				new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 'string', true, true, [], false),
-					'table_name' => new FieldDefinition(
-						new LabelDefinition('Table Name'),
-						'string', true, true, ['autofillBy' => 'slug'], false),
-					'pk_type' => new FieldDefinition(
-						new LabelDefinition('Primary Key Type'),
-						'enum', true, false, ['values' => ['serial','uuid','manual']], false),
-					'pk_name' => new FieldDefinition(
-						new LabelDefinition('Primary Key Column Name'),
-						'string', true, false, [], false),
-					'summary' => new FieldDefinition(
-						new LabelDefinition('Summary Template'),
-						'string', false, false, [], false),
-					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label'),
-						'string', false, false, ['autofillBy' => 'slug']),
-					'label_plural' => new FieldDefinition(
-						new LabelDefinition('Label Plural'),
-						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
-					'label_description' => new FieldDefinition(
-						new LabelDefinition('Description'),
-						'text', false, false, [], false),
-					'label_icon' => new FieldDefinition(
-						new LabelDefinition('Icon'),
-						'icon', false, false),
-					'label_color' => new FieldDefinition(
-						new LabelDefinition('Color'),
-						'color', false, false),
-				], SummaryDefinition::parseSegments('{slug}')
-			),
-			'scope_definition' => new KeyDefinition(
-				new StorageDefinition('scope_definition'),
-				new LabelDefinition('Scope', 'Yes', null, null, null, 'None'),
-				new ScopeDefinition('collection', null, true), null, new OrderDefinition(singleton: true), [
-					'scope_key' => new FieldDefinition(
-						new LabelDefinition('Parent', 'Parents'),
-						'reference', true, false,
-						['target' => 'collection']),
-					'scope_column_name' => new FieldDefinition(
-						new LabelDefinition('Scope Column'),
-						'string', false, false),
-					'can_change' => new FieldDefinition(
-						new LabelDefinition('Can change'),
-						'bool', true, false),
-					'isolating' => new FieldDefinition(
-						new LabelDefinition('Is Isolating'),
-						'bool', true, false),
-				], SummaryDefinition::parseSegments('{scope_key}')
-			),
-			'order_definition' => new KeyDefinition(
-				new StorageDefinition('order_definition'),
-				new LabelDefinition('Order', 'Yes', null, null, null, 'None'),
-				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
+                'field_extension' => new KeyDefinition(
+                    new StorageDefinition('field_extension'),
+                    new LabelDefinition('Field'),
+                    new ScopeDefinition('collection_extension'), null, null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true),
+                        'field_ref' => new FieldDefinition(
+                            new LabelDefinition('Field'), 'reference', true, false,
+                            ['target' => 'field']),
+                    ], SummaryDefinition::parseSegments('{slug}')
+                ),
+            ], $this->fieldTypes);
+    }
 
-					'is_singleton' => new FieldDefinition(
-						new LabelDefinition('Singleton'),
-						'bool', true, false),
-					'order_column_name' => new FieldDefinition(
-						new LabelDefinition('Order column Name'),
-						'string', true, false),
-				], SummaryDefinition::parseSegments('')
-			),
-			'reflexivity_definition' => new KeyDefinition(
-				new StorageDefinition('reflexivity_definition'),
-				new LabelDefinition('Reflexivity', 'Yes', null, null, null, 'None'),
-				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
-					'parent_name' => new FieldDefinition(
-						new LabelDefinition('Parent Column'),
-						'string', false, false),
-					'child_name' => new FieldDefinition(
-						new LabelDefinition('Parent Column'),
-						'string', false, false),
-					'depth_name' => new FieldDefinition(
-						new LabelDefinition('Depth Column'),
-						'string', false, false),
-					'closure_table_name' => new FieldDefinition(
-						new LabelDefinition('Closure Table Name', null, 'For nested collections an addition table is needed.'),
-						'string', false, false),
-					'can_change' => new FieldDefinition(
-						new LabelDefinition('Can change parent'),
-						'bool', true, false),
-				], SummaryDefinition::parseSegments('{$self/label}')
-			),
-			'field' => new KeyDefinition(
-				new StorageDefinition('field'),
-				new LabelDefinition('Field'),
-				new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], false),
-					'type' => new FieldDefinition(
-						new LabelDefinition('Type'),
-						'enum', true, false,
-						['style' => 'compact', 'values' => array_keys($this->fieldTypes)
+    private function loadTestDefinition()
+    {
+        return new SchemaDefinition(
+            new LabelDefinition(
+                'Testing',
+                'Testing',
+                null,
+                'checklist',
+                'darkred'
+            ), [
+                'field_test' => new KeyDefinition(
+                    new StorageDefinition('my_test'),
+                    new LabelDefinition('Field Test', 'Field Tests', null, 'rows'),
+                    null, null, null,
+                    array_combine(array_keys($this->fieldTypes),
+                        array_map(fn ($typeId) => new FieldDefinition(
+                            new LabelDefinition(ucfirst($typeId)),
+                            $typeId, true, false, ['values' => ['x', 'y', 'z'], 'target' => 'aa', 'cascade' => true]), array_keys($this->fieldTypes))
+                    ),
+                    SummaryDefinition::parseSegments('{$self/id}')
+                ),
 
-					]),
-					'is_required' => new FieldDefinition(
-						new LabelDefinition('Required'),
-						'bool', true, false, [], false),
-					'is_unique' => new FieldDefinition(
-						new LabelDefinition('Unique'),
-						'bool', true, false, [], false),
-					'options' => new FieldDefinition(
-						new LabelDefinition('Options'),
-						'json', false, false, [], false),
-					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label'),
-						'string', false, true, ['autofillBy' => 'slug']),
-					'label_plural' => new FieldDefinition(
-						new LabelDefinition('Label Plural'),
-						'string', false, true, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
-					'label_description' => new FieldDefinition(
-						new LabelDefinition('Description'),
-						'text', false, false, [], false),
-					'label_icon' => new FieldDefinition(
-						new LabelDefinition('Icon'),
-						'icon', false, false),
-					'label_color' => new FieldDefinition(
-						new LabelDefinition('Color'),
-						'color', false, false),
-				], SummaryDefinition::parseSegments('{slug}')
-			),
+                'aa' => new KeyDefinition(
+                    new StorageDefinition('aa'),
+                    new LabelDefinition('ScopeTest', null, null, 'codescan'),
+                    null, new ReflexivityDefinition(), null, [],
+                    SummaryDefinition::parseSegments('aa')
+                ),
+                'bb' => new KeyDefinition(
+                    new StorageDefinition('bb'),
+                    new LabelDefinition('bb'),
+                    new ScopeDefinition('aa', null, true), new ReflexivityDefinition(), null, [],
+                    SummaryDefinition::parseSegments('bb')
+                ),
+                'cc' => new KeyDefinition(
+                    new StorageDefinition('cc'),
+                    new LabelDefinition('cc'),
+                    new ScopeDefinition('bb', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('cc')
+                ),
+                'dd' => new KeyDefinition(
+                    new StorageDefinition('dd'),
+                    new LabelDefinition('dd'),
+                    new ScopeDefinition('cc', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('dd')
+                ),
+                'ee' => new KeyDefinition(
+                    new StorageDefinition('ee'),
+                    new LabelDefinition('ee'),
+                    new ScopeDefinition('dd', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('ee')
+                ),
+                'ff' => new KeyDefinition(
+                    new StorageDefinition('ff'),
+                    new LabelDefinition('ff'),
+                    new ScopeDefinition('ee', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('ff')
+                ),
+                'xx' => new KeyDefinition(
+                    new StorageDefinition('xx'),
+                    new LabelDefinition('xx'),
+                    new ScopeDefinition('ff', null, true), null, null, [
+                        'zzref' => new FieldDefinition(
+                            new LabelDefinition('zzref'), 'reference', false, false,
+                            ['target' => 'zz']),
+                    ],
+                    SummaryDefinition::parseSegments('xx')
+                ),
+                'yy' => new KeyDefinition(
+                    new StorageDefinition('yy'),
+                    new LabelDefinition('yy'),
+                    new ScopeDefinition('xx', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('yy')
+                ),
+                'zz' => new KeyDefinition(
+                    new StorageDefinition('zz'),
+                    new LabelDefinition('zz'),
+                    new ScopeDefinition('yy', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('zz')
+                ),
+                'ww' => new KeyDefinition(
+                    new StorageDefinition('ww'),
+                    new LabelDefinition('ww'),
+                    new ScopeDefinition('zz', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('ww')
+                ),
+                'uu' => new KeyDefinition(
+                    new StorageDefinition('uu'),
+                    new LabelDefinition('uu'),
+                    new ScopeDefinition('ww', null, true), null, null, [
+                        'yyref' => new FieldDefinition(
+                            new LabelDefinition('yyref'), 'reference', false, false,
+                            ['target' => 'yy']),
+                    ],
+                    SummaryDefinition::parseSegments('uu')
+                ),
+                'pp' => new KeyDefinition(
+                    new StorageDefinition('pp'),
+                    new LabelDefinition('pp'),
+                    new ScopeDefinition('ff', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('pp')
+                ),
+                'qq' => new KeyDefinition(
+                    new StorageDefinition('qq'),
+                    new LabelDefinition('qq'),
+                    new ScopeDefinition('pp', null, true), null, null, [],
+                    SummaryDefinition::parseSegments('qq')
+                ),
+                'rr' => new KeyDefinition(
+                    new StorageDefinition('rr'),
+                    new LabelDefinition('rr'),
+                    new ScopeDefinition('qq', null, true), null, null, [
+                        'uuref' => new FieldDefinition(
+                            new LabelDefinition('uuref'), 'reference', false, false,
+                            ['target' => 'uu']),
+                    ],
+                    SummaryDefinition::parseSegments('rr')
+                ),
+            ], $this->fieldTypes);
+    }
 
-			'collection_extension' => new KeyDefinition(
-				new StorageDefinition('collection_extension'),
-				new LabelDefinition('Extension'),
-				new ScopeDefinition('collection', null, true),  null, null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true),
-				], SummaryDefinition::parseSegments('{slug}')
-			),
+    private function loadFrontendDefinition()
+    {
+        return new SchemaDefinition(
+            new LabelDefinition(
+                'Frontend',
+                'Frontend',
+                null,
+                'checklist',
+                'brown'
+            ), [
+                'site' => new KeyDefinition(
+                    new StorageDefinition('site'),
+                    new LabelDefinition('Site', null, null, 'browser'),
+                    null, new ReflexivityDefinition(), null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+                'route' => new KeyDefinition(
+                    new StorageDefinition('route'),
+                    new LabelDefinition('Route', null, null, 'stack'),
+                    new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], false
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+                'content' => new KeyDefinition(
+                    new StorageDefinition('content'),
+                    new LabelDefinition('Content', 'Content', null, 'package'),
+                    new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], false
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+                'resource_directory' => new KeyDefinition(
+                    new StorageDefinition('resource_directory'),
+                    new LabelDefinition('Resource Directory', 'Directories', null, 'file-directory'),
+                    null, new ReflexivityDefinition(), null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+                'resource' => new KeyDefinition(
+                    new StorageDefinition('resource'),
+                    new LabelDefinition('Resource', null, null, 'file'),
+                    new ScopeDefinition('resource_directory'), null, null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                        'content_type' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+                'menu' => new KeyDefinition(
+                    new StorageDefinition('menu'),
+                    new LabelDefinition('Menu', null, null, 'list-unordered'),
+                    null, null, null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+                'menu_item' => new KeyDefinition(
+                    new StorageDefinition('menu_item'),
+                    new LabelDefinition('Menu Item', null, null, 'link'),
+                    new ScopeDefinition('menu'), new ReflexivityDefinition(), null, [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
 
-			'field_extension' => new KeyDefinition(
-				new StorageDefinition('field_extension'),
-				new LabelDefinition('Field'),
-				new ScopeDefinition('collection_extension'),  null, null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true),
-					'field_ref' => new FieldDefinition(
-						new LabelDefinition('Field'), 'reference', true, false,
-						['target' => 'field']),
-				], SummaryDefinition::parseSegments('{slug}')
-			),
+                'site_generator' => new KeyDefinition(
+                    new StorageDefinition('site_generator'),
+                    new LabelDefinition('Site Generator', null, null, 'zap'),
+                    new ScopeDefinition('site'), null, new OrderDefinition(singleton: true), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
 
-		], $this->fieldTypes);
-	}
+                'route_generator' => new KeyDefinition(
+                    new StorageDefinition('route_generator'),
+                    new LabelDefinition('Route Generator', null, null, 'zap'),
+                    new ScopeDefinition('route'), null, new OrderDefinition(singleton: true), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
 
-	private function loadTestDefinition() {
-		return new SchemaDefinition(
-			new LabelDefinition(
-				'Testing',
-				'Testing',
-				null,
-				'checklist',
-				'darkred'
-			), [
-			'field_test' => new KeyDefinition(
-				new StorageDefinition('my_test'),
-				new LabelDefinition('Field Test', 'Field Tests', null, 'rows'),
-				null, null, null,
-				array_combine(array_keys($this->fieldTypes),
-					array_map(fn($typeId) =>
-						new FieldDefinition(
-							new LabelDefinition(ucfirst($typeId)),
-							$typeId, true, false, ['values' => ['x','y','z'], 'target' => 'aa', 'cascade' => true])
-						, array_keys($this->fieldTypes))
-				),
-				SummaryDefinition::parseSegments('{$self/id}')
-			),
+                'content_generator' => new KeyDefinition(
+                    new StorageDefinition('content_generator'),
+                    new LabelDefinition('Content Generator', null, null, 'zap'),
+                    new ScopeDefinition('content'), null, new OrderDefinition(singleton: true), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
 
-			'aa' => new KeyDefinition(
-				new StorageDefinition('aa'),
-				new LabelDefinition('ScopeTest',null,null,'codescan'),
-				null, new ReflexivityDefinition(), null, [],
-				SummaryDefinition::parseSegments('aa')
-			),
-			'bb' => new KeyDefinition(
-				new StorageDefinition('bb'),
-				new LabelDefinition('bb'),
-				new ScopeDefinition('aa',null, true), new ReflexivityDefinition(), null, [],
-				SummaryDefinition::parseSegments('bb')
-			),
-			'cc' => new KeyDefinition(
-				new StorageDefinition('cc'),
-				new LabelDefinition('cc'),
-				new ScopeDefinition('bb',null, true), null, null, [],
-				SummaryDefinition::parseSegments('cc')
-			),
-			'dd' => new KeyDefinition(
-				new StorageDefinition('dd'),
-				new LabelDefinition('dd'),
-				new ScopeDefinition('cc', null, true), null, null, [],
-				SummaryDefinition::parseSegments('dd')
-			),
-			'ee' => new KeyDefinition(
-				new StorageDefinition('ee'),
-				new LabelDefinition('ee'),
-				new ScopeDefinition('dd',null, true), null, null, [],
-				SummaryDefinition::parseSegments('ee')
-			),
-			'ff' => new KeyDefinition(
-				new StorageDefinition('ff'),
-				new LabelDefinition('ff'),
-				new ScopeDefinition('ee',null, true), null, null, [],
-				SummaryDefinition::parseSegments('ff')
-			),
-			'xx' => new KeyDefinition(
-				new StorageDefinition('xx'),
-				new LabelDefinition('xx'),
-				new ScopeDefinition('ff',null, true), null, null, [
-					'zzref' => new FieldDefinition(
-						new LabelDefinition('zzref'), 'reference', false, false,
-						['target' => 'zz']),
-				],
-				SummaryDefinition::parseSegments('xx')
-			),
-			'yy' => new KeyDefinition(
-				new StorageDefinition('yy'),
-				new LabelDefinition('yy'),
-				new ScopeDefinition('xx',null, true), null, null, [],
-				SummaryDefinition::parseSegments('yy')
-			),
-			'zz' => new KeyDefinition(
-				new StorageDefinition('zz'),
-				new LabelDefinition('zz'),
-				new ScopeDefinition('yy', null, true), null, null, [],
-				SummaryDefinition::parseSegments('zz')
-			),
-			'ww' => new KeyDefinition(
-				new StorageDefinition('ww'),
-				new LabelDefinition('ww'),
-				new ScopeDefinition('zz',null, true), null, null, [],
-				SummaryDefinition::parseSegments('ww')
-			),
-			'uu' => new KeyDefinition(
-				new StorageDefinition('uu'),
-				new LabelDefinition('uu'),
-				new ScopeDefinition('ww', null, true), null, null, [
-					'yyref' => new FieldDefinition(
-						new LabelDefinition('yyref'), 'reference', false, false,
-						['target' => 'yy']),
-				],
-				SummaryDefinition::parseSegments('uu')
-			),
-			'pp' => new KeyDefinition(
-				new StorageDefinition('pp'),
-				new LabelDefinition('pp'),
-				new ScopeDefinition('ff',null, true), null, null, [],
-				SummaryDefinition::parseSegments('pp')
-			),
-			'qq' => new KeyDefinition(
-				new StorageDefinition('qq'),
-				new LabelDefinition('qq'),
-				new ScopeDefinition('pp',null, true), null, null, [],
-				SummaryDefinition::parseSegments('qq')
-			),
-			'rr' => new KeyDefinition(
-				new StorageDefinition('rr'),
-				new LabelDefinition('rr'),
-				new ScopeDefinition('qq',null, true), null, null, [
-					'uuref' => new FieldDefinition(
-						new LabelDefinition('uuref'), 'reference', false, false,
-						['target' => 'uu']),
-				],
-				SummaryDefinition::parseSegments('rr')
-			),
-		], $this->fieldTypes);
-	}
-
-	private function loadFrontendDefinition() {
-		return new SchemaDefinition(
-			new LabelDefinition(
-				'Frontend',
-				'Frontend',
-				null,
-				'checklist',
-				'brown'
-			), [
-			'site' => new KeyDefinition(
-				new StorageDefinition('site'),
-				new LabelDefinition('Site',null,null,'browser'),
-				null, new ReflexivityDefinition(), null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-			'route' => new KeyDefinition(
-				new StorageDefinition('route'),
-				new LabelDefinition('Route',null,null,'stack'),
-				new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], false
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-			'content' => new KeyDefinition(
-				new StorageDefinition('content'),
-				new LabelDefinition('Content','Content',null,'package'),
-				new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], false
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-			'resource_directory' => new KeyDefinition(
-				new StorageDefinition('resource_directory'),
-				new LabelDefinition('Resource Directory','Directories',null,'file-directory'),
-				null, new ReflexivityDefinition(), null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-			'resource' => new KeyDefinition(
-				new StorageDefinition('resource'),
-				new LabelDefinition('Resource',null,null,'file'),
-				new ScopeDefinition('resource_directory'), null, null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-					'content_type' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-			'menu' => new KeyDefinition(
-				new StorageDefinition('menu'),
-				new LabelDefinition('Menu',null,null,'list-unordered'),
-				null, null, null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-			'menu_item' => new KeyDefinition(
-				new StorageDefinition('menu_item'),
-				new LabelDefinition('Menu Item',null,null,'link'),
-				new ScopeDefinition('menu'), new ReflexivityDefinition(), null, [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-
-			'site_generator' => new KeyDefinition(
-				new StorageDefinition('site_generator'),
-				new LabelDefinition('Site Generator',null,null,'zap'),
-				new ScopeDefinition('site'), null, new OrderDefinition(singleton: true), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-
-			'route_generator' => new KeyDefinition(
-				new StorageDefinition('route_generator'),
-				new LabelDefinition('Route Generator',null,null,'zap'),
-				new ScopeDefinition('route'), null, new OrderDefinition(singleton: true), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-
-			'content_generator' => new KeyDefinition(
-				new StorageDefinition('content_generator'),
-				new LabelDefinition('Content Generator',null,null,'zap'),
-				new ScopeDefinition('content'), null, new OrderDefinition(singleton: true), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-
-			'menu_item_generator' => new KeyDefinition(
-				new StorageDefinition('menu_item_generator'),
-				new LabelDefinition('Menu Item Generator',null,null,'zap'),
-				new ScopeDefinition('menu_item'), null, new OrderDefinition(singleton: true), [
-					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'),
-						'string', true, true, [], true
-					),
-				],
-				SummaryDefinition::parseSegments('{slug}')
-			),
-		], $this->fieldTypes);
-	}
+                'menu_item_generator' => new KeyDefinition(
+                    new StorageDefinition('menu_item_generator'),
+                    new LabelDefinition('Menu Item Generator', null, null, 'zap'),
+                    new ScopeDefinition('menu_item'), null, new OrderDefinition(singleton: true), [
+                        'slug' => new FieldDefinition(
+                            new LabelDefinition('Slug'),
+                            'string', true, true, [], true
+                        ),
+                    ],
+                    SummaryDefinition::parseSegments('{slug}')
+                ),
+            ], $this->fieldTypes);
+    }
 }

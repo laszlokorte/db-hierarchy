@@ -3,21 +3,15 @@
 namespace App\Form\Type;
 
 use App\Form\Type\Nesting\NestingType;
-
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
-
-use Symfony\Component\Validator\Constraints\NotBlank;
-
-use Symfony\Component\Form\Extension\Core\Type;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
-
+use App\Hierarchy\Storage\Relational\StorageConnection;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class CreateNodeType extends AbstractType
 {
@@ -27,16 +21,13 @@ class CreateNodeType extends AbstractType
 
         $movementService = $options['storageConnection']->getMovementService();
 
-
-
-        if($key->isScoped() || $key->isReflexive()) {
-
-            if(!$key->isScoped()) {
-                $label = 'Parent ' . $key->getLabel()->getSingular();
-            } elseif(!$key->isReflexive() ) {
+        if ($key->isScoped() || $key->isReflexive()) {
+            if (!$key->isScoped()) {
+                $label = 'Parent '.$key->getLabel()->getSingular();
+            } elseif (!$key->isReflexive()) {
                 $label = $key->getScopeKey()->getLabel()->getSingular();
             } else {
-                $label = 'Parent ' . $key->getScopeKey()->getLabel()->getSingular() . '/' . $key->getLabel()->getSingular();
+                $label = 'Parent '.$key->getScopeKey()->getLabel()->getSingular().'/'.$key->getLabel()->getSingular();
             }
             $builder
             ->add('_nesting', NestingType::class, [
@@ -62,26 +53,25 @@ class CreateNodeType extends AbstractType
             'label' => false,
         ]);
 
-        if($key->isSingleton()) {
+        if ($key->isSingleton()) {
             $buttons
             ->add('create', Type\SubmitType::class, [
                 'label' => 'Save',
-                'attr' => ['class' => 'form-button primary']
+                'attr' => ['class' => 'form-button primary'],
             ])
             ->add('create_stay', Type\SubmitType::class, [
                 'label' => 'Save (stay here)',
-                'attr' => ['class' => 'form-button']
+                'attr' => ['class' => 'form-button'],
             ]);
-
         } else {
             $buttons
             ->add('create', Type\SubmitType::class, [
                 'label' => 'Create',
-                'attr' => ['class' => 'form-button primary']
+                'attr' => ['class' => 'form-button primary'],
             ])
             ->add('create_stay', Type\SubmitType::class, [
                 'label' => 'Create (stay here)',
-                'attr' => ['class' => 'form-button']
+                'attr' => ['class' => 'form-button'],
             ]);
         }
 

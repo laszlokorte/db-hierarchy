@@ -4,59 +4,64 @@ namespace App\Hierarchy\Data;
 
 use App\Hierarchy\Schema\Key;
 
-use RecursiveIterator;
+class MultiTreeOuterIterator implements \RecursiveIterator
+{
+    private MultiTree $tree;
 
-class MultiTreeOuterIterator implements RecursiveIterator {
+    private $key;
+    private $depth;
 
-	private MultiTree $tree;
+    private $scopes;
 
-	private $key;
-	private $depth;
+    public function __construct(MultiTree $tree, Key $key, $depth)
+    {
+        $this->tree = $tree;
+        $this->key = $key;
+        $this->depth = $depth;
+    }
 
-	private $scopes;
+    public function getChildren(): ?\RecursiveIterator
+    {
+        return new MultiTreeIterator(
+            $this->tree,
+            $this->key,
+            current($this->scopes),
+            null,
+            $this->depth + 1
+        );
+    }
 
-	public function __construct(MultiTree $tree, Key $key, $depth) {
-		$this->tree = $tree;
-		$this->key = $key;
-		$this->depth = $depth;
-	}
+    public function hasChildren(): bool
+    {
+        return $this->tree->hasNodes($this->key->getId(), current($this->scopes), null);
+    }
 
-	public function getChildren() : ?RecursiveIterator {
-		return new MultiTreeIterator(
-			$this->tree,
-			$this->key,
-			current($this->scopes),
-			null,
-			$this->depth+1
-		);
-	}
+    public function current(): mixed
+    {
+        return current($this->scopes);
+    }
 
-	public function hasChildren(): bool {
-		return $this->tree->hasNodes($this->key->getId(), current($this->scopes), null);
-	}
+    public function key(): mixed
+    {
+        $currentNode = current($this->scopes);
 
-	public function current() : mixed {
-		return current($this->scopes);
-	}
+        return key($this->scopes);
+    }
 
-	public function key() : mixed {
-		$currentNode = current($this->scopes);
-		
-		return key($this->scopes);
-	}
+    public function next(): void
+    {
+        array_shift($this->scopes);
+        ++$this->i;
+    }
 
-	public function next() : void {
-		array_shift($this->scopes);
-		$this->i++;
-	}
+    public function rewind(): void
+    {
+        $this->i = 0;
+        $this->scopes = $this->tree->getScopes($this->key->getId());
+    }
 
-	public function rewind() : void {
-		$this->i = 0;
-		$this->scopes = $this->tree->getScopes($this->key->getId());
-	}
-
-	public function valid() : bool {
-		return !empty($this->scopes);
-	}
-
+    public function valid(): bool
+    {
+        return !empty($this->scopes);
+    }
 }

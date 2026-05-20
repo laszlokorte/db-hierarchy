@@ -4,16 +4,16 @@ namespace App\Util;
 
 use Doctrine\DBAL\Result;
 
-class ResultFetcher {
+class ResultFetcher
+{
+    public static function fetchGrouped(Result $result)
+    {
+        $data = [];
 
-	public static function fetchGrouped(Result $result) {
-		$data = [];
+        foreach ($result->fetchAllAssociative() as $row) {
+            $data[array_shift($row)][] = $row;
+        }
 
-	    foreach ($result->fetchAllAssociative() as $row) {
-	      $data[array_shift($row)][] = $row;
-	    }
-
-	    return $data;
-	}
-	
+        return $data;
+    }
 }

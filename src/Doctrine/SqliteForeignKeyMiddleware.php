@@ -3,8 +3,8 @@
 namespace App\Doctrine;
 
 use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Driver\Middleware;
 use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Driver\Middleware;
 
 final class SqliteForeignKeyMiddleware implements Middleware
 {
@@ -31,12 +31,12 @@ final class SqliteForeignKeyMiddleware implements Middleware
             }
 
             public function getDatabasePlatform(
-                \Doctrine\DBAL\ServerVersionProvider $versionProvider
+                \Doctrine\DBAL\ServerVersionProvider $versionProvider,
             ): \Doctrine\DBAL\Platforms\AbstractPlatform {
                 return $this->driver->getDatabasePlatform($versionProvider);
             }
 
-            public function getExceptionConverter(): \Doctrine\DBAL\Driver\API\ExceptionConverter
+            public function getExceptionConverter(): Driver\API\ExceptionConverter
             {
                 return $this->driver->getExceptionConverter();
             }

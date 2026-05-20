@@ -4,6 +4,6 @@ namespace App\Hierarchy\Storage\Relational\Algebra\Operator\Function;
 
 use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
 
-class Hex implements FunctionInterface {
-	
+class Hex implements FunctionInterface
+{
 }

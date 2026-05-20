@@ -2,191 +2,181 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
-use App\Hierarchy\Data\MultiTree;
-use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
-
-use App\Hierarchy\Schema\Definition\SchemaDefinition;
-use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
-use App\Hierarchy\Storage\Relational\ColumnCoder;
-
 use App\Hierarchy\Changeset\Movement;
 use App\Hierarchy\Data;
-
+use App\Hierarchy\Data\MultiTree;
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Util\ResultFetcher;
-
 use Doctrine\DBAL\Connection;
 
-class MovementService {
-	public function __construct(private SchemaDefinition $schemaDef, private MovementCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
+class MovementService
+{
+    public function __construct(private SchemaDefinition $schemaDef, private MovementCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder)
+    {
+    }
 
-	}
+    public function getFreshMovement(Data\Node $node): Movement
+    {
+        return new Movement(
+            $node->getKey(),
+            $node->getId(),
+            $node->getScope(),
+            $node->getParent(),
+            null
+        );
+    }
 
-	public function getFreshMovement(Data\Node $node): Movement {
-		return new Movement(
-			$node->getKey(),
-			$node->getId(),
-			$node->getScope(),
-			$node->getParent(),
-			null
-		);
-	}
+    public function getValidatedMovement(Data\Node $node, ?string $targetScopeId, ?string $targetParentId): Movement
+    {
+        // check target position
 
-	public function getValidatedMovement(Data\Node $node, ?string $targetScopeId, ?string $targetParentId): Movement {
-		// check target position
+        return new Movement(
+            $node->getKey(),
+            $node->getId(),
+            $targetScopeId,
+            $targetParentId,
+            []
+        );
+    }
 
-		return new Movement(
-			$node->getKey(),
-			$node->getId(),
-			$targetScopeId,
-			$targetParentId,
-			[]
-		);
-	}
+    public function findNodeMoveTargets(string $keyId, ?string $nodeId): MultiTree
+    {
+        $groupedRows = [];
 
-	public function findNodeMoveTargets(string $keyId, ?string $nodeId): MultiTree {
-		$groupedRows = [];
+        if ($this->schemaDef->isKeyReflexive($keyId)) {
+            $idParam = new Parameter('_id');
+            $select = $this->commandBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
 
-		if($this->schemaDef->isKeyReflexive($keyId)) {
-			$idParam = new Parameter('_id');
-			$select = $this->commandBuilder->getSelectForFindHierarchyCousins($keyId, $idParam);
+            $stmt = $this->connection->prepare($this->dialect->selectToString($select));
+            $stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
+            $stmtResult = $stmt->executeQuery();
 
+            $groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
+        }
 
-			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$stmtResult = $stmt->executeQuery();
+        if ($this->schemaDef->isKeyScoped($keyId)) {
+            $scope = $this->schemaDef->getKeyScopeId($keyId);
 
+            $select = $this->commandBuilder->getSelectForFindHierarchy($scope, null, null);
 
-			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
-		}
+            $stmt = $this->connection->prepare($this->dialect->selectToString($select));
+            $stmtResult = $stmt->executeQuery();
 
-		if($this->schemaDef->isKeyScoped($keyId)) {
-			$scope = $this->schemaDef->getKeyScopeId($keyId);
+            $groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
+        }
 
-			$select = $this->commandBuilder->getSelectForFindHierarchy($scope, null, null);
+        return new MultiTree(
+            $groupedRows
+        );
+    }
 
+    public function moveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId): void
+    {
+        $idParam = new Parameter('_id');
+        $scopeParam = new Parameter('_scope');
+        $parentParam = new Parameter('_parent');
 
-			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmtResult = $stmt->executeQuery();
+        if ($this->schemaDef->isKeyScoped($keyId) === empty($targetScopeId)) {
+            throw new \Exception('missing parent');
+        }
 
+        if (!$this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
+            throw new \Exception($targetParentId);
+        }
 
-			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
+        $this->connection->beginTransaction();
 
+        if (!empty($targetScopeId) && !empty($targetParentId)) {
+            $selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
 
-		}
+            $validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
-		return new Data\MultiTree(
-			$groupedRows
-		);
-	}
+            $validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
+            $validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
+            $stmtResult = $validPositionStmt->executeQuery();
 
-	public function moveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId): void {
-		$idParam = new Parameter('_id');
-		$scopeParam = new Parameter('_scope');
-		$parentParam = new Parameter('_parent');
+            if (!$stmtResult->fetchOne()) {
+                throw new \Exception('invalid position');
+            }
+        }
 
-		if($this->schemaDef->isKeyScoped($keyId) === empty($targetScopeId)) {
-			throw new \Exception("missing parent");
-		}
+        if ($this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
+            $selectMoveTargetValid = $this->commandBuilder->getSelectForMoveTargetValid($keyId, $idParam, $parentParam);
 
-		if(!$this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
-			throw new \Exception($targetParentId);
-		}
+            $checkCycleStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetValid));
 
-		$this->connection->beginTransaction();
+            $checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+            $checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
+            $stmtResult = $checkCycleStmt->executeQuery();
 
-		if(!empty($targetScopeId) && !empty($targetParentId)) {
-			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
+            if ($stmtResult->fetchOne()) {
+                throw new \Exception('invalid position');
+            }
+        }
 
-			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
+        if ($this->schemaDef->isKeyReflexive($keyId)) {
+            $deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
 
-			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$stmtResult = $validPositionStmt->executeQuery();
+            $deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
 
-			if(!$stmtResult->fetchOne()) {
-				throw new \Exception("invalid position");
-			}
-		}
+            $deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+            $deleteClosureParentsStmt->executeQuery();
+        }
 
-		if($this->schemaDef->isKeyReflexive($keyId) && !empty($targetParentId)) {
-			$selectMoveTargetValid = $this->commandBuilder->getSelectForMoveTargetValid($keyId, $idParam, $parentParam);
+        if ($this->schemaDef->isKeyScoped($keyId)) {
+            if ($this->schemaDef->isKeyReflexive($keyId)) {
+                $updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam);
 
-			$checkCycleStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetValid));
+                $updateClosureScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureScope));
 
-			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$stmtResult = $checkCycleStmt->executeQuery();
+                $updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+                $updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
+                $updateClosureScopeStmt->executeQuery();
 
-			if($stmtResult->fetchOne()) {
-				throw new \Exception("invalid position");
-			}
-		}
+                $updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam);
 
+                $updateClosureParentsStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureParents));
 
-		if($this->schemaDef->isKeyReflexive($keyId)) {
-			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
+                $updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+                $updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
+                $updateClosureParentsStmt->executeQuery();
+            } else {
+                $updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
 
-			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
+                $updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
 
-			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$deleteClosureParentsStmt->executeQuery();
-		}
+                $updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+                $updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
+                $updateOwnScopeStmt->executeQuery();
+            }
+        }
 
-		if($this->schemaDef->isKeyScoped($keyId)) {
+        if ($this->schemaDef->isKeyReflexive($keyId)) {
+            $deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
 
+            $deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
 
-			if($this->schemaDef->isKeyReflexive($keyId)) {
-				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam);
+            $deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+            $deleteClosureParentsStmt->executeQuery();
 
-				$updateClosureScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureScope));
+            if ($targetParentId !== $nodeId) {
+                $insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam);
 
-				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				$updateClosureScopeStmt->executeQuery();
+                $insertClosureParentsStmt = $this->connection->prepare($this->dialect->insertToString($insertClosureParents));
 
-				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam);
+                $insertClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+                $insertClosureParentsStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
+                if ($this->schemaDef->isKeyScoped($keyId)) {
+                    $insertClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
+                }
 
-				$updateClosureParentsStmt = $this->connection->prepare($this->dialect->updateToString($updateClosureParents));
+                $insertClosureParentsStmt->executeQuery();
+            }
+        }
 
-				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				$updateClosureParentsStmt->executeQuery();
-			} else {
-				$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
-
-				$updateOwnScopeStmt = $this->connection->prepare($this->dialect->updateToString($updateOwnScope));
-
-				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				$updateOwnScopeStmt->executeQuery();
-			}
-		}
-
-		if($this->schemaDef->isKeyReflexive($keyId)) {
-			$deleteClosureParents = $this->commandBuilder->getDeleteForMoveClosureOldParents($keyId, $idParam);
-
-			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
-
-			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$deleteClosureParentsStmt->executeQuery();
-
-
-			if($targetParentId !== $nodeId) {
-				$insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam);
-
-				$insertClosureParentsStmt = $this->connection->prepare($this->dialect->insertToString($insertClosureParents));
-
-				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-				$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-				if($this->schemaDef->isKeyScoped($keyId)) {
-					$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				}
-
-				$insertClosureParentsStmt->executeQuery();
-			}
-
-		}
-
-		$this->connection->commit();
-	}
+        $this->connection->commit();
+    }
 }

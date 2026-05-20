@@ -3,18 +3,14 @@
 namespace App\Form\Type;
 
 use App\Form\Type\Order\PositionType;
-
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
-
-use Symfony\Component\Form\Extension\Core\Type;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
 use App\Hierarchy\Schema\Key;
+use App\Hierarchy\Storage\Relational\StorageConnection;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class OrderNodeType extends AbstractType
 {
@@ -23,7 +19,6 @@ class OrderNodeType extends AbstractType
         $key = $options['key'];
         $storageConnection = $options['storageConnection'];
         $nodeId = $options['nodeId'];
-
 
         $builder->add('new_position', PositionType::class, [
             'label' => 'New Position',
@@ -36,8 +31,8 @@ class OrderNodeType extends AbstractType
 
         $buttons
             ->add('move', Type\SubmitType::class, [
-                'label' => 'Reorder', 
-                'attr' => ['class' => 'form-button primary']
+                'label' => 'Reorder',
+                'attr' => ['class' => 'form-button primary'],
             ]);
 
         $builder->add($buttons);
@@ -53,12 +48,11 @@ class OrderNodeType extends AbstractType
         $resolver->setAllowedTypes('nodeId', 'string');
 
         $resolver->setDefaults([
-            'csrf_token_id'   => 'hierarchy_order',
+            'csrf_token_id' => 'hierarchy_order',
         ]);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
     }
-    
 }

@@ -2,72 +2,69 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
-use App\Hierarchy\Schema\Definition\SchemaDefinition;
-use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
-use App\Hierarchy\Storage\Relational\ColumnCoder;
-
 use App\Hierarchy\Changeset\Ordering;
 use App\Hierarchy\Data\Node;
-
+use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
-
+use App\Hierarchy\Storage\Relational\ColumnCoder;
+use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 
-class OrderingService {
-	public function __construct(private SchemaDefinition $schemaDef, private OrderingCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder, private QueryService $queryService) {
+class OrderingService
+{
+    public function __construct(private SchemaDefinition $schemaDef, private OrderingCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder, private QueryService $queryService)
+    {
+    }
 
-	}
+    public function getFreshOrdering(Node $node): Ordering
+    {
+        return new Ordering(
+            $node->getKey(),
+            $node->getId(),
+            $node->getOrder(),
+            null
+        );
+    }
 
-	public function getFreshOrdering(Node $node): Ordering {
-		return new Ordering(
-			$node->getKey(),
-			$node->getId(),
-			$node->getOrder(),
-			null
-		);
-	}
-    /**
-     * @param mixed $targetPosition
-     */
-    public function getValidatedOrdering(Node $node, $targetPosition): Ordering {
-		$scopeId = null;
-		$parentId = null;
+    public function getValidatedOrdering(Node $node, $targetPosition): Ordering
+    {
+        $scopeId = null;
+        $parentId = null;
 
-		// check order
+        // check order
 
-		return new Ordering(
-			$node->getKey(),
-			$node->getId(),
-			$targetPosition,
-			[]
-		);
-	}
+        return new Ordering(
+            $node->getKey(),
+            $node->getId(),
+            $targetPosition,
+            []
+        );
+    }
 
-	public function findNodeSiblings(string $keyId, string $nodeId) :array {
-		return $this->queryService->findNodeSiblings($keyId, $nodeId);
-	}
-    /**
-     * @param mixed $nodeId
-     * @param mixed $targetPosition
-     */
-    public function orderNode(string $keyId, $nodeId, $targetPosition): void {
-		$idParam = new Parameter('_id');
-		$orderParam = new Parameter('_order');
+    public function findNodeSiblings(string $keyId, string $nodeId): array
+    {
+        return $this->queryService->findNodeSiblings($keyId, $nodeId);
+    }
 
-		if(empty($targetPosition)) {
-			throw new \Exception("target position must not be empty");
-		}
+    public function orderNode(string $keyId, $nodeId, $targetPosition): void
+    {
+        $idParam = new Parameter('_id');
+        $orderParam = new Parameter('_order');
 
-		$update = $this->commandBuilder->getUpdateforReorderNode($keyId, $idParam, $orderParam);
+        if (empty($targetPosition)) {
+            throw new \Exception('target position must not be empty');
+        }
 
-		$this->connection->beginTransaction();
-		$stmt = $this->connection->prepare($this->dialect->updateToString($update));
-		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, ParameterType::INTEGER);
+        $update = $this->commandBuilder->getUpdateforReorderNode($keyId, $idParam, $orderParam);
 
-		$stmt->executeQuery();
+        $this->connection->beginTransaction();
+        $stmt = $this->connection->prepare($this->dialect->updateToString($update));
+        $stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
+        $stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, ParameterType::INTEGER);
 
-		$this->connection->commit();
-	}
+        $stmt->executeQuery();
+
+        $this->connection->commit();
+    }
 }

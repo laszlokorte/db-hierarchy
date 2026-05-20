@@ -2,21 +2,22 @@
 
 namespace App\Security;
 
+use Doctrine\DBAL\Connection;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\DBAL\Connection;
 /**
  * @implements UserProviderInterface<UserInterface>
  */
 class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    public function __construct(private Connection $connection, private UserPasswordHasherInterface $hasher) {
+    public function __construct(private Connection $connection, private UserPasswordHasherInterface $hasher)
+    {
     }
 
     /**
@@ -33,7 +34,7 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
         $result = $stmt->executeQuery();
         $password = $result->fetchOne();
 
-        if($password) {
+        if ($password) {
             return new HierarchyAccountUser($identifier, $password);
         }
 
@@ -50,10 +51,8 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
      *
      * If your firewall is "stateless: true" (for a pure API), this
      * method is not called.
-     *
-     * @return UserInterface
      */
-    public function refreshUser(UserInterface $user) : UserInterface
+    public function refreshUser(UserInterface $user): UserInterface
     {
         if (!$user instanceof HierarchyAccountUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
@@ -65,7 +64,7 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
         $result = $stmt->executeQuery();
         $password = $result->fetchOne();
 
-        if(!$password) {
+        if (!$password) {
             throw new UserNotFoundException();
         }
 

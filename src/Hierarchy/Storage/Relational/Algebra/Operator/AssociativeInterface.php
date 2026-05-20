@@ -2,5 +2,6 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Operator;
 
-interface AssociativeInterface {
+interface AssociativeInterface
+{
 }

@@ -2,6 +2,6 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Aggregation;
 
-class Average implements AggregationInterface {
-	
+class Average implements AggregationInterface
+{
 }

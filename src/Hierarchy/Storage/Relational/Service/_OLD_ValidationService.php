@@ -3,268 +3,269 @@
 namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Data\Validation;
-
-use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
-use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
-
+use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 
-class ValidationServer {
-	public function __construct(
-		private SchemaDefinition $schemaDef,
-		private ValidationCommandBuilder $commandBuilder,
-		private Connection $connection,
-		private DialectInterface $dialect
-	) {
+class ValidationServer
+{
+    public function __construct(
+        private SchemaDefinition $schemaDef,
+        private ValidationCommandBuilder $commandBuilder,
+        private Connection $connection,
+        private DialectInterface $dialect,
+    ) {
+    }
 
-	}
+    public function validateCreateNode(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId)
+    {
+        $errors = [];
 
-	public function validateCreateNode(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
+        $this->validateRequiredField($errors, $keyId, $fieldData);
+        $this->validateNodePosition($errors, $keyId, $scopeId, $parentId);
+        $this->validateUniquenessForNew($errors, $keyId, $fieldData, $scopeId, $parentId);
 
-		$errors = [];
+        return new Validation(
+            $keyId,
+            null,
+            $fieldData,
+            $errors,
+            $scopeId,
+            $parentId
+        );
+    }
 
-		$this->validateRequiredField($errors, $keyId, $fieldData);
-		$this->validateNodePosition($errors, $keyId, $scopeId, $parentId);
-		$this->validateUniquenessForNew($errors, $keyId, $fieldData, $scopeId, $parentId);
+    private function validateRequiredField(&$errors, $keyId, $fieldData)
+    {
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            if (!$this->schemaDef->isKeyFieldRequired($keyId, $fieldId)) {
+                continue;
+            }
 
+            $fieldsToCheck[$fieldId] = [];
+            $valuesToCheck[$fieldId] = [];
 
-		return new Validation(
-			$keyId,
-			null,
-			$fieldData,
-			$errors,
-			$scopeId,
-			$parentId
-		);
-	}
+            $columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-	private function validateRequiredField(&$errors, $keyId, $fieldData) {
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			if(!$this->schemaDef->isKeyFieldRequired($keyId,  $fieldId)) {
-				continue;
-			}
+            if (empty(array_filter($columnData, fn ($d) => '' !== $d && null !== $d))) {
+                $errors[$fieldId][] = 'is required';
+            }
+        }
+    }
 
-			$fieldsToCheck[$fieldId] = [];
-			$valuesToCheck[$fieldId] = [];
+    private function validateNodePosition(array &$errors, string $keyId, ?string $scopeId, ?string $parentId)
+    {
+        if ($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
+            $errors['_scope'][] = 'missing scope';
+        }
 
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+        if (!$this->schemaDef->isKeyReflexive($keyId) && !empty($parentId)) {
+            $errors['_parent'][] = 'parent id not expected';
+        }
 
-			if(empty(array_filter($columnData, fn($d) => $d !== '' && $d !== null))) {
-				$errors[$fieldId][] = 'is required';
-			}
-		}
-	}
+        $scopeParam = new Parameter('_scope');
+        $parentParam = new Parameter('_parent');
 
-	private function validateNodePosition(array &$errors, string $keyId, ?string $scopeId, ?string $parentId) {
-		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
-			$errors['_scope'][] = 'missing scope';
-		}
+        if (!empty($scopeId) && !empty($parentId)) {
+            $selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
 
-		if(!$this->schemaDef->isKeyReflexive($keyId) && !empty($parentId)) {
-			$errors['_parent'][] = 'parent id not expected';
-		}
+            $validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
-		$scopeParam = new Parameter('_scope');
-		$parentParam = new Parameter('_parent');
+            $validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, ParameterType::INTEGER);
+            $validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, ParameterType::INTEGER);
+            $stmtResult = $validPositionStmt->executeQuery();
 
+            if (!$stmtResult->fetchOne()) {
+                $errors['_parent'][] = 'parent and scope not matching';
+            }
+        }
+    }
 
-		if(!empty($scopeId) && !empty($parentId)) {
-			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
+    private function validateUniquenessForNew(&$errors, $keyId, $fieldData, $scopeId, $parentId)
+    {
+        $scopeParam = new Parameter('_scope');
+        $parentParam = new Parameter('_parent');
 
-			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
+        $fieldsToCheck = [];
+        $valuesToCheck = [];
 
-			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, ParameterType::INTEGER);
-			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, ParameterType::INTEGER);
-			$stmtResult = $validPositionStmt->executeQuery();
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            if (!$this->schemaDef->isKeyFieldUnique($keyId, $fieldId)) {
+                continue;
+            }
+            $columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-			if(!$stmtResult->fetchOne()) {
-				$errors['_parent'][] = 'parent and scope not matching';
-			}
-		}
-	}
+            if (empty(array_filter($columnData))) {
+                continue;
+            }
 
-	private function validateUniquenessForNew(&$errors, $keyId, $fieldData, $scopeId, $parentId) {
+            $fieldsToCheck[$fieldId] = [];
+            $valuesToCheck[$fieldId] = [];
 
-		$scopeParam = new Parameter('_scope');
-		$parentParam = new Parameter('_parent');
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $ci => $column) {
+                $fieldsToCheck[$fieldId][] = new Parameter($column->getName());
+                $valuesToCheck[$fieldId][] = $columnData[$ci];
+            }
+        }
 
-		$fieldsToCheck = [];
-		$valuesToCheck = [];
+        $select = $this->commandBuilder->getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck);
+        $stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			if(!$this->schemaDef->isKeyFieldUnique($keyId,  $fieldId)) {
-				continue;
-			}
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+        if ($this->schemaDef->isKeyScoped($keyId)) {
+            $stmt->bindValue(
+                $this->dialect->parameterToString($scopeParam),
+                $scopeId, ParameterType::INTEGER
+            );
+        }
 
-			if(empty(array_filter($columnData))) {
-				continue;
-			}
+        if ($this->schemaDef->isKeyReflexive($keyId)) {
+            $stmt->bindValue(
+                $this->dialect->parameterToString($parentParam),
+                $parentId, ParameterType::INTEGER
+            );
+        }
 
-			$fieldsToCheck[$fieldId] = [];
-			$valuesToCheck[$fieldId] = [];
+        foreach ($fieldsToCheck as $fieldId => $params) {
+            foreach ($params as $i => $param) {
+                $stmt->bindValue(
+                    $this->dialect->parameterToString($param),
+                    $valuesToCheck[$fieldId][$i]
+                );
+            }
+        }
 
+        $stmtResult = $stmt->executeQuery();
+        $result = $stmtResult->fetchAssociative();
 
-			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
-				$fieldsToCheck[$fieldId][] = new Parameter($column->getName());
-				$valuesToCheck[$fieldId][] = $columnData[$ci];
-			}
-		}
+        if ($result) {
+            foreach ($fieldsToCheck as $fieldId => $params) {
+                if ($result[$fieldId]) {
+                    $errors[$fieldId][] = 'not unique';
+                }
+            }
+        }
+    }
 
-		$select = $this->commandBuilder->getSelectForUniquenessCheckNew($keyId, $scopeParam, $parentParam, $fieldsToCheck);
-		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+    public function validateUpdateNode(string $keyId, string $nodeId, array $fieldData)
+    {
+        // check empty fields
+        // check unique fields != self
+        $errors = [];
 
-    	if($this->schemaDef->isKeyScoped($keyId)) {
-			$stmt->bindValue(
-				$this->dialect->parameterToString($scopeParam),
-				$scopeId, ParameterType::INTEGER
-			);
-		}
+        $this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
+        $this->validateRequiredField($errors, $keyId, $fieldData);
 
-    	if($this->schemaDef->isKeyReflexive($keyId)) {
-			$stmt->bindValue(
-				$this->dialect->parameterToString($parentParam),
-				$parentId, ParameterType::INTEGER
-			);
-		}
+        return new Validation(
+            $keyId,
+            $nodeId,
+            $fieldData,
+            $errors,
+        );
+    }
 
-		foreach ($fieldsToCheck as $fieldId => $params) {
-			foreach($params AS $i => $param) {
-				$stmt->bindValue(
-					$this->dialect->parameterToString($param),
-					$valuesToCheck[$fieldId][$i]
-				);
-			}
-		}
+    private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData)
+    {
+        $idParam = new Parameter('_id');
 
-		$stmtResult = $stmt->executeQuery();
-		$result = $stmtResult->fetchAssociative();
+        $fieldsToCheck = [];
+        $valuesToCheck = [];
 
-		if($result) {
-			foreach ($fieldsToCheck as $fieldId => $params) {
-				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique';
-				}
-			}
-		}
-	}
+        foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            if (!$this->schemaDef->isKeyFieldUnique($keyId, $fieldId)) {
+                continue;
+            }
 
-	public function validateUpdateNode(string $keyId, string $nodeId, array $fieldData) {
-		// check empty fields
-		// check unique fields != self
-		$errors = [];
+            $columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
 
-		$this->validateUniquenessForEdit($errors, $keyId, $nodeId, $fieldData);
-		$this->validateRequiredField($errors, $keyId, $fieldData);
+            if (empty(array_filter($columnData))) {
+                continue;
+            }
 
-		return new Validation(
-			$keyId,
-			$nodeId,
-			$fieldData,
-			$errors,
-		);
-	}
+            $fieldsToCheck[$fieldId] = [];
+            $valuesToCheck[$fieldId] = [];
 
-	private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData) {
+            foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $ci => $column) {
+                $fieldsToCheck[$fieldId][] = new Parameter($column->getName());
+                $valuesToCheck[$fieldId][] = $columnData[$ci];
+            }
+        }
 
-		$idParam = new Parameter('_id');
+        $select = $this->commandBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
+        $stmt = $this->connection->prepare($this->dialect->selectToString($select));
 
-		$fieldsToCheck = [];
-		$valuesToCheck = [];
+        $stmt->bindValue(
+            $this->dialect->parameterToString($idParam),
+            $nodeId, ParameterType::INTEGER
+        );
 
-		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
-			if(!$this->schemaDef->isKeyFieldUnique($keyId,  $fieldId)) {
-				continue;
-			}
+        foreach ($fieldsToCheck as $fieldId => $params) {
+            foreach ($params as $i => $param) {
+                $stmt->bindValue(
+                    $this->dialect->parameterToString($param),
+                    $valuesToCheck[$fieldId][$i]
+                );
+            }
+        }
 
-			$columnData = $this->schemaDef->convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData[$fieldId] ?? null);
+        $stmtResult = $stmt->executeQuery();
+        $result = $stmtResult->fetchAssociative();
 
-			if(empty(array_filter($columnData))) {
-				continue;
-			}
+        if ($result) {
+            foreach ($fieldsToCheck as $fieldId => $params) {
+                if ($result[$fieldId]) {
+                    $errors[$fieldId][] = 'not unique';
+                }
+            }
+        }
+    }
 
-			$fieldsToCheck[$fieldId] = [];
-			$valuesToCheck[$fieldId] = [];
+    public function validateMoveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId)
+    {
+        // check target position
 
-			foreach($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) AS $ci => $column) {
-				$fieldsToCheck[$fieldId][] = new Parameter($column->getName());
-				$valuesToCheck[$fieldId][] = $columnData[$ci];
-			}
-		}
+        return new Validation(
+            $keyId,
+            $nodeId,
+            null,
+            [],
+            $targetScopeId,
+            $targetParentId
+        );
+    }
 
-		$select = $this->commandBuilder->getSelectForUniquenessCheckEdit($keyId, $idParam, $fieldsToCheck);
-		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
+    public function validateDeleteNode(string $keyId, string $nodeId)
+    {
+        $scopeId = null;
+        $parentId = null;
 
-    	$stmt->bindValue(
-			$this->dialect->parameterToString($idParam),
-			$nodeId, ParameterType::INTEGER
-		);
+        // check deletion plan
 
-		foreach ($fieldsToCheck as $fieldId => $params) {
-			foreach($params AS $i => $param) {
-				$stmt->bindValue(
-					$this->dialect->parameterToString($param),
-					$valuesToCheck[$fieldId][$i]
-				);
-			}
-		}
+        return new Validation(
+            $keyId,
+            $nodeId,
+            null,
+            [],
+            $scopeId,
+            $parentId
+        );
+    }
 
-		$stmtResult = $stmt->executeQuery();
-		$result = $stmtResult->fetchAssociative();
+    public function validateOrderNode(string $keyId, string $nodeId, $targetPosition)
+    {
+        $scopeId = null;
+        $parentId = null;
 
-		if($result) {
-			foreach ($fieldsToCheck as $fieldId => $params) {
-				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique';
-				}
-			}
-		}
-	}
+        // check order
 
-	public function validateMoveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId) {
-		// check target position
-
-		return new Validation(
-			$keyId,
-			$nodeId,
-			null,
-			[],
-			$targetScopeId,
-			$targetParentId
-		);
-	}
-
-	public function validateDeleteNode(string $keyId, string $nodeId) {
-		$scopeId = null;
-		$parentId = null;
-
-		// check deletion plan
-
-		return new Validation(
-			$keyId,
-			$nodeId,
-			null,
-			[],
-			$scopeId,
-			$parentId
-		);
-	}
-
-	public function validateOrderNode(string $keyId, string $nodeId, $targetPosition) {
-		$scopeId = null;
-		$parentId = null;
-
-		// check order
-
-		return new Validation(
-			$keyId,
-			$nodeId,
-			null,
-			[],
-			$scopeId,
-			$parentId
-		);
-	}
+        return new Validation(
+            $keyId,
+            $nodeId,
+            null,
+            [],
+            $scopeId,
+            $parentId
+        );
+    }
 }

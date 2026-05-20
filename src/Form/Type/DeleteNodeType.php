@@ -2,18 +2,15 @@
 
 namespace App\Form\Type;
 
+use App\Hierarchy\Schema\Key;
+use App\Hierarchy\Storage\Relational\StorageConnection;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\Extension\Core\Type\FormType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-
-use App\Hierarchy\Storage\Relational\StorageConnection;
-use App\Hierarchy\Schema\Key;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class DeleteNodeType extends AbstractType
 {
@@ -23,8 +20,8 @@ class DeleteNodeType extends AbstractType
 
         $buttons
             ->add('delete', SubmitType::class, [
-                'label' => 'Yes, Delete!', 
-                'attr' => ['class' => 'action-button danger']
+                'label' => 'Yes, Delete!',
+                'attr' => ['class' => 'action-button danger'],
             ]);
 
         $builder
@@ -36,14 +33,13 @@ class DeleteNodeType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-    	$resolver->setRequired('key');
-    	$resolver->setAllowedTypes('key', Key::class);
-    	$resolver->setRequired('storageConnection');
-    	$resolver->setAllowedTypes('storageConnection', StorageConnection::class);
+        $resolver->setRequired('key');
+        $resolver->setAllowedTypes('key', Key::class);
+        $resolver->setRequired('storageConnection');
+        $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
     }
-    
 }

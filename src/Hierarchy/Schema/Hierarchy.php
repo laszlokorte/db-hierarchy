@@ -4,47 +4,56 @@ namespace App\Hierarchy\Schema;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 
-class Hierarchy {
-	public function __construct(
-		private SchemaDefinition $def,
-		private string $slug
-	) {
-	}
+class Hierarchy
+{
+    public function __construct(
+        private SchemaDefinition $def,
+        private string $slug,
+    ) {
+    }
 
-	public function getLabel() {
-		return $this->def->getSchemaLabel();
-	}
+    public function getLabel()
+    {
+        return $this->def->getSchemaLabel();
+    }
 
-	public function hasKey(string $keyId) {
-		return $this->def->keyExists($keyId);
-	}
+    public function hasKey(string $keyId)
+    {
+        return $this->def->keyExists($keyId);
+    }
 
-	public function getKey(string $keyId) {
-		return new Key($this->def, $keyId);
-	}
+    public function getKey(string $keyId)
+    {
+        return new Key($this->def, $keyId);
+    }
 
-	public function getRootKeys() {
-		return array_map([$this, 'getKey'], $this->def->getRootScopeKeyIds());
-	}
+    public function getRootKeys()
+    {
+        return array_map([$this, 'getKey'], $this->def->getRootScopeKeyIds());
+    }
 
-	public function getAllKeys() {
-		return array_map([$this, 'getKey'], $this->def->getAllKeyIds());
-	}
+    public function getAllKeys()
+    {
+        return array_map([$this, 'getKey'], $this->def->getAllKeyIds());
+    }
 
-	public function getAllKeyIdsTopological() {
-		return $this->def->getAllKeyIdsTopological();
-	}
+    public function getAllKeyIdsTopological()
+    {
+        return $this->def->getAllKeyIdsTopological();
+    }
 
-	public function getAllHierarchies() {
-		return array_map([$this, 'getHierarchy'], $this->def->getAllKeyIdsTopological());
-	}
+    public function getAllHierarchies()
+    {
+        return array_map([$this, 'getHierarchy'], $this->def->getAllKeyIdsTopological());
+    }
 
-	public function getHierarchy($keyId) {
-		return new Hierarchy($this->def, $keyId);
-	}
+    public function getHierarchy($keyId)
+    {
+        return new Hierarchy($this->def, $keyId);
+    }
 
-	public function getSlug() {
-		return $this->slug;
-	}
-
+    public function getSlug()
+    {
+        return $this->slug;
+    }
 }

@@ -4,5 +4,6 @@ namespace App\Hierarchy\Storage\Relational\Algebra\Operator\Numeric;
 
 use App\Hierarchy\Storage\Relational\Algebra\Operator\BinaryInterface;
 
-class Subtraction implements BinaryInterface {
+class Subtraction implements BinaryInterface
+{
 }
