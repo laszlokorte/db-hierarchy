@@ -2,57 +2,42 @@
 
 namespace App\Hierarchy\Storage\Relational\Dialect;
 
-use App\Hierarchy\Storage\Relational\Algebra;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
-use App\Hierarchy\Storage\Relational\Algebra\Select;
-use App\Hierarchy\Storage\Relational\Algebra\Insert;
-use App\Hierarchy\Storage\Relational\Algebra\Update;
-use App\Hierarchy\Storage\Relational\Algebra\Setter;
-use App\Hierarchy\Storage\Relational\Algebra\Delete;
-use App\Hierarchy\Storage\Relational\Algebra\CreateView;
-use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\TableColumn;
 use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
-use App\Hierarchy\Storage\Relational\Algebra\Projection;
-use App\Hierarchy\Storage\Relational\Algebra\Join;
-use App\Hierarchy\Storage\Relational\Algebra\Order;
-use App\Hierarchy\Storage\Relational\Algebra\TableReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Value;
-use App\Hierarchy\Storage\Relational\Algebra\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator;
-use App\Hierarchy\Storage\Relational\Algebra\Windowing;
-use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 
 class Sqlite extends SqlBase implements DialectInterface {
 
-	
-	public function stringQueryViewNames() {
+
+	public function stringQueryViewNames() : string {
 		return "SELECT name FROM sqlite_schema WHERE type ='view'";
 	}
 
-	public function stringQueryTableNames() {
+	public function stringQueryTableNames() : string {
 		return "SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%'";
 	}
 
-	protected function foreignKeyToString(ForeignKey $fk) {
+	protected function foreignKeyToString(ForeignKey $fk) : string {
 		return parent::foreignKeyToString($fk) . ' DEFERRABLE INITIALLY DEFERRED';
 	}
 
-	protected function escapeIdentifier(Identifier $identifier) {
+	protected function escapeIdentifier(Identifier $identifier) : string {
 		return sprintf('"%s"', str_replace(['/','"'], '', $identifier->getString()));
 	}
 
-	protected function tablePrimaryColumnToString(TableColumn $column) {
+	protected function tablePrimaryColumnToString(TableColumn $column) : string {
 		return sprintf(
-			'PRIMARY KEY(%s%s)', 
+			'PRIMARY KEY(%s%s)',
 			$this->escapeIdentifier($column->getName()),
 			$column->isSerial() ? ' AUTOINCREMENT' : ''
 		);
 	}
 
-	protected function operatorSymbol($operator) {
+	protected function operatorSymbol($operator) : string {
 		switch(get_class($operator)) {
 			case Operator\Comparison\Equal::class:
 				if($operator->allowNull()) {
@@ -73,20 +58,20 @@ class Sqlite extends SqlBase implements DialectInterface {
 		}
 	}
 
-	protected function valueToString(ValueInterface $v) {
+	protected function valueToString(ValueInterface $v) : string {
 		switch(get_class($v)) {
 			case Value\DefaultValue::class:
 				return 'NULL';
 		}
-		
+
 		return parent::valueToString($v);
 	}
 
-	public function stringSwitchForeignKey($on) {
+	public function stringSwitchForeignKey(bool $on): ?string {
 		return sprintf('PRAGMA foreign_keys = %s;', $on ? 'On' : 'Off');
 	}
 
-	protected function dataTypeToString($type) {
+	protected function dataTypeToString($type) : string {
 		if($type === 'SERIAL') {
 			return 'INTEGER';
 		}
@@ -94,7 +79,7 @@ class Sqlite extends SqlBase implements DialectInterface {
 		return $type;
 	}
 
-	protected function functionToString(FunctionInterface $function) {
+	protected function functionToString(FunctionInterface $function) : string {
 		switch(get_class($function)) {
 			case Operator\Function\Unhex::class:
 				return '';

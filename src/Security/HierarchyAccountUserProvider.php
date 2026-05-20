@@ -29,7 +29,8 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
         $stmt = $this->connection->prepare('SELECT password FROM account WHERE login = :login');
-        $result = $stmt->execute(['login' => $identifier]);
+        $stmt->bindValue('login', $identifier);
+        $result = $stmt->executeQuery();
         $password = $result->fetchOne();
 
         if($password) {
@@ -59,7 +60,9 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
         }
 
         $stmt = $this->connection->prepare('SELECT password FROM account WHERE login = :login');
-        $result = $stmt->execute(['login' => $user->getUserIdentifier()]);
+
+        $stmt->bindValue('login', $user->getUserIdentifier());
+        $result = $stmt->executeQuery();
         $password = $result->fetchOne();
 
         if(!$password) {
@@ -83,7 +86,7 @@ class HierarchyAccountUserProvider implements UserProviderInterface, PasswordUpg
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
     {
         // $stmt = $this->connection->prepare('UPDATE account SET password = :password WHERE login = :login');
-        // $result = $stmt->execute(['login' => $user->getUserIdentifier(), 'password' => $newEncodedPassword]);
+        // $result = $stmt->executeQuery(['login' => $user->getUserIdentifier(), 'password' => $newEncodedPassword]);
         // $user->setPassword($newEncodedPassword);
     }
 }

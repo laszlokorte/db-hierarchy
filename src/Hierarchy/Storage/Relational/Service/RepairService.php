@@ -2,6 +2,7 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
+use App\Hierarchy\Data\Diagnostic;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
@@ -21,43 +22,53 @@ class RepairService {
 	public function __construct(private SchemaDefinition $schemaDef, private RepairCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder) {
 
 	}
-
-	public function findAllDefects() {
+    /**
+     * @return Diagnostic[]
+     */
+    public function findAllDefects(): array {
 		return array_map(fn($key) => $this->findDefectsForKeyInternal($key), $this->commandBuilder->getDiagnosableKeys());
 	}
 
-	public function findDefectsForKey(string $keyId) {
+	public function findDefectsForKey(string $keyId) : Diagnostic {
 		$result = $this->findDefectsForKeyInternal($keyId);
 
     	return $result;
 	}
-
-	private function findDefectsForKeyInternal(string $keyId) {
+    /**
+     * @return Diagnostic
+     */
+    private function findDefectsForKeyInternal(string $keyId): Diagnostic {
 		$rows = [];
 		$columns = [];
 		foreach($this->commandBuilder->getDiagnosisQueriesForKey($keyId) AS $name => $select) {
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmtResult = $stmt->execute();
-			$rows[$name] = $stmtResult->fetchAll();
+			$stmtResult = $stmt->executeQuery();
+			$rows[$name] = $stmtResult->fetchAllAssociative();
 			$columns[$name] = $this->extractColumnNamesFromSelect($select);
 		}
 
     	return new Data\Diagnostic($keyId, $rows, $columns);
 	}
-
-	private function extractColumnNamesFromSelect($select) {
+    /**
+     * @return array
+     * @param mixed $select
+     */
+    private function extractColumnNamesFromSelect($select): array {
 		$projections = $select->getProjections();
 		return array_map(fn($proj, $i) => $proj->getAutoName($i)->getString(), $projections, array_keys($projections));
 	}
-
-
-	public function getRepairableKeys() {
-		return array_filter($this->schemaDef->getAllKeyIdsTopological(), 
+    /**
+     * @return array
+     */
+    public function getRepairableKeys(): array {
+		return array_filter($this->schemaDef->getAllKeyIdsTopological(),
 			fn($keyId) => $this->schemaDef->isKeyReflexive($keyId) || $this->schemaDef->isKeyOrdered($keyId)
 		);
 	}
-
-	public function repairAll() {
+    /**
+     * @return void
+     */
+    public function repairAll(): void {
 		$this->connection->beginTransaction();
 		foreach ($this->getRepairableKeys() as $key) {
 			$this->repairKeyInternal($key);
@@ -65,17 +76,17 @@ class RepairService {
     	$this->connection->commit();
 	}
 
-	public function repairKey(string $keyId) {
+	public function repairKey(string $keyId) :void {
 		$this->connection->beginTransaction();
 		$result = $this->repairKeyInternal($keyId);
     	$this->connection->commit();
-
-    	return $result;
 	}
-
-	private function repairKeyInternal(string $keyId) {
+    /**
+     * @return void
+     */
+    private function repairKeyInternal(string $keyId): void {
 		$commands = $this->commandBuilder->getCommandForRepairKey($keyId);
-		
+
 
 		foreach ($commands as $label => $command) {
 			$retriesLeft = self::MAX_REPAIR_RETRIES;
@@ -88,14 +99,14 @@ class RepairService {
 					case Update::class:
 						$stmt = $this->connection->prepare($this->dialect->updateToString($command));
 						break;
-					
+
 					case Delete::class:
 						$stmt = $this->connection->prepare($this->dialect->deleteToString($command));
 						break;
 
 					default: throw new \Exception("invalid command");
 				}
-				$result = $stmt->execute();
+				$result = $stmt->executeQuery();
 
 				if($result->rowCount() < 1) {
 					break;

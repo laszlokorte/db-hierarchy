@@ -31,7 +31,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
     {
         if($identifier === 'admin') {
             $stmt = $this->connection->prepare('SELECT COUNT(*) FROM account');
-            $result = $stmt->execute();
+            $result = $stmt->executeQuery();
             $numberOfAccounts = $result->fetchOne();
             if($numberOfAccounts == 0) {
                 $admin = new InstallationAdminUser($identifier);
@@ -64,7 +64,7 @@ class InstallationAdminProvider implements UserProviderInterface, PasswordUpgrad
         }
 
         $stmt = $this->connection->prepare('SELECT COUNT(*) FROM account');
-        $result = $stmt->execute();
+        $result = $stmt->executeQuery();
         $numberOfAccounts = $result->fetchOne();
 
         if($numberOfAccounts != 0) {

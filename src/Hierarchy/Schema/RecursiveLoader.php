@@ -29,47 +29,47 @@ class RecursiveLoader {
 	private $subSchemas;
 	private $connectionCache = [];
 
-	private array $icons = [ 
-		'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-left', 'arrow-right', 
-		'arrow-switch', 'arrow-up', 'beaker', 'bell', 'bell-slash', 'blocked', 'bold', 
-		'book', 'bookmark', 'bookmark-slash', 'briefcase', 'broadcast', 'browser', 
-		'bug', 'calendar', 'check', 'check-circle', 'check-circle-fill', 'checklist', 
-		'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle', 
-		'circle-slash', 'clippy', 'clock', 'code', 'code-review', 'code-square', 
-		'codescan', 'codescan-checkmark', 'codespaces', 'columns', 'comment', 
-		'comment-discussion', 'container', 'cpu', 'credit-card', 'cross-reference', 
-		'dash', 'database', 'dependabot', 'desktop-download', 'device-camera', 
-		'device-camera-video', 'device-desktop', 'device-mobile', 'diamond', 
-		'diff', 'diff-added', 'diff-ignored', 'diff-modified', 'diff-removed', 
-		'diff-renamed', 'dot', 'dot-fill', 'download', 'duplicate', 'ellipsis', 
-		'eye', 'eye-closed', 'file', 'file-badge', 'file-binary', 'file-code', 
-		'file-diff', 'file-directory', 'file-submodule', 'file-symlink-file', 
-		'file-zip', 'filter', 'flame', 'fold', 'fold-down', 'fold-up', 'gear', 
-		'gift', 'git-branch', 'git-commit', 'git-compare', 'git-merge', 
-		'git-pull-request', 'git-pull-request-closed', 'git-pull-request-draft', 
-		'globe', 'grabber', 'graph', 'hash', 'heading', 'heart', 'heart-fill', 
-		'history', 'home', 'horizontal-rule', 'hourglass', 'hubot', 'image', 'inbox', 
-		'infinity', 'info', 'issue-closed', 'issue-draft', 'issue-opened', 
-		'issue-reopened', 'italic', 'kebab-horizontal', 'key', 'key-asterisk', 'law', 
-		'light-bulb', 'link', 'link-external', 'list-ordered', 'list-unordered', 
-		'location', 'lock', 'logo-gist', 'logo-github', 'mail', 'mark-github', 
-		'markdown', 'megaphone', 'mention', 'meter', 'milestone', 'mirror', 'moon', 
-		'mortar-board', 'multi-select', 'mute', 'no-entry', 'north-star', 'note', 
-		'number', 'organization', 'package', 'package-dependencies', 
-		'package-dependents', 'paintbrush', 'paper-airplane', 'pencil', 
-		'people', 'person', 'person-add', 'pin', 'play', 'plug', 'plus', 
-		'plus-circle', 'project', 'pulse', 'question', 'quote', 'reply', 'repo', 
-		'repo-clone', 'repo-forked', 'repo-pull', 'repo-push', 'repo-template', 
-		'report', 'rocket', 'rows', 'rss', 'ruby', 'screen-full', 'screen-normal', 
-		'search', 'select-single', 'server', 'share', 'share-android', 'shield', 
+	private array $icons = [
+		'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-left', 'arrow-right',
+		'arrow-switch', 'arrow-up', 'beaker', 'bell', 'bell-slash', 'blocked', 'bold',
+		'book', 'bookmark', 'bookmark-slash', 'briefcase', 'broadcast', 'browser',
+		'bug', 'calendar', 'check', 'check-circle', 'check-circle-fill', 'checklist',
+		'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'circle',
+		'circle-slash', 'clippy', 'clock', 'code', 'code-review', 'code-square',
+		'codescan', 'codescan-checkmark', 'codespaces', 'columns', 'comment',
+		'comment-discussion', 'container', 'cpu', 'credit-card', 'cross-reference',
+		'dash', 'database', 'dependabot', 'desktop-download', 'device-camera',
+		'device-camera-video', 'device-desktop', 'device-mobile', 'diamond',
+		'diff', 'diff-added', 'diff-ignored', 'diff-modified', 'diff-removed',
+		'diff-renamed', 'dot', 'dot-fill', 'download', 'duplicate', 'ellipsis',
+		'eye', 'eye-closed', 'file', 'file-badge', 'file-binary', 'file-code',
+		'file-diff', 'file-directory', 'file-submodule', 'file-symlink-file',
+		'file-zip', 'filter', 'flame', 'fold', 'fold-down', 'fold-up', 'gear',
+		'gift', 'git-branch', 'git-commit', 'git-compare', 'git-merge',
+		'git-pull-request', 'git-pull-request-closed', 'git-pull-request-draft',
+		'globe', 'grabber', 'graph', 'hash', 'heading', 'heart', 'heart-fill',
+		'history', 'home', 'horizontal-rule', 'hourglass', 'hubot', 'image', 'inbox',
+		'infinity', 'info', 'issue-closed', 'issue-draft', 'issue-opened',
+		'issue-reopened', 'italic', 'kebab-horizontal', 'key', 'key-asterisk', 'law',
+		'light-bulb', 'link', 'link-external', 'list-ordered', 'list-unordered',
+		'location', 'lock', 'logo-gist', 'logo-github', 'mail', 'mark-github',
+		'markdown', 'megaphone', 'mention', 'meter', 'milestone', 'mirror', 'moon',
+		'mortar-board', 'multi-select', 'mute', 'no-entry', 'north-star', 'note',
+		'number', 'organization', 'package', 'package-dependencies',
+		'package-dependents', 'paintbrush', 'paper-airplane', 'pencil',
+		'people', 'person', 'person-add', 'pin', 'play', 'plug', 'plus',
+		'plus-circle', 'project', 'pulse', 'question', 'quote', 'reply', 'repo',
+		'repo-clone', 'repo-forked', 'repo-pull', 'repo-push', 'repo-template',
+		'report', 'rocket', 'rows', 'rss', 'ruby', 'screen-full', 'screen-normal',
+		'search', 'select-single', 'server', 'share', 'share-android', 'shield',
 		'shield-check', 'shield-lock', 'shield-x', 'sidebar-collapse',
-		'sidebar-expand', 'sign-in', 'sign-out', 'skip', 'smiley', 'sort-asc', 
-		'sort-desc', 'square', 'square-fill', 'squirrel', 'star', 'star-fill', 'stop', 
-		'stopwatch', 'strikethrough', 'sun', 'sync', 'table', 'tag', 'tasklist', 
-		'telescope', 'terminal', 'three-bars', 'thumbsdown', 'thumbsup', 'tools', 
-		'trash', 'triangle-down', 'triangle-left', 'triangle-right', 'triangle-up', 
-		'typography', 'unfold', 'unlock', 'unmute', 'unverified', 'upload', 'verified', 
-		'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill', 'zap', 
+		'sidebar-expand', 'sign-in', 'sign-out', 'skip', 'smiley', 'sort-asc',
+		'sort-desc', 'square', 'square-fill', 'squirrel', 'star', 'star-fill', 'stop',
+		'stopwatch', 'strikethrough', 'sun', 'sync', 'table', 'tag', 'tasklist',
+		'telescope', 'terminal', 'three-bars', 'thumbsdown', 'thumbsup', 'tools',
+		'trash', 'triangle-down', 'triangle-left', 'triangle-right', 'triangle-up',
+		'typography', 'unfold', 'unlock', 'unmute', 'unverified', 'upload', 'verified',
+		'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill', 'zap',
 	];
 
 	public function __construct(Connection $baseConnection) {
@@ -124,8 +124,8 @@ class RecursiveLoader {
 		if($this->subSchemas === null) {
 			try {
 				$stmt = $this->baseConnection->prepare('SELECT slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE slug <> "" ORDER BY hierarchy.priority');
-				$result = $stmt->execute();
-				$rows = $result->fetchAll();
+				$result = $stmt->executeQuery();
+				$rows = $result->fetchAllAssociative();
 
 				$this->subSchemas = [];
 				foreach ($rows as $row) {
@@ -150,20 +150,20 @@ class RecursiveLoader {
 				array_map(fn($slug, $def) => [
 					'slug' => $slug,
 					'label' => $def->getSchemaLabel(),
-				], 
-				array_keys($this->predefinedHierarchies), 
+				],
+				array_keys($this->predefinedHierarchies),
 				array_values($this->predefinedHierarchies)
 				)
 			);
 		}
-		
+
 		return $this->subSchemas;
 	}
 
 	public function loadStorageConnection(string $hierarchyName = 'system') {
 		if(empty($this->connectionCache[$hierarchyName])) {
 			$this->connectionCache[$hierarchyName] = new StorageConnection(
-				$this->loadDefinition($hierarchyName), 
+				$this->loadDefinition($hierarchyName),
 				$this->loadHierarchyConnection($hierarchyName)
 			);
 		}
@@ -189,7 +189,7 @@ class RecursiveLoader {
 		} else {
 			$stmt = $this->baseConnection->prepare('SELECT dsn FROM hierarchy WHERE :slug = slug');
 			$stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
-			$result = $stmt->execute();
+			$result = $stmt->executeQuery();
 			$dsn = $result->fetchOne();
 
 			if($dsn===false) {
@@ -208,9 +208,9 @@ class RecursiveLoader {
 	private function loadDynamicDefinition($hierarchyName) {
 		$stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
 		$stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
-		$result = $stmt->execute();
+		$result = $stmt->executeQuery();
 
-		$row = $result->fetch();
+		$row = $result->fetchAssociative();
 
 		if(!$row) {
 			throw new \Exception();
@@ -219,7 +219,7 @@ class RecursiveLoader {
 		$hierarchyId = $row['id'];
 
 		$keyStmt = $this->baseConnection->prepare('
-			SELECT 
+			SELECT
 				collection.slug AS slug,
 				collection.table_name AS table_name,
 				collection.pk_name AS pk_name,
@@ -242,23 +242,23 @@ class RecursiveLoader {
 				order_definition.is_singleton AS order_singleton,
 				collection.summary AS summary
 			FROM collection
-			LEFT JOIN reflexivity_definition 
+			LEFT JOIN reflexivity_definition
 			ON reflexivity_definition.collection_id = collection.id
 			LEFT JOIN order_definition
 			ON order_definition.collection_id = collection.id
-			LEFT JOIN scope_definition 
+			LEFT JOIN scope_definition
 			ON scope_definition.collection_id = collection.id
 			LEFT JOIN collection scope_collection
 			ON scope_definition.scope_key_ref = scope_collection.id
 			WHERE collection.hierarchy_id = UNHEX(:hid) AND collection.slug <> ""
 			');
 		$keyStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
-		$keyResult = $keyStmt->execute();
+		$keyResult = $keyStmt->executeQuery();
 
-		$keyRows = $keyResult->fetchAll();
+		$keyRows = $keyResult->fetchAllAssociative();
 
 		$fieldStmt = $this->baseConnection->prepare('
-			SELECT collection.slug AS collection_slug, 
+			SELECT collection.slug AS collection_slug,
 				field.slug AS slug,
 				field.label_singular AS label_singular,
 				field.label_plural AS label_plural,
@@ -268,14 +268,14 @@ class RecursiveLoader {
 				field.type AS type,
 				field.is_required AS is_required,
 				field.is_unique AS is_unique,
-				field.options AS options 
-			FROM field 
-			INNER JOIN collection 
-			ON collection.id = field.collection_id 
+				field.options AS options
+			FROM field
+			INNER JOIN collection
+			ON collection.id = field.collection_id
 			WHERE collection.hierarchy_id = UNHEX(:hid) AND field.slug <> ""
 		');
 		$fieldStmt->bindValue('hid', $hierarchyId, ParameterType::STRING);
-		$fieldResult = $fieldStmt->execute();
+		$fieldResult = $fieldStmt->executeQuery();
 		$fieldRows = ResultFetcher::fetchGrouped($fieldResult);
 
 
@@ -292,10 +292,10 @@ class RecursiveLoader {
 						$fieldRow['label_description'],
 						$fieldRow['label_icon'],
 						$fieldRow['label_color']
-					), 
-					$fieldRow['type'], 
-					$fieldRow['is_required'], 
-					$fieldRow['is_unique'], 
+					),
+					$fieldRow['type'],
+					$fieldRow['is_required'],
+					$fieldRow['is_unique'],
 					json_decode($fieldRow['options'], true)??[]
 				);
 			}
@@ -312,20 +312,20 @@ class RecursiveLoader {
 					$keyRow['label_description']?:null,
 					$keyRow['label_icon']?:null,
 					$keyRow['label_color']?:null
-				), 
+				),
 				$keyRow['scope_id'] ? new ScopeDefinition(
 					$keyRow['scope_slug'],
 					$keyRow['scope_column_name']?:sprintf('%s_id', $keyRow['scope_slug'])
-				) : null, 
+				) : null,
 				$keyRow['reflexivity_id'] ? new ReflexivityDefinition(
 					$keyRow['reflexivity_parent_column']?:'parent',
 					$keyRow['reflexivity_child_column']?:'child',
 					$keyRow['reflexivity_depth_column']?:'depth'
-				) : null, 
+				) : null,
 				$keyRow['order_id'] ? new OrderDefinition(
 					$keyRow['order_column_name']?:($keyRow['order_singleton']?'priority':'singleton'),
 					$keyRow['order_singleton']
-				) : null, 
+				) : null,
 				$fields,
 				SummaryDefinition::parseSegments($keyRow['summary'])
 			);
@@ -333,13 +333,13 @@ class RecursiveLoader {
 
 		$def = new SchemaDefinition(
 			new LabelDefinition(
-				$row['label_singular']?:ucfirst($hierarchyName), 
-				$row['label_plural']?:null, 
-				$row['label_description'], 
-				$row['label_icon'], 
+				$row['label_singular']?:ucfirst($hierarchyName),
+				$row['label_plural']?:null,
+				$row['label_description'],
+				$row['label_icon'],
 				$row['label_color']
-			), 
-			$keys, 
+			),
+			$keys,
 			$this->fieldTypes
 		);
 
@@ -352,55 +352,55 @@ class RecursiveLoader {
 		$settings = ['accent_color' => null,'title' => null,'intro' => null];
 		try {
 			$stmt = $this->baseConnection->prepare('SELECT title, url, accent_color, intro FROM settings');
-			$settingResult = $stmt->execute();
+			$settingResult = $stmt->executeQuery();
 
-			$settingsRow = $settingResult->fetch();
+			$settingsRow = $settingResult->fetchAssociative();
 
 			if($settingsRow) {
 				$settings = array_merge($settings, $settingsRow);
 			}
 		} catch(\Exception $e) {
-			
+
 		}
 
 		return new SchemaDefinition(
 			new LabelDefinition(
-				$settings['title']?:'Hierarchy Manager', 
-				$settings['title']?:'Hierarchie Managers', 
-				$settings['intro'], 
-				'favicon', 
+				$settings['title']?:'Hierarchy Manager',
+				$settings['title']?:'Hierarchie Managers',
+				$settings['intro'],
+				'favicon',
 				$settings['accent_color']?:'#00805A'
 			), [
 			'hierarchy' => new KeyDefinition(
 				new StorageDefinition('hierarchy'),
 				new LabelDefinition(
-					'Hierarchy', 
+					'Hierarchy',
 					'Hierarchies',
 					'What is a hierarchy?',
 					'archive'
 				),
 				null, null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], false
 					),
 					'dsn' => new FieldDefinition(
-						new LabelDefinition('DSN','DSNs', 'What is?'), 
+						new LabelDefinition('DSN','DSNs', 'What is?'),
 						'dsn', true, false, [], false),
 					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label'), 
+						new LabelDefinition('Label'),
 						'string', false, false, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
-						new LabelDefinition('Label Plural'), 
+						new LabelDefinition('Label Plural'),
 						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
 					'label_description' => new FieldDefinition(
-						new LabelDefinition('Description'), 
+						new LabelDefinition('Description'),
 						'text', false, false, [], false),
 					'label_icon' => new FieldDefinition(
-						new LabelDefinition('Icon'), 
+						new LabelDefinition('Icon'),
 						'icon', false, false),
 					'label_color' => new FieldDefinition(
-						new LabelDefinition('Color'), 
+						new LabelDefinition('Color'),
 						'color', false, false),
 				], SummaryDefinition::parseSegments('{slug}')
 			),
@@ -409,16 +409,16 @@ class RecursiveLoader {
 				new LabelDefinition('Settings', 'Custom', null, 'gear', null, 'Default'),
 				null, null, new OrderDefinition(singleton: true), [
 					'title' => new FieldDefinition(
-						new LabelDefinition('Title'), 
+						new LabelDefinition('Title'),
 						'string', false, false),
 					'url' => new FieldDefinition(
-						new LabelDefinition('Url'), 
+						new LabelDefinition('Url'),
 						'url', false, false),
 					'accent_color' => new FieldDefinition(
-						new LabelDefinition('Accent Color'), 
+						new LabelDefinition('Accent Color'),
 						'color', false, false),
 					'intro' => new FieldDefinition(
-						new LabelDefinition('Introduction Text'), 
+						new LabelDefinition('Introduction Text'),
 						'text', false, false),
 				], SummaryDefinition::parseSegments('Settings')
 			),
@@ -427,20 +427,20 @@ class RecursiveLoader {
 				new LabelDefinition('Account', 'Accounts', null, 'people'),
 				null, null, null, [
 					'login' => new FieldDefinition(
-						new LabelDefinition('Login'), 
+						new LabelDefinition('Login'),
 						'string', true, true),
 					'password' => new FieldDefinition(
-						new LabelDefinition('Password'), 
+						new LabelDefinition('Password'),
 						'hash', true, false),
 					'full_name' => new FieldDefinition(
-						new LabelDefinition('Full Name'), 
+						new LabelDefinition('Full Name'),
 						'string', false, false),
 					'email' => new FieldDefinition(
-						new LabelDefinition(' E-mail'), 
+						new LabelDefinition(' E-mail'),
 						'email', false, false),
 					'role' => new FieldDefinition(
-						new LabelDefinition('Role', 'Roles', null, null, null, 'None'), 
-						'reference', true, false, 
+						new LabelDefinition('Role', 'Roles', null, null, null, 'None'),
+						'reference', true, false,
 						['target' => 'role','style' => 'expanded', 'explicit' => true]),
 				], SummaryDefinition::parseSegments('{login}')
 			),
@@ -449,10 +449,10 @@ class RecursiveLoader {
 				new LabelDefinition('Role', 'Roles', null, 'mortar-board'),
 				null, null, null, [
 					'title' => new FieldDefinition(
-						new LabelDefinition('Title'), 
+						new LabelDefinition('Title'),
 						'string', true, true),
 					'is_admin' => new FieldDefinition(
-						new LabelDefinition('Admin'), 
+						new LabelDefinition('Admin'),
 						'bool', true, false),
 				], SummaryDefinition::parseSegments('{title}')
 			),
@@ -461,10 +461,10 @@ class RecursiveLoader {
 				new LabelDefinition('Hierarchy Permission', 'Hierarchy Permissions'),
 				new ScopeDefinition('role'), null, null, [
 					'hierarchy' => new FieldDefinition(
-						new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true, 
+						new LabelDefinition('Hierarchy', 'Hierarchies'), 'reference', true, true,
 						['target' => 'hierarchy']),
 					'type' => new FieldDefinition(
-						new LabelDefinition('Type', 'Types'), 
+						new LabelDefinition('Type', 'Types'),
 						'enum', true, false, ['values' => ['permit', 'restrict'],'explicit' => true]),
 				], SummaryDefinition::parseSegments('{hierarchy}/{type}')
 			),
@@ -473,12 +473,12 @@ class RecursiveLoader {
 				new LabelDefinition('Collection Permission', 'Collection Permissions'),
 				new ScopeDefinition('role'), null, null, [
 					'collection' => new FieldDefinition(
-						new LabelDefinition('Collection', 'Collections'), 
-						'reference', true, true, 
+						new LabelDefinition('Collection', 'Collections'),
+						'reference', true, true,
 						['target' => 'collection']),
 					'type' => new FieldDefinition(
-						new LabelDefinition('Type', 'Types'), 
-						'enum', true, false, 
+						new LabelDefinition('Type', 'Types'),
+						'enum', true, false,
 						['values' => ['permit', 'restrict']]),
 				], SummaryDefinition::parseSegments('{collection}/{type}')
 			),
@@ -487,12 +487,12 @@ class RecursiveLoader {
 				new LabelDefinition('Field Permission', 'Field Permissions'),
 				new ScopeDefinition('role'), null, null, [
 					'field' => new FieldDefinition(
-						new LabelDefinition('Field', 'Fields'), 
+						new LabelDefinition('Field', 'Fields'),
 						'reference', true, true,
 						['target' => 'field']),
 					'type' => new FieldDefinition(
-						new LabelDefinition('Type', 'Types'), 
-						'enum', true, false, 
+						new LabelDefinition('Type', 'Types'),
+						'enum', true, false,
 						['values' => ['permit', 'restrict']]),
 				], SummaryDefinition::parseSegments('{field}/{type}')
 			),
@@ -503,31 +503,31 @@ class RecursiveLoader {
 					'slug' => new FieldDefinition(
 						new LabelDefinition('Slug'), 'string', true, true, [], false),
 					'table_name' => new FieldDefinition(
-						new LabelDefinition('Table Name'), 
+						new LabelDefinition('Table Name'),
 						'string', true, true, ['autofillBy' => 'slug'], false),
 					'pk_type' => new FieldDefinition(
-						new LabelDefinition('Primary Key Type'), 
+						new LabelDefinition('Primary Key Type'),
 						'enum', true, false, ['values' => ['serial','uuid','manual']], false),
 					'pk_name' => new FieldDefinition(
-						new LabelDefinition('Primary Key Column Name'), 
+						new LabelDefinition('Primary Key Column Name'),
 						'string', true, false, [], false),
 					'summary' => new FieldDefinition(
-						new LabelDefinition('Summary Template'), 
+						new LabelDefinition('Summary Template'),
 						'string', false, false, [], false),
 					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label'), 
+						new LabelDefinition('Label'),
 						'string', false, false, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
-						new LabelDefinition('Label Plural'), 
+						new LabelDefinition('Label Plural'),
 						'string', false, false, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
 					'label_description' => new FieldDefinition(
-						new LabelDefinition('Description'), 
+						new LabelDefinition('Description'),
 						'text', false, false, [], false),
 					'label_icon' => new FieldDefinition(
-						new LabelDefinition('Icon'), 
+						new LabelDefinition('Icon'),
 						'icon', false, false),
 					'label_color' => new FieldDefinition(
-						new LabelDefinition('Color'), 
+						new LabelDefinition('Color'),
 						'color', false, false),
 				], SummaryDefinition::parseSegments('{slug}')
 			),
@@ -536,17 +536,17 @@ class RecursiveLoader {
 				new LabelDefinition('Scope', 'Yes', null, null, null, 'None'),
 				new ScopeDefinition('collection', null, true), null, new OrderDefinition(singleton: true), [
 					'scope_key' => new FieldDefinition(
-						new LabelDefinition('Parent', 'Parents'), 
-						'reference', true, false, 
+						new LabelDefinition('Parent', 'Parents'),
+						'reference', true, false,
 						['target' => 'collection']),
 					'scope_column_name' => new FieldDefinition(
-						new LabelDefinition('Scope Column'), 
+						new LabelDefinition('Scope Column'),
 						'string', false, false),
 					'can_change' => new FieldDefinition(
-						new LabelDefinition('Can change'), 
+						new LabelDefinition('Can change'),
 						'bool', true, false),
 					'isolating' => new FieldDefinition(
-						new LabelDefinition('Is Isolating'), 
+						new LabelDefinition('Is Isolating'),
 						'bool', true, false),
 				], SummaryDefinition::parseSegments('{scope_key}')
 			),
@@ -556,10 +556,10 @@ class RecursiveLoader {
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 
 					'is_singleton' => new FieldDefinition(
-						new LabelDefinition('Singleton'), 
+						new LabelDefinition('Singleton'),
 						'bool', true, false),
 					'order_column_name' => new FieldDefinition(
-						new LabelDefinition('Order column Name'), 
+						new LabelDefinition('Order column Name'),
 						'string', true, false),
 				], SummaryDefinition::parseSegments('')
 			),
@@ -568,19 +568,19 @@ class RecursiveLoader {
 				new LabelDefinition('Reflexivity', 'Yes', null, null, null, 'None'),
 				new ScopeDefinition('collection'), null, new OrderDefinition(singleton: true), [
 					'parent_name' => new FieldDefinition(
-						new LabelDefinition('Parent Column'), 
+						new LabelDefinition('Parent Column'),
 						'string', false, false),
 					'child_name' => new FieldDefinition(
-						new LabelDefinition('Parent Column'), 
+						new LabelDefinition('Parent Column'),
 						'string', false, false),
 					'depth_name' => new FieldDefinition(
-						new LabelDefinition('Depth Column'), 
+						new LabelDefinition('Depth Column'),
 						'string', false, false),
 					'closure_table_name' => new FieldDefinition(
-						new LabelDefinition('Closure Table Name', null, 'For nested collections an addition table is needed.'), 
+						new LabelDefinition('Closure Table Name', null, 'For nested collections an addition table is needed.'),
 						'string', false, false),
 					'can_change' => new FieldDefinition(
-						new LabelDefinition('Can change parent'), 
+						new LabelDefinition('Can change parent'),
 						'bool', true, false),
 				], SummaryDefinition::parseSegments('{$self/label}')
 			),
@@ -589,37 +589,37 @@ class RecursiveLoader {
 				new LabelDefinition('Field'),
 				new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], false),
 					'type' => new FieldDefinition(
-						new LabelDefinition('Type'), 
-						'enum', true, false, 
+						new LabelDefinition('Type'),
+						'enum', true, false,
 						['style' => 'compact', 'values' => array_keys($this->fieldTypes)
 
 					]),
 					'is_required' => new FieldDefinition(
-						new LabelDefinition('Required'), 
+						new LabelDefinition('Required'),
 						'bool', true, false, [], false),
 					'is_unique' => new FieldDefinition(
-						new LabelDefinition('Unique'), 
+						new LabelDefinition('Unique'),
 						'bool', true, false, [], false),
 					'options' => new FieldDefinition(
-						new LabelDefinition('Options'), 
+						new LabelDefinition('Options'),
 						'json', false, false, [], false),
 					'label_singular' => new FieldDefinition(
-						new LabelDefinition('Label'), 
+						new LabelDefinition('Label'),
 						'string', false, true, ['autofillBy' => 'slug']),
 					'label_plural' => new FieldDefinition(
-						new LabelDefinition('Label Plural'), 
+						new LabelDefinition('Label Plural'),
 						'string', false, true, ['autofillBy' => 'slug', 'autofillSuffix' => 's'], false),
 					'label_description' => new FieldDefinition(
-						new LabelDefinition('Description'), 
+						new LabelDefinition('Description'),
 						'text', false, false, [], false),
 					'label_icon' => new FieldDefinition(
-						new LabelDefinition('Icon'), 
+						new LabelDefinition('Icon'),
 						'icon', false, false),
 					'label_color' => new FieldDefinition(
-						new LabelDefinition('Color'), 
+						new LabelDefinition('Color'),
 						'color', false, false),
 				], SummaryDefinition::parseSegments('{slug}')
 			),
@@ -629,7 +629,7 @@ class RecursiveLoader {
 				new LabelDefinition('Extension'),
 				new ScopeDefinition('collection', null, true),  null, null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true),
 				], SummaryDefinition::parseSegments('{slug}')
 			),
@@ -639,10 +639,10 @@ class RecursiveLoader {
 				new LabelDefinition('Field'),
 				new ScopeDefinition('collection_extension'),  null, null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true),
 					'field_ref' => new FieldDefinition(
-						new LabelDefinition('Field'), 'reference', true, false, 
+						new LabelDefinition('Field'), 'reference', true, false,
 						['target' => 'field']),
 				], SummaryDefinition::parseSegments('{slug}')
 			),
@@ -653,20 +653,20 @@ class RecursiveLoader {
 	private function loadTestDefinition() {
 		return new SchemaDefinition(
 			new LabelDefinition(
-				'Testing', 
-				'Testing', 
-				null, 
-				'checklist', 
+				'Testing',
+				'Testing',
+				null,
+				'checklist',
 				'darkred'
 			), [
 			'field_test' => new KeyDefinition(
 				new StorageDefinition('my_test'),
 				new LabelDefinition('Field Test', 'Field Tests', null, 'rows'),
-				null, null, null, 
-				array_combine(array_keys($this->fieldTypes), 
-					array_map(fn($typeId) => 
+				null, null, null,
+				array_combine(array_keys($this->fieldTypes),
+					array_map(fn($typeId) =>
 						new FieldDefinition(
-							new LabelDefinition(ucfirst($typeId)), 
+							new LabelDefinition(ucfirst($typeId)),
 							$typeId, true, false, ['values' => ['x','y','z'], 'target' => 'aa', 'cascade' => true])
 						, array_keys($this->fieldTypes))
 				),
@@ -714,7 +714,7 @@ class RecursiveLoader {
 				new LabelDefinition('xx'),
 				new ScopeDefinition('ff',null, true), null, null, [
 					'zzref' => new FieldDefinition(
-						new LabelDefinition('zzref'), 'reference', false, false, 
+						new LabelDefinition('zzref'), 'reference', false, false,
 						['target' => 'zz']),
 				],
 				SummaryDefinition::parseSegments('xx')
@@ -742,7 +742,7 @@ class RecursiveLoader {
 				new LabelDefinition('uu'),
 				new ScopeDefinition('ww', null, true), null, null, [
 					'yyref' => new FieldDefinition(
-						new LabelDefinition('yyref'), 'reference', false, false, 
+						new LabelDefinition('yyref'), 'reference', false, false,
 						['target' => 'yy']),
 				],
 				SummaryDefinition::parseSegments('uu')
@@ -764,7 +764,7 @@ class RecursiveLoader {
 				new LabelDefinition('rr'),
 				new ScopeDefinition('qq',null, true), null, null, [
 					'uuref' => new FieldDefinition(
-						new LabelDefinition('uuref'), 'reference', false, false, 
+						new LabelDefinition('uuref'), 'reference', false, false,
 						['target' => 'uu']),
 				],
 				SummaryDefinition::parseSegments('rr')
@@ -775,10 +775,10 @@ class RecursiveLoader {
 	private function loadFrontendDefinition() {
 		return new SchemaDefinition(
 			new LabelDefinition(
-				'Frontend', 
-				'Frontend', 
-				null, 
-				'checklist', 
+				'Frontend',
+				'Frontend',
+				null,
+				'checklist',
 				'brown'
 			), [
 			'site' => new KeyDefinition(
@@ -786,7 +786,7 @@ class RecursiveLoader {
 				new LabelDefinition('Site',null,null,'browser'),
 				null, new ReflexivityDefinition(), null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -797,7 +797,7 @@ class RecursiveLoader {
 				new LabelDefinition('Route',null,null,'stack'),
 				new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], false
 					),
 				],
@@ -808,7 +808,7 @@ class RecursiveLoader {
 				new LabelDefinition('Content','Content',null,'package'),
 				new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], false
 					),
 				],
@@ -819,7 +819,7 @@ class RecursiveLoader {
 				new LabelDefinition('Resource Directory','Directories',null,'file-directory'),
 				null, new ReflexivityDefinition(), null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -830,11 +830,11 @@ class RecursiveLoader {
 				new LabelDefinition('Resource',null,null,'file'),
 				new ScopeDefinition('resource_directory'), null, null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 					'content_type' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -845,7 +845,7 @@ class RecursiveLoader {
 				new LabelDefinition('Menu',null,null,'list-unordered'),
 				null, null, null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -856,7 +856,7 @@ class RecursiveLoader {
 				new LabelDefinition('Menu Item',null,null,'link'),
 				new ScopeDefinition('menu'), new ReflexivityDefinition(), null, [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -868,7 +868,7 @@ class RecursiveLoader {
 				new LabelDefinition('Site Generator',null,null,'zap'),
 				new ScopeDefinition('site'), null, new OrderDefinition(singleton: true), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -880,7 +880,7 @@ class RecursiveLoader {
 				new LabelDefinition('Route Generator',null,null,'zap'),
 				new ScopeDefinition('route'), null, new OrderDefinition(singleton: true), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -892,7 +892,7 @@ class RecursiveLoader {
 				new LabelDefinition('Content Generator',null,null,'zap'),
 				new ScopeDefinition('content'), null, new OrderDefinition(singleton: true), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],
@@ -904,7 +904,7 @@ class RecursiveLoader {
 				new LabelDefinition('Menu Item Generator',null,null,'zap'),
 				new ScopeDefinition('menu_item'), null, new OrderDefinition(singleton: true), [
 					'slug' => new FieldDefinition(
-						new LabelDefinition('Slug'), 
+						new LabelDefinition('Slug'),
 						'string', true, true, [], true
 					),
 				],

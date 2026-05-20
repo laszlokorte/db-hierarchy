@@ -2,9 +2,7 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
-use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
-use App\Hierarchy\Storage\Relational\SchemaBuilder;
 use App\Hierarchy\Storage\Relational\Quirks;
 
 use Doctrine\DBAL\Connection;
@@ -14,7 +12,7 @@ class InstallationService {
 
 	}
 
-	public function getSchemaDeclerations() {
+	public function getSchemaDeclerations() :string {
 		$schema = '';
 
 		foreach ($this->commandBuilder->getAllTables() as $t) {
@@ -26,13 +24,16 @@ class InstallationService {
 
 		return $schema;
 	}
-
-	public function createSchema($dropOld, $onlyViews) {
+    /**
+     * @param mixed $dropOld
+     * @param mixed $onlyViews
+     */
+    public function createSchema($dropOld, $onlyViews): void {
 		$turnOffFk = $this->dialect->stringSwitchForeignKey(false);
 		$turnOnFk = $this->dialect->stringSwitchForeignKey(true);
 
 		if($turnOffFk) {
-			$this->connection->exec($turnOffFk);
+			$this->connection->executeStatement($turnOffFk);
 		}
 
 		foreach (array_reverse($this->commandBuilder->getAllViews()) as $v) {
@@ -62,16 +63,16 @@ class InstallationService {
 		}
 
 		if($turnOnFk) {
-			$this->connection->exec($turnOnFk);
+			$this->connection->executeStatement($turnOnFk);
 		}
 	}
 
-	public function dropSchema() {
+	public function dropSchema(): void {
 		$turnOffFk = $this->dialect->stringSwitchForeignKey(false);
 		$turnOnFk = $this->dialect->stringSwitchForeignKey(true);
 
 		if($turnOffFk) {
-			$this->connection->exec($turnOffFk);
+			$this->connection->executeStatement($turnOffFk);
 		}
 
     	foreach (array_reverse($this->commandBuilder->getAllViews()) as $v) {
@@ -82,14 +83,16 @@ class InstallationService {
 		}
 
 		if($turnOnFk) {
-			$this->connection->exec($turnOnFk);
+			$this->connection->executeStatement($turnOnFk);
 		}
 	}
+    /**
+     * @return array<string,array>
+     */
+    public function getTableDiff(): array {
 
-	public function getTableDiff() {
-		
 		$stmt = $this->connection->prepare($this->dialect->stringQueryTableNames());
-		$stmtResult = $stmt->execute();
+		$stmtResult = $stmt->executeQuery();
 		$existing = $stmtResult->fetchFirstColumn();
 		$needed = array_map(fn($t) => $t->getName()->getString(), $this->commandBuilder->getAllTables());
 
@@ -99,10 +102,12 @@ class InstallationService {
 			'installed' => array_diff($needed, array_diff($needed, $existing)),
 		];
 	}
-
-	public function getViewDiff() {
+    /**
+     * @return array<string,array>
+     */
+    public function getViewDiff(): array {
 		$stmt = $this->connection->prepare($this->dialect->stringQueryViewNames());
-		$stmtResult = $stmt->execute();
+		$stmtResult = $stmt->executeQuery();
 		$existing = $stmtResult->fetchFirstColumn();
 		$needed = array_map(fn($t) => $t->getName()->getString(), $this->commandBuilder->getAllViews());
 

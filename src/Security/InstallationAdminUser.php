@@ -7,11 +7,14 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 class InstallationAdminUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public function __construct(private string $password)
+    {
+    }
     public function getRoles() : array {
     	return ['ROLE_SUPERADMIN','ROLE_ADMIN'];
     }
 
-    public function eraseCredentials() {
+    public function eraseCredentials(): void {
     	$this->password = '';
     }
 
@@ -23,7 +26,7 @@ class InstallationAdminUser implements UserInterface, PasswordAuthenticatedUserI
     	return $this->password;
     }
 
-    public function setPassword(string $password) {
+    public function setPassword(string $password): void {
     	$this->password = $password;
     }
 }

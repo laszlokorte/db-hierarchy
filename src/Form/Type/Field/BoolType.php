@@ -3,12 +3,8 @@
 namespace App\Form\Type\Field;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Validator\Constraints as Assert;
 
 use Symfony\Component\Form\Extension\Core\Type;
@@ -46,7 +42,7 @@ class BoolType extends AbstractType
         });
         $resolver->setDefault('constraints', function (Options $options, $previousValue) {
             return $options['field']->isRequired() ? [
-                new Assert\NotBlank(),
+                new Assert\NotNull(),
                 ...$previousValue
             ] : $previousValue;
         });

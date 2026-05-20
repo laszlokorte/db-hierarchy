@@ -34,7 +34,7 @@ class DeletionService {
         }
 
         return new Deletion(
-        	$keyId, $nodeId, 
+        	$keyId, $nodeId,
         	new Data\MultiCollection(null, null, array_reverse($cascadingDeletions), null, null),
 			new Data\MultiCollection(null, null, array_filter($blockers), null, null)
         );
@@ -62,7 +62,7 @@ class DeletionService {
 					foreach($nodeIdParams AS $i => $p) {
 						$stmtClosure->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($key));
 					}
-					$stmtClosure->execute();
+					$stmtClosure->executeStatement();
 				}
 
 				$delete = $this->commandBuilder->getCommandForDeleteMultipleNodes($key, $nodeIdParams);
@@ -72,7 +72,7 @@ class DeletionService {
 				foreach($nodeIdParams AS $i => $p) {
 					$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($key));
 				}
-				$stmt->execute();
+				$stmt->executeQuery();
 			}
 			$this->connection->commit();
 		} catch(\Exception $e) {
@@ -92,7 +92,7 @@ class DeletionService {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 			$rows = $stmtResult->fetchAllAssociativeIndexed();
 		} else {
 			$nodeIdParams = array_map(fn($n) => new Parameter($n), range(1, count($nodeIds)));
@@ -101,7 +101,7 @@ class DeletionService {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i],$this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 			$rows = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
@@ -137,7 +137,7 @@ class DeletionService {
 		foreach($nodeIdParams AS $i => $p) {
 			$stmt->bindValue($this->dialect->parameterToString($p), $scopeIds[$i], $this->coder->getScopeColumnBindingType($keyId));
 		}
-		$stmtResult = $stmt->execute();
+		$stmtResult = $stmt->executeQuery();
 		$rows = $stmtResult->fetchAllAssociativeIndexed();
 
 		if(empty($rows)) {
@@ -179,7 +179,7 @@ class DeletionService {
 			foreach($nodeIdParams AS $i => $p) {
 				$stmt->bindValue($this->dialect->parameterToString($p), $nodeIds[$i], $this->coder->getPrimaryColumnBindingType($keyId));
 			}
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 
 			$canCascade = array_reduce($columns, fn($can, $col) => $can && $col->getCoding()->canCascade(), true);
 

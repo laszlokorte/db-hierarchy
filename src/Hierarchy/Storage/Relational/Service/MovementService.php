@@ -2,6 +2,7 @@
 
 namespace App\Hierarchy\Storage\Relational\Service;
 
+use App\Hierarchy\Data\MultiTree;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
@@ -20,7 +21,7 @@ class MovementService {
 
 	}
 
-	public function getFreshMovement(Data\Node $node) {
+	public function getFreshMovement(Data\Node $node): Movement {
 		return new Movement(
 			$node->getKey(),
 			$node->getId(),
@@ -30,7 +31,7 @@ class MovementService {
 		);
 	}
 
-	public function getValidatedMovement(Data\Node $node, ?string $targetScopeId, ?string $targetParentId) {
+	public function getValidatedMovement(Data\Node $node, ?string $targetScopeId, ?string $targetParentId): Movement {
 		// check target position
 
 		return new Movement(
@@ -42,7 +43,7 @@ class MovementService {
 		);
 	}
 
-	public function findNodeMoveTargets(string $keyId, ?string $nodeId) {
+	public function findNodeMoveTargets(string $keyId, ?string $nodeId): MultiTree {
 		$groupedRows = [];
 
 		if($this->schemaDef->isKeyReflexive($keyId)) {
@@ -52,7 +53,7 @@ class MovementService {
 
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 			$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId);
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 
 
 			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
@@ -63,13 +64,13 @@ class MovementService {
 
 			$select = $this->commandBuilder->getSelectForFindHierarchy($scope, null, null);
 
-			
+
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmtResult = $stmt->execute();
-			
+			$stmtResult = $stmt->executeQuery();
+
 
 			$groupedRows[$scope] = ResultFetcher::fetchGrouped($stmtResult);
-			
+
 
 		}
 
@@ -78,7 +79,7 @@ class MovementService {
 		);
 	}
 
-	public function moveNode(string $keyId, $nodeId, $targetScopeId, $targetParentId) {
+	public function moveNode(string $keyId, string $nodeId, ?string $targetScopeId, ?string $targetParentId): void {
 		$idParam = new Parameter('_id');
 		$scopeParam = new Parameter('_scope');
 		$parentParam = new Parameter('_parent');
@@ -95,12 +96,12 @@ class MovementService {
 
 		if(!empty($targetScopeId) && !empty($targetParentId)) {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
-			
+
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$stmtResult = $validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->executeQuery();
 
 			if(!$stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
@@ -114,7 +115,7 @@ class MovementService {
 
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 			$checkCycleStmt->bindValue($this->dialect->parameterToString($parentParam), $targetParentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$stmtResult = $checkCycleStmt->execute();
+			$stmtResult = $checkCycleStmt->executeQuery();
 
 			if($stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
@@ -128,11 +129,11 @@ class MovementService {
 			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
 
 			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$deleteClosureParentsStmt->execute();
+			$deleteClosureParentsStmt->executeQuery();
 		}
 
 		if($this->schemaDef->isKeyScoped($keyId)) {
-			
+
 
 			if($this->schemaDef->isKeyReflexive($keyId)) {
 				$updateClosureScope = $this->commandBuilder->getUpdateForMoveClosureScope($keyId, $idParam, $scopeParam);
@@ -141,7 +142,7 @@ class MovementService {
 
 				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 				$updateClosureScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				$updateClosureScopeStmt->execute();
+				$updateClosureScopeStmt->executeQuery();
 
 				$updateClosureParents = $this->commandBuilder->getUpdateForMoveClosureParents($keyId, $idParam, $scopeParam);
 
@@ -149,7 +150,7 @@ class MovementService {
 
 				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 				$updateClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				$updateClosureParentsStmt->execute();
+				$updateClosureParentsStmt->executeQuery();
 			} else {
 				$updateOwnScope = $this->commandBuilder->getUpdateForMoveOwnScope($keyId, $idParam, $scopeParam);
 
@@ -157,7 +158,7 @@ class MovementService {
 
 				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 				$updateOwnScopeStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
-				$updateOwnScopeStmt->execute();
+				$updateOwnScopeStmt->executeQuery();
 			}
 		}
 
@@ -167,10 +168,10 @@ class MovementService {
 			$deleteClosureParentsStmt = $this->connection->prepare($this->dialect->deleteToString($deleteClosureParents));
 
 			$deleteClosureParentsStmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$deleteClosureParentsStmt->execute();
+			$deleteClosureParentsStmt->executeQuery();
 
 
-			if($targetParentId !== $nodeId) {				
+			if($targetParentId !== $nodeId) {
 				$insertClosureParents = $this->commandBuilder->getInsertForMoveClosureParents($keyId, $idParam, $scopeParam, $parentParam);
 
 				$insertClosureParentsStmt = $this->connection->prepare($this->dialect->insertToString($insertClosureParents));
@@ -181,7 +182,7 @@ class MovementService {
 					$insertClosureParentsStmt->bindValue($this->dialect->parameterToString($scopeParam), $targetScopeId, $this->coder->getScopeColumnBindingType($keyId));
 				}
 
-				$insertClosureParentsStmt->execute();
+				$insertClosureParentsStmt->executeQuery();
 			}
 
 		}

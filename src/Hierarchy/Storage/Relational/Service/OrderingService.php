@@ -19,7 +19,7 @@ class OrderingService {
 
 	}
 
-	public function getFreshOrdering(Node $node) {
+	public function getFreshOrdering(Node $node): Ordering {
 		return new Ordering(
 			$node->getKey(),
 			$node->getId(),
@@ -27,9 +27,11 @@ class OrderingService {
 			null
 		);
 	}
-
-	public function getValidatedOrdering(Node $node, $targetPosition) {
-		$scopeId = null; 
+    /**
+     * @param mixed $targetPosition
+     */
+    public function getValidatedOrdering(Node $node, $targetPosition): Ordering {
+		$scopeId = null;
 		$parentId = null;
 
 		// check order
@@ -42,11 +44,14 @@ class OrderingService {
 		);
 	}
 
-	public function findNodeSiblings(string $keyId, string $nodeId) {
+	public function findNodeSiblings(string $keyId, string $nodeId) :array {
 		return $this->queryService->findNodeSiblings($keyId, $nodeId);
 	}
-
-	public function orderNode(string $keyId, $nodeId, $targetPosition) {
+    /**
+     * @param mixed $nodeId
+     * @param mixed $targetPosition
+     */
+    public function orderNode(string $keyId, $nodeId, $targetPosition): void {
 		$idParam = new Parameter('_id');
 		$orderParam = new Parameter('_order');
 
@@ -61,8 +66,8 @@ class OrderingService {
 		$stmt->bindValue($this->dialect->parameterToString($idParam), $nodeId, $this->coder->getPrimaryColumnBindingType($keyId));
 		$stmt->bindValue($this->dialect->parameterToString($orderParam), $targetPosition, ParameterType::INTEGER);
 
-		$stmt->execute();
-		
+		$stmt->executeQuery();
+
 		$this->connection->commit();
 	}
 }

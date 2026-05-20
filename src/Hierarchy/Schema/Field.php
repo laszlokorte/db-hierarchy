@@ -5,16 +5,13 @@ namespace App\Hierarchy\Schema;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Data\Node;
 use App\Hierarchy\Data\NodeField;
-use App\Hierarchy\Data\NodeCollection;
 
-use App\Hierarchy\Changeset\Creation;
-use App\Hierarchy\Changeset\Update;
 
 
 class Field {
 	public function __construct(
-		private SchemaDefinition $def, 
-		private string $keyId, 
+		private SchemaDefinition $def,
+		private string $keyId,
 		private string $fieldId
 	) {
 	}
@@ -50,7 +47,7 @@ class Field {
 	public function readValueOf(Node $object) {
 		$type = $this->def->getKeyFieldType($this->keyId, $this->fieldId);
 		$options = $this->def->getKeyFieldOptions($this->keyId, $this->fieldId);
-		
+
 		return $type->columnDataToFieldData($this->fieldId, $options, array_map(fn($col) => $object->getColumnValue($col->getName()), $this->getColumns()));
 	}
 

@@ -20,7 +20,7 @@ class UpdateService {
 
 	public function getFreshUpdate(Node $node) {
 		return new Update(
-			$node->getKey(), 
+			$node->getKey(),
 			$node->getId(),
 			[],
 			$node->getColumnValues(),
@@ -49,7 +49,7 @@ class UpdateService {
 		}
 
 		return new Update(
-			$keyId, 
+			$keyId,
 			$nodeId,
 			$newColumnData,
 			$node->getColumnValues(),
@@ -101,13 +101,13 @@ class UpdateService {
 			}
 		}
 
-		$stmtResult = $stmt->execute();
-		$result = $stmtResult->fetch();
+		$stmtResult = $stmt->executeQuery();
+		$result = $stmtResult->fetchAssociative();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {
 				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique'; 
+					$errors[$fieldId][] = 'not unique';
 				}
 			}
 		}
@@ -136,7 +136,7 @@ class UpdateService {
 
 		if(!$update->isEmpty()) {
 			$this->connection->beginTransaction();
-			
+
 			$stmt = $this->connection->prepare($this->dialect->updateToString($update));
 
 			foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
@@ -157,7 +157,7 @@ class UpdateService {
 				$this->dialect->parameterToString($idParam),
 				$nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
 			);
-			$stmt->execute();
+			$stmt->executeQuery();
 
 	    	$this->connection->commit();
 		}

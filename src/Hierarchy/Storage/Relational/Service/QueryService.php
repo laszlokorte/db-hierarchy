@@ -22,8 +22,8 @@ class QueryService {
 		$select = $this->commandBuilder->getSelectForFindNodes($keyId, null, $deep ? null : new Constant(null));
 
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmtResult = $stmt->execute();
-    	
+		$stmtResult = $stmt->executeQuery();
+
 		$rows = $stmtResult->fetchAllAssociativeIndexed();
 
 		return new Data\NodeCollection(
@@ -36,18 +36,18 @@ class QueryService {
 
 	public function findAllRootNodes() : Data\MultiCollection {
 		$groupedRows = [];
-		
+
 		foreach ($this->schemaDef->getRootScopeKeyIds() as $keyId) {
 			$select = $this->commandBuilder->getSelectForFindNodes($keyId, new Constant(null), new Constant(null));
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 			$groupedRows[$keyId] = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
 		return new Data\MultiCollection(
-			null, 
-			null, 
-			$groupedRows, 
+			null,
+			null,
+			$groupedRows,
 			null,
 			null
 		);
@@ -57,8 +57,8 @@ class QueryService {
 		$select = $this->commandBuilder->getSelectForFindHierarchy($keyId, null, null);
 
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-		$stmtResult = $stmt->execute();
-    	
+		$stmtResult = $stmt->executeQuery();
+
 		$rows = ResultFetcher::fetchGrouped($stmtResult);
 
 		return new Data\NodeTree(
@@ -71,11 +71,11 @@ class QueryService {
 
 	public function findAllHierarchyNodes() : Data\MultiTree {
 		$groupedRows = [];
-		
+
 		foreach ($this->schemaDef->getAllKeyIds() as $keyId) {
 			$select = $this->commandBuilder->getSelectForFindHierarchy($keyId, null, null);
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 			$groupedRows[$keyId] = ResultFetcher::fetchGrouped($stmtResult);
 		}
 
@@ -90,8 +90,8 @@ class QueryService {
 
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
-		$stmtResult = $stmt->execute();
-    	
+		$stmtResult = $stmt->executeQuery();
+
 		$result = $stmtResult->fetchAssociative();
 
 		if(!$result) {
@@ -107,9 +107,9 @@ class QueryService {
 
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($param), $nodeId);
-		$stmtResult = $stmt->execute();
-    	
-		$result = $stmtResult->fetch();
+		$stmtResult = $stmt->executeQuery();
+
+		$result = $stmtResult->fetchAssociative();
 
 		if($result === false) {
 			throw new \Exception("not found");
@@ -135,9 +135,9 @@ class QueryService {
 		$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 		$stmt->bindValue($this->dialect->parameterToString($scopeParam), $scope);
 		$stmt->bindValue($this->dialect->parameterToString($parentParam), $parent);
-		$stmtResult = $stmt->execute();    	
+		$stmtResult = $stmt->executeQuery();
 		$rows = $stmtResult->fetchAllAssociativeIndexed();
-    	
+
 
 		return new Data\NodeCollection(
 			$childKeyId,
@@ -157,7 +157,7 @@ class QueryService {
 		foreach ($this->schemaDef->getKeyIdsScopedInsideAndReflexiveSelf($keyId) as $childKeyId) {
 			$select = $this->commandBuilder->getSelectForFindNodes($childKeyId, $scopeParam, $parentParam);
 			$stmt = $this->connection->prepare($this->dialect->selectToString($select));
-			
+
 			if($childKeyId == $keyId) {
 				$stmt->bindValue($this->dialect->parameterToString($scopeParam), $self->getScope());
 				$stmt->bindValue($this->dialect->parameterToString($parentParam), $self->getId());
@@ -166,14 +166,14 @@ class QueryService {
 				$stmt->bindValue($this->dialect->parameterToString($parentParam), null);
 			}
 
-			$stmtResult = $stmt->execute();
+			$stmtResult = $stmt->executeQuery();
 			$groupedRows[$childKeyId] = $stmtResult->fetchAllAssociativeIndexed();
 		}
 
 		return new Data\MultiCollection(
-			$keyId, 
-			$nodeId, 
-			$groupedRows, 
+			$keyId,
+			$nodeId,
+			$groupedRows,
 			$self->getScope(),
 			$self->getParent()
 		);
@@ -202,16 +202,16 @@ class QueryService {
 				$select = $this->commandBuilder->getSelectForFindNode($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
-				$stmtResult = $stmt->execute();
+				$stmtResult = $stmt->executeQuery();
 				$groupedNodes[$currentKey] = $stmtResult->fetchAllAssociativeIndexed();
 			} else {
 				$select = $this->commandBuilder->getSelectForFindReflexiveParentNodes($currentKey, $idParam);
 				$stmt = $this->connection->prepare($this->dialect->selectToString($select));
 				$stmt->bindValue($this->dialect->parameterToString($idParam), $currentId);
-				$stmtResult = $stmt->execute();
+				$stmtResult = $stmt->executeQuery();
 				$groupedNodes[$currentKey] = $stmtResult->fetchAllAssociativeIndexed();
 			}
-			
+
 			$currentNode = end($groupedNodes[$currentKey]);
 			$currentKey = $this->schemaDef->getKeyScopeId($currentKey);
 			$currentId = $currentNode['_scope'];

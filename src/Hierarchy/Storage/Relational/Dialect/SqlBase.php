@@ -2,7 +2,6 @@
 
 namespace App\Hierarchy\Storage\Relational\Dialect;
 
-use App\Hierarchy\Storage\Relational\Algebra;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
@@ -29,26 +28,26 @@ abstract class SqlBase implements DialectInterface {
 	private const INDENT = "\t";
 	private $depth = 0;
 
-	protected function indent($delta = 1) {
+	protected function indent(int $delta = 1): void {
 		$this->depth += $delta;
 	}
-	protected function outdent($delta = 1) {
+	protected function outdent(int $delta = 1): void {
 		$this->depth -= $delta;
 	}
 
-	protected function i($extra = 0) {
+	protected function i($extra = 0): string {
 		return str_repeat(self::INDENT, $this->depth + $extra);
 	}
 
-	public function stringSwitchForeignKey($on) {
-		return false;
+	public function stringSwitchForeignKey(bool $on): ?string {
+		return null;
 	}
 
-	public function selectToString(Select $select) {
+	public function selectToString(Select $select) :string {
 		return $this->selectToStringInternal($select, true);
 	}
 
-	protected function selectToStringInternal(Select $select, bool $allowOrder = true) {
+	protected function selectToStringInternal(Select $select, bool $allowOrder = true) :string {
 		$query = $this->i() . "SELECT ";
 		$this->indent();
 		foreach($select->getProjections() AS $i => $p) {
@@ -68,7 +67,7 @@ abstract class SqlBase implements DialectInterface {
 		foreach($select->getJoins() AS $j) {
 			$query .= $this->i() . $this->joinToString($j) . PHP_EOL;
 		}
-		
+
 		if($select->getCondition()) {
 			$query .= $this->i() . 'WHERE' . PHP_EOL;
 			$this->indent();
@@ -111,7 +110,7 @@ abstract class SqlBase implements DialectInterface {
 			$this->outdent();
 			$query .= PHP_EOL;
 		}
-		
+
 		return $query;
 	}
 
@@ -193,7 +192,7 @@ abstract class SqlBase implements DialectInterface {
 		}
 	}
 
-	protected function aggregationToString(Value\Aggregation $aggregation) {
+	protected function aggregationToString(Value\Aggregation $aggregation): string {
 		return sprintf('%s(%s)', $this->aggregationName($aggregation->getAggregation()), $this->valueToString($aggregation->getValue()));
 	}
 
@@ -209,7 +208,7 @@ abstract class SqlBase implements DialectInterface {
 				return 'MIN';
 			case Aggregation\Sum::class:
 				return 'SUM';
-			default: 
+			default:
 				throw new \Exception("unknown aggregation:" . get_class($a));
 		}
 	}
@@ -256,22 +255,22 @@ abstract class SqlBase implements DialectInterface {
 				return '/';
 			case Operator\String\Concat::class:
 				throw new \Exception('concat operator not supported, please rewrite to CONCAT() function');
-			default: 
+			default:
 				throw new \Exception("unknown operator" . get_class($operator));
 		}
 	}
 
-	protected function binaryOperationToString(Value\BinaryOperation $binaryOperation) {
-		return sprintf('(%s %s %s)', 
+	protected function binaryOperationToString(Value\BinaryOperation $binaryOperation): string {
+		return sprintf('(%s %s %s)',
 			$this->valueToString($binaryOperation->getLeftOperand()),
 			$this->operatorSymbol($binaryOperation->getOperator()),
 			$this->valueToString($binaryOperation->getRightOperand())
 		);
 	}
 
-	protected function columnReferenceToString(Value\ColumnReference $columnReference) {
-		return sprintf('%s.%s', 
-			$this->escapeIdentifier($columnReference->getTable()->getUsageName()), 
+	protected function columnReferenceToString(Value\ColumnReference $columnReference): string {
+		return sprintf('%s.%s',
+			$this->escapeIdentifier($columnReference->getTable()->getUsageName()),
 			$this->escapeIdentifier($columnReference->getName())
 		);
 	}
@@ -303,7 +302,7 @@ abstract class SqlBase implements DialectInterface {
 		$function = $functionApplication->getFunction();
 		$args = $functionApplication->getArguments();
 
-		return $this->functionToString($function) . '(' . 
+		return $this->functionToString($function) . '(' .
 			implode(', ', array_map(
 				fn($a) => $this->valueToString($a),
 				$args
@@ -330,7 +329,7 @@ abstract class SqlBase implements DialectInterface {
 		}
 	}
 
-	public function parameterToString(Value\Parameter $parameter) {
+	public function parameterToString(Value\Parameter $parameter) :string {
 		return ':_' . substr(md5($parameter->getName()), 0, 5) . preg_replace('/[^a-z]/i', '', $parameter->getName());
 	}
 
@@ -344,14 +343,14 @@ abstract class SqlBase implements DialectInterface {
 		}
 	}
 
-	protected function tupleToString(Value\Tuple $tuple) {
-		return sprintf('(%s)', 
+	protected function tupleToString(Value\Tuple $tuple): string {
+		return sprintf('(%s)',
 			implode(', ', array_map(fn($v) => $this->valueToString($v), $tuple->getValues()))
 		);
 	}
 
-	protected function unaryOperationToString(Value\UnaryOperation $unaryOperation) {
-		return sprintf('(%s %s)', 
+	protected function unaryOperationToString(Value\UnaryOperation $unaryOperation): string {
+		return sprintf('(%s %s)',
 			$this->operatorSymbol($unaryOperation->getOperator()),
 			$this->valueToString($unaryOperation->getOperand())
 		);
@@ -361,7 +360,7 @@ abstract class SqlBase implements DialectInterface {
 		if($cases->count() > 0) {
 			$result = $this->i() . 'CASE';
 			$this->indent();
-			for ($i=0; $i < $cases->count(); $i++) { 
+			for ($i=0; $i < $cases->count(); $i++) {
 				$result .= PHP_EOL . $this->i() . 'WHEN ';
 				$result .= PHP_EOL . $this->i() . $this->valueToString($cases->getCondition($i));
 				$result .= PHP_EOL . $this->i() . 'THEN ';
@@ -421,7 +420,7 @@ abstract class SqlBase implements DialectInterface {
 						return 'MIN('.$v.')';
 					case  Windowing\Aggregation\Sum::class:
 						return 'SUM('.$v.')';
-					default: 
+					default:
 						throw new \Exception("unknown aggregating window function " . get_class($a));
 				}
 			case Windowing\RankWindow::class:
@@ -439,7 +438,7 @@ abstract class SqlBase implements DialectInterface {
 						return 'RANK()';
 					case Windowing\Rank\RowNumber::class:
 						return 'ROW_NUMBER()';
-					default: 
+					default:
 						throw new \Exception("unknown rank window function " . get_class($r));
 				}
 			case Windowing\ValueWindow::class:
@@ -451,30 +450,30 @@ abstract class SqlBase implements DialectInterface {
 					case Windowing\Value\lastValue::class:
 						return 'LAST_VALUE('.$v.')';
 					case Windowing\Value\Lag::class:
-						return 'LAG(' . $v 
-						. (G($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'') 
-						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'') 
+						return 'LAG(' . $v
+						. (G($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'')
+						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'')
 						. ')';
 					case Windowing\Value\Lead::class:
-						return 'LEAD(' . $v 
-						. (($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'') 
-						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'') 
+						return 'LEAD(' . $v
+						. (($f->getOffset() != 1 || $f->getDefault() !== null) ? ', ' . $f->getOffset():'')
+						. ($f->getDefault() !== null ? ', ' . $this->valueToString($f->getDefault()):'')
 						. ')';
-					default: 
+					default:
 						throw new \Exception("unknown value window function " . get_class($f));
 				}
 
-			default: 
+			default:
 				throw new \Exception("unknown window function type " . get_class($windowing));
 		}
 	}
 
-	protected function orderToString(Order $order) {
+	protected function orderToString(Order $order): string {
 		return sprintf('%s %s', $this->valueToString($order->getValue()), $order->isAscending() ? 'ASC' : 'DESC');
 	}
 
 
-	public function insertToString(Insert $insert) {
+	public function insertToString(Insert $insert) :string {
 		$query = 'INSERT INTO ' . $this->escapeIdentifier($insert->getTable()) . PHP_EOL;
 		if(!empty($insert->getColumns())) {
 			$query .= '('. implode(', ', array_map(
@@ -503,7 +502,7 @@ abstract class SqlBase implements DialectInterface {
 		return $query;
 	}
 
-	public function updateToString(Update $update) {
+	public function updateToString(Update $update) :string {
 		$query = 'UPDATE ' . $this->tableReferenceToString($update->getTable()) . PHP_EOL;
 		$query .= 'SET ';
 		$this->indent();
@@ -519,7 +518,7 @@ abstract class SqlBase implements DialectInterface {
 			$this->outdent();
 			$query .= $this->i() . ')' . PHP_EOL;
 		}
-		
+
 		if($update->getCondition()) {
 			$query .= $this->i() . ' WHERE' . PHP_EOL;
 			$this->indent();
@@ -530,14 +529,14 @@ abstract class SqlBase implements DialectInterface {
 		return $query;
 	}
 
-	protected function setterToString(Setter $setter) {
+	protected function setterToString(Setter $setter): string {
 		return sprintf('%s = %s', $this->escapeIdentifier($setter->getColumn()->getName()), $this->valueToString($setter->getValue()));
 	}
 
-	public function deleteToString(Delete $delete) {
+	public function deleteToString(Delete $delete) :string {
 		$query = 'DELETE FROM ' . $this->tableReferenceToString($delete->getTable()) . PHP_EOL;
 
-		
+
 		if($delete->getCondition()) {
 			$query .= $this->i() . 'WHERE' . PHP_EOL;
 			$this->indent();
@@ -548,12 +547,12 @@ abstract class SqlBase implements DialectInterface {
 		return $query;
 	}
 
-	public function createViewToString(CreateView $createView) {
+	public function createViewToString(CreateView $createView) :string {
 		return "CREATE VIEW IF NOT EXISTS " . $this->escapeIdentifier($createView->getName()) .
 		" AS " . PHP_EOL . $this->selectToString($createView->getQuery()) . ";";
 	}
 
-	public function createTableToString(CreateTable $createTable, $noFk = false) {
+	public function createTableToString(CreateTable $createTable, $noFk = false) :string {
 		$indent = "\t";
 		$query = "CREATE TABLE IF NOT EXISTS ";
 		$query .= $this->escapeIdentifier($createTable->getName()) . "(". PHP_EOL;
@@ -584,7 +583,7 @@ abstract class SqlBase implements DialectInterface {
 		return $query;
 	}
 
-	public function addForeignKeysTableToString(CreateTable $createTable) {
+	public function addForeignKeysTableToString(CreateTable $createTable): string {
 		$query = '';
 
 		foreach($createTable->getForeignKeys() AS $fk) {
@@ -609,15 +608,15 @@ abstract class SqlBase implements DialectInterface {
 		return $result;
 	}
 
-	protected function dataTypeToString($type) {
+	protected function dataTypeToString($type) :string {
 		return $type;
 	}
 
-	protected function tablePrimaryColumnToString(TableColumn $column) {
+	protected function tablePrimaryColumnToString(TableColumn $column): string {
 		return sprintf('PRIMARY KEY(%s)', $this->escapeIdentifier($column->getName()));
 	}
 
-	protected function uniqueIndexToString(array $columnNames) {
+	protected function uniqueIndexToString(array $columnNames) :string {
 		return 'UNIQUE('. implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$columnNames
@@ -626,11 +625,11 @@ abstract class SqlBase implements DialectInterface {
 
 	private $fkCount = 1;
 
-	protected function foreignKeyToString(ForeignKey $fk) {
+	protected function foreignKeyToString(ForeignKey $fk) :string {
 		return 'CONSTRAINT ' . $this->escapeIdentifier(new Identifier('_fk_'.$this->fkCount++.'_'.md5(print_r($fk, true)))) . PHP_EOL . $this->i() .  '   FOREIGN KEY ('. implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getOwnColumns()
-		)) .')' . PHP_EOL . $this->i() . '   REFERENCES ' . $this->escapeIdentifier($fk->getForeignTable()) . 
+		)) .')' . PHP_EOL . $this->i() . '   REFERENCES ' . $this->escapeIdentifier($fk->getForeignTable()) .
 		'(' . implode(', ', array_map(
 			fn($name) => $this->escapeIdentifier($name),
 			$fk->getTargetColumns()
@@ -638,11 +637,11 @@ abstract class SqlBase implements DialectInterface {
 	}
 
 
-	public function dropViewToString(CreateView $createView) {
+	public function dropViewToString(CreateView $createView) :string {
 		return "DROP VIEW IF EXISTS " . $this->escapeIdentifier($createView->getName()) . ";";
 	}
 
-	public function dropTableToString(CreateTable $createTable) {
+	public function dropTableToString(CreateTable $createTable) :string {
 		return "DROP TABLE IF EXISTS " . $this->escapeIdentifier($createTable->getName()) . ";";
 	}
 

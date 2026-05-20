@@ -13,16 +13,16 @@ use Doctrine\DBAL\ParameterType;
 
 class ValidationServer {
 	public function __construct(
-		private SchemaDefinition $schemaDef, 
-		private ValidationCommandBuilder $commandBuilder, 
-		private Connection $connection, 
+		private SchemaDefinition $schemaDef,
+		private ValidationCommandBuilder $commandBuilder,
+		private Connection $connection,
 		private DialectInterface $dialect
 	) {
 
 	}
 
 	public function validateCreateNode(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
-		
+
 		$errors = [];
 
 		$this->validateRequiredField($errors, $keyId, $fieldData);
@@ -31,11 +31,11 @@ class ValidationServer {
 
 
 		return new Validation(
-			$keyId, 
-			null, 
+			$keyId,
+			null,
 			$fieldData,
-			$errors, 
-			$scopeId, 
+			$errors,
+			$scopeId,
 			$parentId
 		);
 	}
@@ -72,12 +72,12 @@ class ValidationServer {
 
 		if(!empty($scopeId) && !empty($parentId)) {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
-			
+
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, ParameterType::INTEGER);
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, ParameterType::INTEGER);
-			$stmtResult = $validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->executeQuery();
 
 			if(!$stmtResult->fetchOne()) {
 				$errors['_parent'][] = 'parent and scope not matching';
@@ -139,13 +139,13 @@ class ValidationServer {
 			}
 		}
 
-		$stmtResult = $stmt->execute();
-		$result = $stmtResult->fetch();
+		$stmtResult = $stmt->executeQuery();
+		$result = $stmtResult->fetchAssociative();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {
 				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique'; 
+					$errors[$fieldId][] = 'not unique';
 				}
 			}
 		}
@@ -160,8 +160,8 @@ class ValidationServer {
 		$this->validateRequiredField($errors, $keyId, $fieldData);
 
 		return new Validation(
-			$keyId, 
-			$nodeId, 
+			$keyId,
+			$nodeId,
 			$fieldData,
 			$errors,
 		);
@@ -211,13 +211,13 @@ class ValidationServer {
 			}
 		}
 
-		$stmtResult = $stmt->execute();
-		$result = $stmtResult->fetch();
+		$stmtResult = $stmt->executeQuery();
+		$result = $stmtResult->fetchAssociative();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {
 				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique'; 
+					$errors[$fieldId][] = 'not unique';
 				}
 			}
 		}
@@ -227,43 +227,43 @@ class ValidationServer {
 		// check target position
 
 		return new Validation(
-			$keyId, 
-			$nodeId, 
+			$keyId,
+			$nodeId,
 			null,
 			[],
-			$targetScopeId, 
+			$targetScopeId,
 			$targetParentId
 		);
 	}
 
 	public function validateDeleteNode(string $keyId, string $nodeId) {
-		$scopeId = null; 
+		$scopeId = null;
 		$parentId = null;
 
 		// check deletion plan
 
 		return new Validation(
-			$keyId, 
-			$nodeId, 
+			$keyId,
+			$nodeId,
 			null,
 			[],
-			$scopeId, 
+			$scopeId,
 			$parentId
 		);
 	}
 
 	public function validateOrderNode(string $keyId, string $nodeId, $targetPosition) {
-		$scopeId = null; 
+		$scopeId = null;
 		$parentId = null;
 
 		// check order
 
 		return new Validation(
-			$keyId, 
-			$nodeId, 
+			$keyId,
+			$nodeId,
 			null,
 			[],
-			$scopeId, 
+			$scopeId,
 			$parentId
 		);
 	}

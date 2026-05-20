@@ -2,42 +2,27 @@
 
 namespace App\Hierarchy\Storage\Relational\Dialect;
 
-use App\Hierarchy\Storage\Relational\Algebra;
-use App\Hierarchy\Storage\Relational\Algebra\Identifier;
-use App\Hierarchy\Storage\Relational\Algebra\Select;
-use App\Hierarchy\Storage\Relational\Algebra\Insert;
-use App\Hierarchy\Storage\Relational\Algebra\Update;
-use App\Hierarchy\Storage\Relational\Algebra\Setter;
-use App\Hierarchy\Storage\Relational\Algebra\Delete;
-use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
+use App\Hierarchy\Storage\Relational\Algebra\Identifier;
+use App\Hierarchy\Storage\Relational\Algebra\Update;
 use App\Hierarchy\Storage\Relational\Algebra\TableColumn;
-use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
-use App\Hierarchy\Storage\Relational\Algebra\Projection;
-use App\Hierarchy\Storage\Relational\Algebra\Join;
-use App\Hierarchy\Storage\Relational\Algebra\Order;
-use App\Hierarchy\Storage\Relational\Algebra\TableReference;
-use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison;
 use App\Hierarchy\Storage\Relational\Algebra\Value;
-use App\Hierarchy\Storage\Relational\Algebra\Aggregation;
 use App\Hierarchy\Storage\Relational\Algebra\Operator;
-use App\Hierarchy\Storage\Relational\Algebra\Windowing;
-use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
+use Exception;
 
 class MySql extends SqlBase implements DialectInterface {
-	
-	public function stringQueryViewNames() {
+
+	public function stringQueryViewNames(): string {
 		return "SHOW FULL TABLES WHERE Table_Type = 'VIEW'";
 	}
 
-	public function stringQueryTableNames() {
+	public function stringQueryTableNames(): string {
 		return "SHOW FULL TABLES WHERE Table_Type = 'BASE TABLE'";
 	}
 
-	protected function tableColumnToString(TableColumn $column) {
+	protected function tableColumnToString(TableColumn $column) : string {
 		$result = $this->escapeIdentifier($column->getName());
 		$result .= ' ' . $this->dataTypeToString($column->getType());
 
@@ -54,7 +39,7 @@ class MySql extends SqlBase implements DialectInterface {
 		return $result;
 	}
 
-	protected function dataTypeToString($type) {
+	protected function dataTypeToString($type) :string {
 		if($type === 'SERIAL') {
 			return 'INTEGER UNSIGNED';
 		}
@@ -63,11 +48,11 @@ class MySql extends SqlBase implements DialectInterface {
 	}
 
 
-	protected function escapeIdentifier(Identifier $identifier) {
+	protected function escapeIdentifier(Identifier $identifier): string {
 		return sprintf('`%s`', str_replace(['/','`'], '', $identifier->getString()));
 	}
 
-	public function updateToString(Update $update) {
+	public function updateToString(Update $update) :string {
 		$query = 'UPDATE ' . $this->tableReferenceToString($update->getTable()) . PHP_EOL;
 
 
@@ -91,7 +76,7 @@ class MySql extends SqlBase implements DialectInterface {
 			$query .= ($i?',':'') . PHP_EOL . $this->i() . $this->setterToString($s);
 		}
 		$this->outdent();
-		
+
 		if($update->getCondition()) {
 			$query .= $this->i() . ' WHERE' . PHP_EOL;
 			$this->indent();
@@ -100,12 +85,12 @@ class MySql extends SqlBase implements DialectInterface {
 		}
 
 		return $query;
-	
+
 	}
 
-	protected function associativeOperationToString(Value\AssociativeOperation $associativeOperation) {
+	protected function associativeOperationToString(Value\AssociativeOperation $associativeOperation) :string {
 		if($associativeOperation->getOperator() instanceof Operator\String\Concat) {
-			return 'CONCAT(' . 
+			return 'CONCAT(' .
 				implode(', ', array_map(fn($v) => $this->valueToString($v), $associativeOperation->getOperands()))
 			 . ')';
 		}
@@ -113,10 +98,10 @@ class MySql extends SqlBase implements DialectInterface {
 		return parent::associativeOperationToString($associativeOperation);
 	}
 
-	protected function binaryOperationToString(Value\BinaryOperation $binaryOperation) {
+	protected function binaryOperationToString(Value\BinaryOperation $binaryOperation) :string {
 		if($binaryOperation->getOperator() instanceof Operator\String\Concat) {
-			return 'CONCAT(' . 
-			$this->valueToString($binaryOperation->getLeftOperand()) . ', ' . 
+			return 'CONCAT(' .
+			$this->valueToString($binaryOperation->getLeftOperand()) . ', ' .
 			$this->valueToString($binaryOperation->getRightOperand()) .
 			')';
 		} elseif($binaryOperation->getOperator() instanceof Operator\Comparison\NotEqual) {
@@ -128,11 +113,15 @@ class MySql extends SqlBase implements DialectInterface {
 				))
 			);
 		}
-		
+
 		return parent::binaryOperationToString($binaryOperation);
 	}
 
-	public function stringSwitchForeignKey($on) {
+	public function stringSwitchForeignKey($on): ?string {
 		return sprintf('SET foreign_key_checks = %d;', $on ? 1 : 0);
 	}
+
+    public function addForeignKeysTableToString(CreateTable $createTable): void
+    {
+    }
 }

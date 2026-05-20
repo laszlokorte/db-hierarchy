@@ -31,11 +31,6 @@ services:
     resource: "../src/Controller"
     tags: ["controller.service_arguments"]
 
-  App\Doctrine\SqliteForeignKeyActivationSubscriber:
-    class: App\Doctrine\SqliteForeignKeyActivationSubscriber
-    tags:
-      - { name: doctrine.event_listener, event: postConnect }
-
   App\Hierarchy\Schema\RecursiveLoader:
     class: App\Hierarchy\Schema\RecursiveLoader
 
@@ -45,3 +40,7 @@ services:
   App.Hierarchy.Schema.SchemaList:
     class: App\Hierarchy\Schema\Hierarchy
     factory: ['@App\Hierarchy\Schema\RecursiveLoader', "loadSubSchemas"]
+
+  App\Doctrine\SqliteForeignKeyMiddleware:
+    tags:
+      - { name: doctrine.middleware }

@@ -18,7 +18,7 @@ class CreationService {
 
 	}
 
-	private function genUUID() {
+	private function genUUID(): string {
 		return sprintf('%04x%04x%04x%04x%04x%04x%04x%04x',
 	        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
 	        mt_rand(0, 0xffff),
@@ -28,7 +28,7 @@ class CreationService {
 	    );
 	}
 
-	public function getFreshCreation(string $keyId, ?Node $superNode = null) {
+	public function getFreshCreation(string $keyId, ?Node $superNode = null): Creation {
 		if($superNode === null) {
 			$scopeId = null;
 			$parentId = null;
@@ -41,15 +41,17 @@ class CreationService {
 		}
 
 		return new Creation(
-			$keyId, 
-			$scopeId, 
-			$parentId, 
+			$keyId,
+			$scopeId,
+			$parentId,
 			[],
 			null
 		);
 	}
-
-	public function getValidatedCreation(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId) {
+    /**
+     * @param array<int,mixed> $fieldData
+     */
+    public function getValidatedCreation(string $keyId, array $fieldData, ?string $scopeId, ?string $parentId): Creation {
 		$fieldErrors = [];
 		$scopeErrors = [];
 		$parentErrors = [];
@@ -69,22 +71,28 @@ class CreationService {
 		}
 
 		return new Creation(
-			$keyId, 
-			$scopeId, 
-			$parentId, 
+			$keyId,
+			$scopeId,
+			$parentId,
 			$allColumnData,
 			$fieldErrors,
 			$scopeErrors,
 			$parentErrors
 		);
 	}
-
-	private function validateRequiredField(&$errors, $keyId, $fieldData) {
+    /**
+     * @param mixed $errors
+     * @param mixed $keyId
+     * @param mixed $fieldData
+     */
+    private function validateRequiredField(&$errors, $keyId, $fieldData): void {
 		foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
 			if(!$this->schemaDef->isKeyFieldRequired($keyId,  $fieldId)) {
 				continue;
 			}
 
+			$fieldsToCheck = [];
+			$valuesToCheck = [];
 			$fieldsToCheck[$fieldId] = [];
 			$valuesToCheck[$fieldId] = [];
 
@@ -95,8 +103,11 @@ class CreationService {
 			}
 		}
 	}
-
-	private function validateNodePosition(array &$scopeErrors, array &$parentErrors, string $keyId, ?string $scopeId, ?string $parentId) {
+    /**
+     * @param array<int,mixed> $scopeErrors
+     * @param array<int,mixed> $parentErrors
+     */
+    private function validateNodePosition(array &$scopeErrors, array &$parentErrors, string $keyId, ?string $scopeId, ?string $parentId): void {
 		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
 			$scopeErrors[] = 'is required';
 		}
@@ -111,20 +122,26 @@ class CreationService {
 
 		if(!empty($scopeId) && !empty($parentId)) {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
-			
+
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, ParameterType::INTEGER);
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, ParameterType::INTEGER);
-			$stmtResult = $validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->executeQuery();
 
 			if(!$stmtResult->fetchOne()) {
 				$parentErrors[] = 'is not matching';
 			}
 		}
 	}
-
-	private function validateUniquenessForNew(&$errors, $keyId, $fieldData, $scopeId, $parentId) {
+    /**
+     * @param mixed $errors
+     * @param mixed $keyId
+     * @param mixed $fieldData
+     * @param mixed $scopeId
+     * @param mixed $parentId
+     */
+    private function validateUniquenessForNew(&$errors, $keyId, $fieldData, $scopeId, $parentId): void {
 
 		$scopeParam = new Parameter('_scope');
 		$parentParam = new Parameter('_parent');
@@ -178,19 +195,24 @@ class CreationService {
 			}
 		}
 
-		$stmtResult = $stmt->execute();
-		$result = $stmtResult->fetch();
+		$stmtResult = $stmt->executeQuery();
+		$result = $stmtResult->fetchAssociative();
 
 		if($result) {
 			foreach ($fieldsToCheck as $fieldId => $params) {
 				if($result[$fieldId]) {
-					$errors[$fieldId][] = 'not unique'; 
+					$errors[$fieldId][] = 'not unique';
 				}
 			}
 		}
 	}
-
-	public function createNode(string $keyId, $fieldData, $scopeId, $parentId) {
+    /**
+     * @param mixed $fieldData
+     * @param mixed $scopeId
+     * @param mixed $parentId
+     * @return int|string
+     */
+    public function createNode(string $keyId, $fieldData, $scopeId, $parentId) : string {
 		if($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
 			throw new \Exception("missing scope");
 		}
@@ -206,12 +228,12 @@ class CreationService {
 
 		if(!empty($scopeId) && !empty($parentId)) {
 			$selectMoveTargetExists = $this->commandBuilder->getSelectForScopeParentCheck($keyId, $scopeParam, $parentParam);
-			
+
 			$validPositionStmt = $this->connection->prepare($this->dialect->selectToString($selectMoveTargetExists));
 
 			$validPositionStmt->bindValue($this->dialect->parameterToString($scopeParam), $scopeId, $this->coder->getScopeColumnBindingType($keyId));
 			$validPositionStmt->bindValue($this->dialect->parameterToString($parentParam), $parentId, $this->coder->getPrimaryColumnBindingType($keyId));
-			$stmtResult = $validPositionStmt->execute();
+			$stmtResult = $validPositionStmt->executeQuery();
 
 			if(!$stmtResult->fetchOne()) {
 				throw new \Exception("invalid position");
@@ -268,7 +290,7 @@ class CreationService {
 			}
 		}
 
-    	$stmt->execute();
+    	$stmt->executeQuery();
 
     	if($generatedId === NULL) {
     		$newNodeId = $this->connection->lastInsertId();
@@ -296,7 +318,7 @@ class CreationService {
 				);
 			}
 
-    		$closureStmt->execute();
+    		$closureStmt->executeQuery();
 
     		if(!empty($parentId)) {
     			$closureInsertParent = $this->commandBuilder->getCommandForClosureParentInsert($keyId, $scopeParam, $childParam, $parentParam);
@@ -312,7 +334,7 @@ class CreationService {
 					);
 				}
 
-	    		$closureStmt->execute();
+	    		$closureStmt->executeQuery();
     		}
 
     		$this->connection->prepare($this->dialect->insertToString(

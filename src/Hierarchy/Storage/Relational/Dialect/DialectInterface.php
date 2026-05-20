@@ -12,25 +12,29 @@ use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 
 interface DialectInterface {
-	public function selectToString(Select $select);
+	public function selectToString(Select $select) :string;
 
-	public function insertToString(Insert $insert);
+	public function insertToString(Insert $insert) : string;
 
-	public function updateToString(Update $update);
+	public function updateToString(Update $update) : string;
 
-	public function deleteToString(Delete $delete);
+	public function deleteToString(Delete $delete) : string;
 
-	public function createViewToString(CreateView $createView);
+	public function createViewToString(CreateView $createView) : string;
 
-	public function createTableToString(CreateTable $createView);
+	public function createTableToString(CreateTable $createTable) : string;
 
-	public function dropViewToString(CreateView $createView);
+	public function addForeignKeysTableToString(CreateTable $createTable) : string;
 
-	public function dropTableToString(CreateTable $createView);
+	public function dropViewToString(CreateView $createView) : string;
 
-	public function parameterToString(Parameter $param);
+	public function dropTableToString(CreateTable $createView) : string;
 
-	public function stringQueryViewNames();
+	public function parameterToString(Parameter $param) : string;
 
-	public function stringQueryTableNames();
+	public function stringQueryViewNames() : string;
+
+	public function stringQueryTableNames() : string;
+
+	public function stringSwitchForeignKey(bool $on) : ?string;
 }
