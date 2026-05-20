@@ -4,6 +4,7 @@ namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Changeset\Ordering;
 use App\Hierarchy\Data\Node;
+use App\Hierarchy\Data\NodeCollection;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
@@ -42,12 +43,12 @@ class OrderingService
         );
     }
 
-    public function findNodeSiblings(string $keyId, string $nodeId): array
+    public function findNodeSiblings(string $keyId, string $nodeId): NodeCollection
     {
         return $this->queryService->findNodeSiblings($keyId, $nodeId);
     }
 
-    public function orderNode(string $keyId, $nodeId, $targetPosition): void
+    public function orderNode(string $keyId, string $nodeId, string $targetPosition): void
     {
         $idParam = new Parameter('_id');
         $orderParam = new Parameter('_order');
