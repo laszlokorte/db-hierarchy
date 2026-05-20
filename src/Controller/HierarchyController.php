@@ -18,6 +18,7 @@ use App\Hierarchy\Schema\Hierarchy;
 use App\Hierarchy\Schema\Key;
 use App\Hierarchy\Storage\Relational\Exception\DeletionBlockedException;
 use App\Hierarchy\Storage\Relational\StorageConnection;
+use App\Request\ParamConverter\HierarchySlug;
 use App\Response\RedirectHandler;
 use Symfony\Bridge\Twig\Attribute\Template;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -70,7 +71,7 @@ class HierarchyController
     #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'show_system_installer', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[Template('hierarchy/show_installer.html.twig')]
-    public function showInstaller(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection): array
+    public function showInstaller(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection): array
     {
         $installForm = $formFactory->create(InstallType::class, [
         ], [
@@ -112,7 +113,7 @@ class HierarchyController
     #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}/table/{tableName}', name: 'show_system_installer_table', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[Template('hierarchy/show_installer_table.html.twig')]
-    public function showInstallerTable(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, string $tableName, StorageConnection $storageConnection): array
+    public function showInstallerTable(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, string $tableName, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection): array
     {
         return [
             'hierarchy' => $hierarchy,
@@ -128,7 +129,7 @@ class HierarchyController
     #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}/view/{viewName}', name: 'show_system_installer_view', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[Template('hierarchy/show_installer_view.html.twig')]
-    public function showInstallerView(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, string $viewName, StorageConnection $storageConnection): array
+    public function showInstallerView(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, string $viewName, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection): array
     {
         return [
             'hierarchy' => $hierarchy,
@@ -140,7 +141,7 @@ class HierarchyController
 
     #[Route('/{hierarchySlug}/_setup/{subHierarchySlug}', name: 'system_install', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
-    public function install(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler): RedirectResponse
+    public function install(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection, RedirectHandler $redirectHandler): RedirectResponse
     {
         $installForm = $formFactory->create(InstallType::class, [], [
             'action' => $urlGen->generate('system_install', [
@@ -165,7 +166,7 @@ class HierarchyController
 
     #[Route('/{hierarchySlug}/_uninstall/{subHierarchySlug}', name: 'system_uninstall', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
-    public function uninstall(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler): RedirectResponse
+    public function uninstall(Request $request, Session $session, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection, RedirectHandler $redirectHandler): RedirectResponse
     {
         $uninstallForm = $formFactory->create(UninstallType::class, [], [
             'action' => $urlGen->generate('system_uninstall', [
@@ -191,7 +192,7 @@ class HierarchyController
     #[Route('/{hierarchySlug}/_health/{subHierarchySlug}', name: 'show_health', methods: 'GET', defaults: ['subHierarchySlug' => 'system'], requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     #[Template('hierarchy/show_health.html.twig')]
-    public function showHealth(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection): array
+    public function showHealth(FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Hierarchy $hierarchy, Hierarchy $subHierarchy, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection): array
     {
         $health = $storageConnection->getRepairService()->findAllDefects();
 
@@ -226,7 +227,7 @@ class HierarchyController
 
     #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}', name: 'repair', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
-    public function repairAllDefects(Request $request, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, RedirectHandler $redirectHandler): RedirectResponse
+    public function repairAllDefects(Request $request, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection, RedirectHandler $redirectHandler): RedirectResponse
     {
         $repairAllForm = $formFactory->create(RepairAllType::class, [], [
             'action' => $urlGen->generate('repair', [
@@ -248,7 +249,7 @@ class HierarchyController
     #[Route('/{hierarchySlug}/_repair/{subHierarchySlug}/{keyId}', name: 'repair_key', methods: 'POST', requirements: ['hierarchySlug' => 'system'])]
     // #[ParamConverter('storageConnection', options: ['slug' => 'subHierarchySlug'])]
     // #[ParamConverter('key', options: ['slug' => 'subHierarchySlug'])]
-    public function repairKeyDefects(Request $request, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, StorageConnection $storageConnection, Key $key, RedirectHandler $redirectHandler): RedirectResponse
+    public function repairKeyDefects(Request $request, FormFactoryInterface $formFactory, UrlGeneratorInterface $urlGen, Session $session, Hierarchy $hierarchy, Hierarchy $subHierarchy, #[HierarchySlug('subHierarchySlug')] StorageConnection $storageConnection, #[HierarchySlug('subHierarchySlug')] Key $key, RedirectHandler $redirectHandler): RedirectResponse
     {
         $repairForm = $formFactory->create(RepairType::class, [], [
             'action' => $urlGen->generate('repair_key', [
@@ -270,7 +271,7 @@ class HierarchyController
 
     #[Route('/{hierarchySlug}/{keyId}({fieldId})/{nodeId}', name: 'show_node_field', methods: 'GET')]
     #[Template('hierarchy/show_node_field.html.twig')]
-    public function showNodeField(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, $nodeId, Field $field): JsonResponse
+    public function showNodeField(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, string $nodeId, Field $field): JsonResponse
     {
         return new JsonResponse((object) [
             'keyId' => $key->getId(),
@@ -599,7 +600,7 @@ class HierarchyController
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}/{childKeyId}', name: 'create_child_node', methods: 'POST')]
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}/{childKeyId}/+', name: 'new_child_node', methods: 'GET')]
     #[Template('hierarchy/new_child_node.html.twig')]
-    public function createChildNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, $nodeId, Key $childKey, RedirectHandler $redirectHandler): array|RedirectResponse
+    public function createChildNode(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, Key $childKey, RedirectHandler $redirectHandler): array|RedirectResponse
     {
         if ($childKey->isSingleton()) {
             if (!$storageConnection->getQueryService()->findNodeChildren($key->getId(), $nodeId, $childKey->getId())->isEmpty()) {
@@ -697,7 +698,7 @@ class HierarchyController
      */
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}', name: 'show_node', methods: 'GET')]
     #[Template('hierarchy/show_node.html.twig')]
-    public function showNode(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, $nodeId): array
+    public function showNode(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, string $nodeId): array
     {
         return [
             'hierarchy' => $hierarchy,
@@ -796,7 +797,7 @@ class HierarchyController
      */
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}/{childKeyId}', name: 'list_child_nodes', methods: 'GET')]
     #[Template('hierarchy/list_child_nodes.html.twig')]
-    public function listChildNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, $nodeId, Key $childKey): array
+    public function listChildNodes(Hierarchy $hierarchy, StorageConnection $storageConnection, Key $key, string $nodeId, Key $childKey): array
     {
         return [
             'hierarchy' => $hierarchy,

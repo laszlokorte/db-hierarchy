@@ -23,6 +23,7 @@ class RecursiveLoader
 
     private $subSchemas;
     private $connectionCache = [];
+    private $predefinedHierarchies = [];
 
     private array $icons = [
         'alert', 'archive', 'arrow-both', 'arrow-down', 'arrow-left', 'arrow-right',
@@ -67,10 +68,13 @@ class RecursiveLoader
         'versions', 'video', 'workflow', 'x', 'x-circle', 'x-circle-fill', 'zap',
     ];
 
-    public function __construct(Connection $baseConnection)
-    {
-        $this->baseConnection = $baseConnection;
+    /**
+     * @var array<string,SchemaDefinition>
+     */
+    private array $definitionCache = [];
 
+    public function __construct(private Connection $baseConnection)
+    {
         $this->fieldTypes = [
             'string' => new FieldType\StringType(),
             'text' => new FieldType\TextType(),
@@ -111,12 +115,12 @@ class RecursiveLoader
         ];
     }
 
-    public function loadSchema(string $hierarchyName = 'system')
+    public function loadSchema(string $hierarchyName = 'system'): Hierarchy
     {
         return new Hierarchy($this->loadDefinition($hierarchyName), $hierarchyName);
     }
 
-    public function loadSubSchemas()
+    public function loadSubSchemas(): array
     {
         if (null === $this->subSchemas) {
             try {
@@ -156,7 +160,7 @@ class RecursiveLoader
         return $this->subSchemas;
     }
 
-    public function loadStorageConnection(string $hierarchyName = 'system')
+    public function loadStorageConnection(string $hierarchyName = 'system'): mixed
     {
         if (empty($this->connectionCache[$hierarchyName])) {
             $this->connectionCache[$hierarchyName] = new StorageConnection(
@@ -168,7 +172,7 @@ class RecursiveLoader
         return $this->connectionCache[$hierarchyName];
     }
 
-    public function loadDefinition(string $hierarchyName = 'system')
+    public function loadDefinition(string $hierarchyName = 'system'): mixed
     {
         if (empty($this->definitionCache[$hierarchyName])) {
             if (isset($this->predefinedHierarchies[$hierarchyName])) {
@@ -180,7 +184,7 @@ class RecursiveLoader
         return $this->definitionCache[$hierarchyName];
     }
 
-    public function loadHierarchyConnection(string $hierarchyName = 'system')
+    public function loadHierarchyConnection(string $hierarchyName = 'system'): Connection
     {
         if (isset($this->predefinedHierarchies[$hierarchyName])) {
             return $this->baseConnection;
@@ -193,16 +197,25 @@ class RecursiveLoader
         if (false === $dsn) {
             throw new \Exception();
         }
+        $schemeEnd = strpos($dsn, ':');
+        $scheme = substr($dsn, 0, $schemeEnd);
+        $driver = match ($scheme) {
+            'mysql', 'mariadb' => 'pdo_mysql',
+            'pgsql', 'postgres' => 'pdo_pgsql',
+            'sqlite' => 'pdo_sqlite',
+            default => throw new \RuntimeException("Unsupported DSN: $scheme"),
+        };
 
         return $dsn ? DriverManager::getConnection([
             'url' => $dsn,
+            'driver' => $driver,
             'driverOptions' => [
                 \PDO::ATTR_AUTOCOMMIT => false,
             ],
         ]) : $this->baseConnection;
     }
 
-    private function loadDynamicDefinition($hierarchyName)
+    private function loadDynamicDefinition($hierarchyName): SchemaDefinition
     {
         $stmt = $this->baseConnection->prepare('SELECT HEX(id) AS id, slug, label_singular, label_plural, label_icon, label_color, label_description FROM hierarchy WHERE hierarchy.slug = :slug');
         $stmt->bindValue('slug', $hierarchyName, ParameterType::STRING);
@@ -345,7 +358,7 @@ class RecursiveLoader
         return $def;
     }
 
-    private function loadBaseDefinition()
+    private function loadBaseDefinition(): SchemaDefinition
     {
         $settings = ['accent_color' => null, 'title' => null, 'intro' => null];
         try {
@@ -644,7 +657,7 @@ class RecursiveLoader
             ], $this->fieldTypes);
     }
 
-    private function loadTestDefinition()
+    private function loadTestDefinition(): SchemaDefinition
     {
         return new SchemaDefinition(
             new LabelDefinition(
@@ -765,7 +778,7 @@ class RecursiveLoader
             ], $this->fieldTypes);
     }
 
-    private function loadFrontendDefinition()
+    private function loadFrontendDefinition(): SchemaDefinition
     {
         return new SchemaDefinition(
             new LabelDefinition(

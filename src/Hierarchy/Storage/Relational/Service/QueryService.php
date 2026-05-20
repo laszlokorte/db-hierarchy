@@ -54,8 +54,6 @@ class QueryService
         );
     }
 
-
-
     public function findAllHierarchyNodes(): Data\MultiTree
     {
         $groupedRows = [];
