@@ -8,7 +8,7 @@ class Cases implements ValueInterface
     private $consequences;
     private $fallback;
 
-    public function __construct(...$cases)
+    public function __construct(mixed ...$cases)
     {
         for ($i = 1; $i < count($cases); $i += 2) {
             $this->conditions[] = $cases[$i - 1];
@@ -20,22 +20,22 @@ class Cases implements ValueInterface
         }
     }
 
-    public function getFallback()
+    public function getFallback(): mixed
     {
         return $this->fallback;
     }
 
-    public function count()
+    public function count(): int
     {
         return count($this->conditions);
     }
 
-    public function getCondition($i)
+    public function getCondition($i): mixed
     {
         return $this->conditions[$i];
     }
 
-    public function getConsequence($i)
+    public function getConsequence($i): mixed
     {
         return $this->consequences[$i];
     }

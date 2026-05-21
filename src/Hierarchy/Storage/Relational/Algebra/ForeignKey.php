@@ -8,6 +8,10 @@ class ForeignKey
     public const RESTRICT = 'RESTRICT';
     public const SET_NULL = 'SET NULL';
 
+    /**
+     * @param array<int,mixed> $ownColumns
+     * @param array<int,mixed> $targetColumns
+     */
     public function __construct(
         private array $ownColumns,
         private Identifier $foreignTable,
@@ -16,22 +20,28 @@ class ForeignKey
     ) {
     }
 
-    public function getOwnColumns()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getOwnColumns(): array
     {
         return $this->ownColumns;
     }
 
-    public function getForeignTable()
+    public function getForeignTable(): Identifier
     {
         return $this->foreignTable;
     }
 
-    public function getTargetColumns()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getTargetColumns(): array
     {
         return $this->targetColumns;
     }
 
-    public function getOnDelete()
+    public function getOnDelete(): string
     {
         return $this->onDelete;
     }

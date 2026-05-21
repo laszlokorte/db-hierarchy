@@ -10,7 +10,7 @@ class NotEqual implements BinaryInterface
     {
     }
 
-    public function allowNull()
+    public function allowNull(): bool
     {
         return $this->allowNull;
     }

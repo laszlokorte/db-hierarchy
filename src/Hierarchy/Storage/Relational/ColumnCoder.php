@@ -12,6 +12,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
 use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use Doctrine\DBAL\ParameterType;
 
 class ColumnCoder
@@ -20,12 +21,12 @@ class ColumnCoder
     {
     }
 
-    public function wrapPrimaryKeyParameter(string $keyId, Parameter|Constant $parameter)
+    public function wrapPrimaryKeyParameter(string $keyId, Parameter|Constant $parameter): ValueInterface
     {
         return $this->encodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $parameter);
     }
 
-    public function wrapScopeParameter(string $keyId, Parameter|Constant $parameter)
+    public function wrapScopeParameter(string $keyId, Parameter|Constant $parameter): ValueInterface
     {
         $scopeId = $this->schemaDef->getKeyScopeId($keyId);
 
@@ -36,7 +37,7 @@ class ColumnCoder
         return $this->wrapPrimaryKeyParameter($scopeId, $parameter);
     }
 
-    public function wrapParentParameter(string $keyId, Parameter|Constant $parameter)
+    public function wrapParentParameter(string $keyId, Parameter|Constant $parameter): ValueInterface
     {
         return $this->wrapPrimaryKeyParameter($keyId, $parameter);
     }
@@ -46,14 +47,14 @@ class ColumnCoder
         return $parameter;
     }
 
-    public function wrapPrimaryColumn(string $keyId, TableReference $tableRef)
+    public function wrapPrimaryColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->nodeTablePKName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapScopeColumn(string $keyId, TableReference $tableRef)
+    public function wrapScopeColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->nodeOwnScopeColumnName($keyId));
 
@@ -67,7 +68,7 @@ class ColumnCoder
         return $columnRef;
     }
 
-    public function wrapColumn(ColumnDefinition $column, TableReference $tableRef)
+    public function wrapColumn(ColumnDefinition $column, TableReference $tableRef): ValueInterface
     {
         if ($column->isReference()) {
             $refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
@@ -78,7 +79,7 @@ class ColumnCoder
         return $this->decodeColumnType($column->getCoding()->getType(), new ColumnReference($tableRef, $this->naming->fieldColumnToName($column)));
     }
 
-    public function wrapColumnParameter(ColumnDefinition $column, $parameter)
+    public function wrapColumnParameter(ColumnDefinition $column, $parameter): ValueInterface
     {
         if ($column->isReference()) {
             $refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
@@ -89,14 +90,14 @@ class ColumnCoder
         return $this->encodeColumnType($column->getCoding()->getType(), $parameter);
     }
 
-    public function wrapClosureParentColumn(string $keyId, TableReference $tableRef)
+    public function wrapClosureParentColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->closureParentColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapClosureChildColumn(string $keyId, TableReference $tableRef)
+    public function wrapClosureChildColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->closureChildColumnName($keyId));
 
@@ -110,14 +111,14 @@ class ColumnCoder
         return $columnRef;
     }
 
-    public function wrapHierarchyPrimaryColumn(string $keyId, TableReference $tableRef)
+    public function wrapHierarchyPrimaryColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyIdColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function wrapHierarchyScopeColumn(string $keyId, TableReference $tableRef)
+    public function wrapHierarchyScopeColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyScopeColumnName($keyId));
 
@@ -135,34 +136,34 @@ class ColumnCoder
         return $columnRef;
     }
 
-    public function wrapHierarchyParentColumn(string $keyId, TableReference $tableRef)
+    public function wrapHierarchyParentColumn(string $keyId, TableReference $tableRef): ValueInterface
     {
         $columnRef = new ColumnReference($tableRef, $this->naming->hierarchyParentColumnName($keyId));
 
         return $this->decodeColumnType($this->schemaDef->getKeyIdentityColumnType($keyId), $columnRef);
     }
 
-    public function getPrimaryColumnBindingType($keyId)
+    public function getPrimaryColumnBindingType(string $keyId): ParameterType
     {
         return $this->getColumnBindingType($this->schemaDef->getKeyIdentityColumnType($keyId));
     }
 
-    public function getScopeColumnBindingType($keyId)
+    public function getScopeColumnBindingType(string $keyId): ParameterType
     {
         return $this->getPrimaryColumnBindingType($this->schemaDef->getKeyScopeId($keyId));
     }
 
-    public function getParentColumnBindingType($keyId)
+    public function getParentColumnBindingType(string $keyId): ParameterType
     {
         return $this->getPrimaryColumnBindingType($keyId);
     }
 
-    public function getOrderColumnBindingType($keyId): string
+    public function getOrderColumnBindingType(string $keyId): StorageCodingType
     {
         return StorageCodingType::INTEGER;
     }
 
-    public function getColumnDefinitionBindingType(ColumnDefinition $column)
+    public function getColumnDefinitionBindingType(ColumnDefinition $column): ParameterType
     {
         if ($column->isReference()) {
             $refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());
@@ -173,45 +174,40 @@ class ColumnCoder
         return $this->getColumnBindingType($column->getCoding()->getType());
     }
 
-    private function getColumnBindingType(string $type)
+    private function getColumnBindingType(StorageCodingType $type): ParameterType
     {
         switch ($type) {
-            case 'serial':
+            case StorageCodingType::SERIAL:
                 return ParameterType::INTEGER;
-            case 'uuid':
+            case StorageCodingType::UUID:
                 return ParameterType::STRING;
-            case 'manual':
             default:
                 return ParameterType::STRING;
         }
     }
 
-    public function decodeColumnType(string $type, $value)
+    public function decodeColumnType(StorageCodingType $type, ValueInterface $value): ValueInterface
     {
         switch ($type) {
-            case 'serial':
+            case StorageCodingType::SERIAL:
                 return $value;
-            case 'uuid':
+            case StorageCodingType::UUID:
                 return new FunctionApplication(new Hex(), [$value]);
-            case 'manual':
-                return $value;
             default:
                 return $value;
         }
     }
 
-    public function encodeColumnType($type, Parameter|Constant $value)
+    public function encodeColumnType(StorageCodingType $type, Parameter|Constant $value): ValueInterface
     {
         if ($value instanceof Constant && $value->isNull()) {
             return $value;
         }
         switch ($type) {
-            case 'serial':
+            case StorageCodingType::SERIAL:
                 return $value;
-            case 'uuid':
+            case StorageCodingType::UUID:
                 return new FunctionApplication(new Unhex(), [$value]);
-            case 'manual':
-                return $value;
             default:
                 return $value;
         }

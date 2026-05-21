@@ -8,7 +8,9 @@
 
 {% include 'hierarchy/partials/breadcrump.html.twig' with {hierarchy,parentNodes, key} only %}
 
-<h1><span data-prefix="{{key.label.singular}}">{{ key.summarize(node) }}</span></h1>
+<h1><span data-prefix="{{key.label.singular}}">
+    {%- include 'hierarchy/partials/icon.html.twig' with {icon: key.label.icon, prefix: true} only -%}
+    {{ key.summarize(node) }}</span></h1>
 
 {% include 'hierarchy/partials/tabs.html.twig' with {hierarchy,key, node, active: 'list', childKey} only %}
 
@@ -35,7 +37,7 @@
     </li>
 {% endblock %}
 {% block tab_0 %}
-    
+
     {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, childKey.id, childId), cancel_tab: defaultTabId|default(null), key} only %}
 {% endblock %}
 {% block tab_1 %}

@@ -15,32 +15,32 @@ class TableColumn
     ) {
     }
 
-    public function getName()
+    public function getName(): Identifier
     {
         return $this->name;
     }
 
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function isNullable()
+    public function isNullable(): bool
     {
         return $this->nullable;
     }
 
-    public function getDefault()
+    public function getDefault(): ?Constant
     {
         return $this->default;
     }
 
-    public function hasDefault()
+    public function hasDefault(): bool
     {
         return null !== $this->default;
     }
 
-    public function isSerial()
+    public function isSerial(): bool
     {
         return $this->serial;
     }

@@ -6,11 +6,8 @@ class OrderDefinition
 {
     private $columnName;
 
-    public function __construct(
-        $columnName = null,
-        private $direction = 'ASC',
-        private bool $singleton = false,
-    ) {
+    public function __construct(?string $columnName = null, private $direction = 'ASC', private bool $singleton = false)
+    {
         $this->columnName = $columnName ?: ($singleton ? 'singleton' : 'order');
     }
 

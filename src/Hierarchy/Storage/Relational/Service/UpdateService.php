@@ -61,7 +61,10 @@ class UpdateService
         );
     }
 
-    private function validateUniquenessForEdit(&$errors, $keyId, $nodeId, $fieldData): void
+    /**
+     * @param array<int,mixed> $errors
+     */
+    private function validateUniquenessForEdit(array &$errors, string $keyId, string $nodeId, mixed $fieldData): void
     {
         $idParam = new Parameter('_id');
 
@@ -140,7 +143,7 @@ class UpdateService
         }
     }
 
-    public function updateNode(string $keyId, string $nodeId, $fieldData): void
+    public function updateNode(string $keyId, string $nodeId, mixed $fieldData): void
     {
         $idParam = new Parameter('_id');
         $update = $this->commandBuilder->getCommandForUpdateNode($keyId, $idParam);

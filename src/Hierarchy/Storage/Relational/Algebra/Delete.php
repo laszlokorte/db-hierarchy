@@ -12,12 +12,12 @@ class Delete
     ) {
     }
 
-    public function getTable()
+    public function getTable(): TableReference
     {
         return $this->table;
     }
 
-    public function getCondition()
+    public function getCondition(): ValueInterface
     {
         return $this->condition;
     }

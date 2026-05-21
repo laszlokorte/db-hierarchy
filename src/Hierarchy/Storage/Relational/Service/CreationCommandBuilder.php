@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 use App\Hierarchy\Storage\Relational\Algebra\Aggregation\Maximum;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
@@ -56,7 +57,10 @@ class CreationCommandBuilder
         );
     }
 
-    public function getSelectForUniquenessCheckNew(string $keyId, Parameter $scopeParam, Parameter $parentParam, $fieldsToCheck): Select
+    /**
+     * @param array<int,mixed> $fieldsToCheck
+     */
+    public function getSelectForUniquenessCheckNew(string $keyId, Parameter $scopeParam, Parameter $parentParam, array $fieldsToCheck): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
@@ -169,13 +173,13 @@ class CreationCommandBuilder
         $columns[] = $this->naming->nodeTablePKName($keyId);
 
         switch ($this->schemaDef->getKeyIdentityColumnType($keyId)) {
-            case 'serial':
+            case StorageCodingType::SERIAL:
                 $values[] = new DefaultValue();
                 break;
-            case 'uuid':
+            case StorageCodingType::UUID:
                 $values[] = new FunctionApplication(new Unhex(), [$idParam]);
                 break;
-            case 'manual':
+            default:
                 $values[] = $idParam;
                 break;
         }

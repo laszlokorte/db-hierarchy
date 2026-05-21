@@ -9,7 +9,7 @@ class Identifier
     ) {
     }
 
-    public function getString()
+    public function getString(): string
     {
         return $this->string;
     }

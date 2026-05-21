@@ -6,6 +6,10 @@ use App\Hierarchy\Storage\Relational\Algebra\Windowing\WindowingInterface;
 
 class Windowing implements ValueInterface
 {
+    /**
+     * @param array<int,mixed> $partionValues
+     * @param array<int,mixed> $orders
+     */
     public function __construct(
         private WindowingInterface $windowFunction,
         private array $partionValues = [],
@@ -13,17 +17,17 @@ class Windowing implements ValueInterface
     ) {
     }
 
-    public function getWindowFunction()
+    public function getWindowFunction(): WindowingInterface
     {
         return $this->windowFunction;
     }
 
-    public function getPartionValues()
+    public function getPartionValues(): array
     {
         return $this->partionValues;
     }
 
-    public function getOrders()
+    public function getOrders(): array
     {
         return $this->orders;
     }

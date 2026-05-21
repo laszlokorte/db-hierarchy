@@ -5,12 +5,12 @@ namespace App\Hierarchy\Schema\Definition;
 class StorageCoding
 {
     public function __construct(
-        private string $type,
+        private StorageCodingType $type,
         private ?string $parameter = null,
     ) {
     }
 
-    public function getType(): string
+    public function getType(): StorageCodingType
     {
         return $this->type;
     }

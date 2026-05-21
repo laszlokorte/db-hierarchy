@@ -642,6 +642,7 @@ body.state-dragging .dragger:not(.drag-target):not(.state-dragging) {
     display: flex;
     list-style: none;
     align-items: baseline;
+    align-items: last baseline;
     padding: 0;
     margin: 0;
     gap: 0.5em;

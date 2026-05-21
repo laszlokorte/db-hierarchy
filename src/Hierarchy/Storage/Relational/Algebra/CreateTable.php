@@ -4,6 +4,11 @@ namespace App\Hierarchy\Storage\Relational\Algebra;
 
 class CreateTable
 {
+    /**
+     * @param array<int,mixed> $columns
+     * @param array<int,mixed> $uniques
+     * @param array<int,mixed> $foreignKeys
+     */
     public function __construct(
         private Identifier $name,
         private TableColumn $primaryKey,
@@ -13,32 +18,41 @@ class CreateTable
     ) {
     }
 
-    public function getName()
+    public function getName(): Identifier
     {
         return $this->name;
     }
 
-    public function getPrimaryKey()
+    public function getPrimaryKey(): TableColumn
     {
         return $this->primaryKey;
     }
 
-    public function getColumns()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getColumns(): array
     {
         return $this->columns;
     }
 
-    public function getUniques()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getUniques(): array
     {
         return $this->uniques;
     }
 
-    public function getForeignKeys()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getForeignKeys(): array
     {
         return $this->foreignKeys;
     }
 
-    public function hasForeignKeys()
+    public function hasForeignKeys(): bool
     {
         return !empty($this->foreignKeys);
     }

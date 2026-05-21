@@ -11,7 +11,7 @@ class Projected implements ValueInterface
     ) {
     }
 
-    public function getProjection()
+    public function getProjection(): Projection
     {
         return $this->projection;
     }

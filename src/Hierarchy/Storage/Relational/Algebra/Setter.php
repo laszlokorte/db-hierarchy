@@ -13,12 +13,12 @@ class Setter
     ) {
     }
 
-    public function getColumn()
+    public function getColumn(): ColumnReference
     {
         return $this->column;
     }
 
-    public function getValue()
+    public function getValue(): ValueInterface
     {
         return $this->value;
     }

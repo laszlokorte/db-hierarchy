@@ -10,7 +10,7 @@ class NTile implements RankWindowFunction
     {
     }
 
-    public function getBuckets()
+    public function getBuckets(): int
     {
         return $this->buckets;
     }

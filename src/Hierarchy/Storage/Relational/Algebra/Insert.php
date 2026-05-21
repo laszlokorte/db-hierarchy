@@ -4,6 +4,10 @@ namespace App\Hierarchy\Storage\Relational\Algebra;
 
 class Insert
 {
+    /**
+     * @param array<int,mixed> $columns
+     * @param mixed[]|Select   $rows
+     */
     public function __construct(
         private Identifier $table,
         private array $columns,
@@ -11,17 +15,23 @@ class Insert
     ) {
     }
 
-    public function getTable()
+    public function getTable(): Identifier
     {
         return $this->table;
     }
 
-    public function getColumns()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getColumns(): array
     {
         return $this->columns;
     }
 
-    public function getRows()
+    /**
+     * @return mixed[]|Select
+     */
+    public function getRows(): array
     {
         return $this->rows;
     }

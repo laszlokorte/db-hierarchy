@@ -291,6 +291,9 @@ class InstallationCommandBuilder
         return new CreateTable($tableName, $pkColumn, $columns, $uniques, $foreignKeys);
     }
 
+    /**
+     * @return array<string>
+     */
     private function fieldsColumns(string $keyId): array
     {
         return array_merge([], ...array_map(fn ($fieldId) => $this->getFieldColumns($keyId, $fieldId), $this->schemaDef->getKeyFieldIds($keyId)));

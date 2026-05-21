@@ -12,17 +12,17 @@ class TableReference implements ValueInterface
     ) {
     }
 
-    public function getName()
+    public function getName(): Identifier
     {
         return $this->table;
     }
 
-    public function getAlias()
+    public function getAlias(): ?Identifier
     {
         return $this->alias;
     }
 
-    public function getUsageName()
+    public function getUsageName(): ?Identifier
     {
         return $this->alias ?: $this->table;
     }

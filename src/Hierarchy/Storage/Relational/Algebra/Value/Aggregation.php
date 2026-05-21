@@ -12,12 +12,12 @@ class Aggregation implements ValueInterface
     ) {
     }
 
-    public function getAggregation()
+    public function getAggregation(): AggregationInterface
     {
         return $this->aggregation;
     }
 
-    public function getValue()
+    public function getValue(): ValueInterface
     {
         return $this->aggregatedValue;
     }

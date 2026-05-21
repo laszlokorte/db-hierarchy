@@ -10,7 +10,7 @@ class Existence implements ValueInterface
     {
     }
 
-    public function getSelect()
+    public function getSelect(): Select
     {
         return $this->select;
     }

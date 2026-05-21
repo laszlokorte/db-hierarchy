@@ -9,7 +9,7 @@ class RankWindow implements WindowingInterface
     ) {
     }
 
-    public function getRank()
+    public function getRank(): RankWindowFunction
     {
         return $this->rank;
     }

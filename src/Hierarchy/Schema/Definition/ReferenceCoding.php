@@ -6,7 +6,7 @@ class ReferenceCoding
 {
     public function __construct(
         private string $target,
-        private string $cascade = ReferenceCodingCascade::RESTRICT,
+        private ReferenceCodingCascade $cascade = ReferenceCodingCascade::RESTRICT,
     ) {
     }
 
@@ -20,7 +20,7 @@ class ReferenceCoding
         return $this->target === $keyId;
     }
 
-    public function getCascade(): string
+    public function getCascade(): ReferenceCodingCascade
     {
         return $this->cascade;
     }

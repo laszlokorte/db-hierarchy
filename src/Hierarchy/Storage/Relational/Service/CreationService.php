@@ -5,6 +5,7 @@ namespace App\Hierarchy\Storage\Relational\Service;
 use App\Hierarchy\Changeset\Creation;
 use App\Hierarchy\Data\Node;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
@@ -136,7 +137,10 @@ class CreationService
         }
     }
 
-    private function validateUniquenessForNew(&$errors, $keyId, $fieldData, $scopeId, $parentId): void
+    /**
+     * @param array<int,mixed> $errors
+     */
+    private function validateUniquenessForNew(array &$errors, string $keyId, mixed $fieldData, ?string $scopeId, ?string $parentId): void
     {
         $scopeParam = new Parameter('_scope');
         $parentParam = new Parameter('_parent');
@@ -204,7 +208,7 @@ class CreationService
     /**
      * @return int|string
      */
-    public function createNode(string $keyId, $fieldData, $scopeId, $parentId): string
+    public function createNode(string $keyId, mixed $fieldData, ?string $scopeId, ?string $parentId): string
     {
         if ($this->schemaDef->isKeyScoped($keyId) !== !empty($scopeId)) {
             throw new \Exception('missing scope');
@@ -240,14 +244,14 @@ class CreationService
 
         $generatedId = null;
         switch ($this->schemaDef->getKeyIdentityColumnType($keyId)) {
-            case 'uuid':
+            case StorageCodingType::UUID:
                 $generatedId = $this->genUUID();
                 $stmt->bindValue(
                     $this->dialect->parameterToString($idParam),
                     $generatedId, ParameterType::STRING
                 );
                 break;
-            case 'manual':
+            default:
                 $generatedId = 'affecaffee';
                 $stmt->bindValue(
                     $this->dialect->parameterToString($idParam),

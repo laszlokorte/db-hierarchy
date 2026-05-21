@@ -10,7 +10,7 @@ class NamedFunction implements FunctionInterface
     {
     }
 
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }

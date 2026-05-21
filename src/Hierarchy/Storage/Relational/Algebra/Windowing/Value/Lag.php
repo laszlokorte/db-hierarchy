@@ -2,6 +2,7 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra\Windowing\Value;
 
+use App\Hierarchy\Storage\Relational\Algebra\Value\ValueInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Windowing\ValueWindowFunction;
 
 class Lag implements ValueWindowFunction
@@ -10,12 +11,12 @@ class Lag implements ValueWindowFunction
     {
     }
 
-    public function getOffset()
+    public function getOffset(): int
     {
         return $this->offset;
     }
 
-    public function getDefault()
+    public function getDefault(): ?ValueInterface
     {
         return $this->default;
     }

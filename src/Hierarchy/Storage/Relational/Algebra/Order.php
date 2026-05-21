@@ -12,12 +12,12 @@ class Order
     ) {
     }
 
-    public function getValue()
+    public function getValue(): ValueInterface
     {
         return $this->value;
     }
 
-    public function isAscending()
+    public function isAscending(): bool
     {
         return $this->ascending;
     }

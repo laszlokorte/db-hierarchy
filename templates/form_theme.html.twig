@@ -40,7 +40,7 @@
         <option value="">---</option>
 
         {% for node in choices %}
-            <option {% if value and value.id==node.id%} selected {%endif%} value="{{node.id}}">{{key.summarize(node, true)}}</option>
+            <option {% if value and value==node.id%} selected {%endif%} value="{{node.id}}">{{key.summarize(node, true)}}</option>
         {% endfor %}
 
     </select>
@@ -133,7 +133,7 @@
         {% set required = false %}
     {%- endif -%}
 
-    
+
     <select {% with {attr: attr|merge({class: html_classes(attr.class|default([]), 'form-field')})} -%}
         {{ block('widget_attributes') }}
     {%- endwith %} {% if multiple %} multiple="multiple"{% endif %}>

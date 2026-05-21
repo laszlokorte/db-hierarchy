@@ -6,18 +6,24 @@ use App\Hierarchy\Storage\Relational\Algebra\Operator\AssociativeInterface;
 
 class AssociativeOperation implements ValueInterface
 {
+    /**
+     * @param array<int,mixed> $operands
+     */
     public function __construct(
         private AssociativeInterface $operator,
         private array $operands,
     ) {
     }
 
-    public function getOperator()
+    public function getOperator(): AssociativeInterface
     {
         return $this->operator;
     }
 
-    public function getOperands()
+    /**
+     * @return array<int,mixed>
+     */
+    public function getOperands(): array
     {
         return $this->operands;
     }

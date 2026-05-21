@@ -10,12 +10,12 @@ class CreateView
     ) {
     }
 
-    public function getName()
+    public function getName(): Identifier
     {
         return $this->name;
     }
 
-    public function getQuery()
+    public function getQuery(): Select
     {
         return $this->query;
     }

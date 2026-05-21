@@ -2,9 +2,9 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-class ReferenceCodingCascade
+enum ReferenceCodingCascade
 {
-    public const FOLLOW = 'FOLLOW';
-    public const CLEAR = 'CLEAR';
-    public const RESTRICT = 'RESTRICT';
+    case FOLLOW;
+    case CLEAR;
+    case RESTRICT;
 }

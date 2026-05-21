@@ -46,19 +46,19 @@
   {% endblock %}
 
   {% block tab_0 %}
-      
+
     {% include 'hierarchy/partials/form_delete.html.twig' with {hierarchy, deletionForm: deletionForm(hierarchy, rootKey.id, nodeId), cancel_tab: defaultTabId|default(null),key: rootKey} only %}
 
   {% endblock %}
 
   {% block tab_1 %}
-      
+
 
     {% include 'hierarchy/partials/fields.html.twig' with {hierarchy,key:rootKey, node: nodes.getNode(nodeId)} only %}
   {% endblock %}
 
   {% block tab_2 %}
-      
+
     {% include 'hierarchy/partials/form_edit.html.twig' with {hierarchy, editForm: editForm(hierarchy, nodes.getNode(nodeId)), force_then: true, then: 'root', cancel: true, cancel_tab: defaultTabId|default(null)} only %}
   {% endblock %}
 

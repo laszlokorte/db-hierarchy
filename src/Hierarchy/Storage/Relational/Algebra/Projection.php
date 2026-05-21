@@ -13,17 +13,17 @@ class Projection
     ) {
     }
 
-    public function getValue()
+    public function getValue(): ValueInterface
     {
         return $this->value;
     }
 
-    public function getAlias()
+    public function getAlias(): ?Identifier
     {
         return $this->alias;
     }
 
-    public function getAutoName(string $fallback)
+    public function getAutoName(string $fallback): ?Identifier
     {
         if (null !== $this->alias) {
             return $this->alias;

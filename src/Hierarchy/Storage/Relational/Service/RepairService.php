@@ -6,6 +6,7 @@ use App\Hierarchy\Data\Diagnostic;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Delete;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
+use App\Hierarchy\Storage\Relational\Algebra\Select;
 use App\Hierarchy\Storage\Relational\Algebra\Update;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
@@ -48,7 +49,7 @@ class RepairService
         return new Diagnostic($keyId, $rows, $columns);
     }
 
-    private function extractColumnNamesFromSelect($select): array
+    private function extractColumnNamesFromSelect(Select $select): array
     {
         $projections = $select->getProjections();
 

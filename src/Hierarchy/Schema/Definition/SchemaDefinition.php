@@ -86,7 +86,7 @@ class SchemaDefinition
         $this->getAllKeyIdsTopological();
     }
 
-    public function getKeyIdsScopedInside($keyId, $singletons = true, $skipAtoms = false): array
+    public function getKeyIdsScopedInside(string $keyId, bool $singletons = true, bool $skipAtoms = false): array
     {
         return array_filter(array_keys($this->keys),
             fn ($k) => $this->isKeyScopedInside($k, $keyId)
@@ -94,7 +94,7 @@ class SchemaDefinition
             && (!$skipAtoms || !$this->isKeyAtomic($k)));
     }
 
-    public function getKeyIdsScopedInsideAndReflexiveSelf($keyId, $singletons = true): array
+    public function getKeyIdsScopedInsideAndReflexiveSelf(string $keyId, bool $singletons = true): array
     {
         return array_filter(array_keys($this->keys),
             fn ($k) => $this->isKeyScopedInsideOrReflexiveSelf($k, $keyId)
@@ -111,7 +111,7 @@ class SchemaDefinition
         );
     }
 
-    public function getKeyScopePath($keyId, $includeSelf = false): array
+    public function getKeyScopePath(string $keyId, bool $includeSelf = false): array
     {
         $scopeIds = [];
 
@@ -125,52 +125,52 @@ class SchemaDefinition
         return array_reverse($scopeIds);
     }
 
-    public function keyExists($keyId): bool
+    public function keyExists(string $keyId): bool
     {
         return array_key_exists($keyId, $this->keys);
     }
 
-    public function getKeyLabel($keyId): LabelDefinition
+    public function getKeyLabel(string $keyId): LabelDefinition
     {
         return $this->keys[$keyId]->getLabel();
     }
 
-    public function isKeyOrdered($keyId): bool
+    public function isKeyOrdered(string $keyId): bool
     {
         return $this->keys[$keyId]->isOrdered();
     }
 
-    public function getKeyOrderColumn($keyId): ColumnDefinition
+    public function getKeyOrderColumn(string $keyId): ColumnDefinition
     {
         return new ColumnDefinition($this->keys[$keyId]->getOrderColumnName(), new StorageCoding(StorageCodingType::INTEGER), false, 0);
     }
 
-    public function getKeyOrderColumnName($keyId): string
+    public function getKeyOrderColumnName(string $keyId): string
     {
         return $this->keys[$keyId]->getOrderColumnName();
     }
 
-    public function getKeySingletonColumnName($keyId): string
+    public function getKeySingletonColumnName(string $keyId): string
     {
         return $this->keys[$keyId]->getOrderColumnName();
     }
 
-    public function getKeyOrderDirection($keyId): string
+    public function getKeyOrderDirection(string $keyId): string
     {
         return $this->keys[$keyId]->getOrderDirection();
     }
 
-    public function isKeyScoped($keyId): bool
+    public function isKeyScoped(string $keyId): bool
     {
         return $this->keys[$keyId]->isScoped();
     }
 
-    public function isKeyScopeIsolating($keyId): bool
+    public function isKeyScopeIsolating(string $keyId): bool
     {
         return $this->keys[$keyId]->isScopeIsolating();
     }
 
-    public function isKeyRoot($keyId): bool
+    public function isKeyRoot(string $keyId): bool
     {
         return !$this->isKeyScoped($keyId);
     }
@@ -197,42 +197,42 @@ class SchemaDefinition
         return $this->keys[$keyId]->isScopedInside($scopeKeyId);
     }
 
-    public function isKeySingleton($keyId): bool
+    public function isKeySingleton(string $keyId): bool
     {
         return $this->keys[$keyId]->isSingleton();
     }
 
-    public function getKeyScopeId($keyId): ?string
+    public function getKeyScopeId(string $keyId): ?string
     {
         return $this->keys[$keyId]->getScopeKeyId();
     }
 
-    public function isKeyReflexive($keyId): bool
+    public function isKeyReflexive(string $keyId): bool
     {
         return $this->keys[$keyId]->isReflexive();
     }
 
-    public function isKeyNested($keyId): bool
+    public function isKeyNested(string $keyId): bool
     {
         return $this->keys[$keyId]->isReflexive() || $this->keys[$keyId]->isScoped();
     }
 
-    public function getKeyReflexivityTableName($keyId): string
+    public function getKeyReflexivityTableName(string $keyId): string
     {
         return $this->keys[$keyId]->getReflexivityTableName();
     }
 
-    public function isKeyAtomic($keyId): bool
+    public function isKeyAtomic(string $keyId): bool
     {
         return $this->keys[$keyId]->isAtomic();
     }
 
-    public function getKeyReflexivityParentColumn($keyId): ColumnDefinition
+    public function getKeyReflexivityParentColumn(string $keyId): ColumnDefinition
     {
         return $this->getKeyIdentityColumn($keyId)->deriveSameWithName($this->keys[$keyId]->getReflexivityParentColumnName());
     }
 
-    public function getKeyReflexivityChildColumn($keyId): ColumnDefinition
+    public function getKeyReflexivityChildColumn(string $keyId): ColumnDefinition
     {
         return $this->getKeyIdentityColumn($keyId)->deriveSameWithName($this->keys[$keyId]->getReflexivityChildColumnName());
     }
@@ -250,8 +250,7 @@ class SchemaDefinition
     /**
      * @param mixed $keyId
      * @param mixed $all
-     *
-     * */
+     */
     public function getKeyFieldIds(string $keyId, bool $all = true): array
     {
         if ($all) {
@@ -264,39 +263,42 @@ class SchemaDefinition
         );
     }
 
-    public function getKeyFieldLabel($keyId, $fieldId): LabelDefinition
+    public function getKeyFieldLabel(string $keyId, string $fieldId): LabelDefinition
     {
         return $this->keys[$keyId]->getFieldLabel($fieldId);
     }
 
-    public function isKeyFieldRequired($keyId, $fieldId): bool
+    /**
+     * @param mixed $fieldId
+     */
+    public function isKeyFieldRequired(string $keyId, string $fieldId): bool
     {
         return $this->keys[$keyId]->isFieldRequired($fieldId);
     }
 
-    public function isKeyFieldUnique($keyId, $fieldId): bool
+    public function isKeyFieldUnique(string $keyId, string $fieldId): bool
     {
         return $this->keys[$keyId]->isFieldUnique($fieldId);
     }
 
-    public function getKeyFieldTypeId($keyId, $fieldId): string
+    public function getKeyFieldTypeId(string $keyId, string $fieldId): string
     {
         return $this->keys[$keyId]->getFieldTypeId($fieldId);
     }
 
-    public function getKeyFieldOptions($keyId, $fieldId): array
+    public function getKeyFieldOptions(string $keyId, string $fieldId): array
     {
         $fieldType = $this->getKeyFieldType($keyId, $fieldId);
 
         return array_merge($fieldType->getDefaultOptions(), $this->keys[$keyId]->getFieldOptions($fieldId));
     }
 
-    public function getKeyFieldOption($keyId, $fieldId, $optionId): mixed
+    public function getKeyFieldOption(string $keyId, string $fieldId, string $optionId): mixed
     {
         return $this->getKeyFieldOptions($keyId, $fieldId)[$optionId] ?? null;
     }
 
-    public function getKeyFieldColumns($keyId, $fieldId): array
+    public function getKeyFieldColumns(string $keyId, string $fieldId): array
     {
         $fieldType = $this->getKeyFieldType($keyId, $fieldId);
         $fieldOptions = $this->getKeyFieldOptions($keyId, $fieldId);
@@ -305,7 +307,7 @@ class SchemaDefinition
         return $fieldType->getColumns($fieldId, $required, $fieldOptions);
     }
 
-    public function convertKeyFieldDataToColumnData($keyId, $fieldId, $fieldData): mixed
+    public function convertKeyFieldDataToColumnData(string $keyId, string $fieldId, string $fieldData): mixed
     {
         $fieldType = $this->getKeyFieldType($keyId, $fieldId);
         $fieldOptions = $this->getKeyFieldOptions($keyId, $fieldId);
@@ -316,47 +318,47 @@ class SchemaDefinition
     /**
      * @return mixed
      */
-    public function getKeyFieldType($keyId, $fieldId): FieldTypeInterface
+    public function getKeyFieldType(string $keyId, string $fieldId): FieldTypeInterface
     {
         $fieldTypeId = $this->getKeyFieldTypeId($keyId, $fieldId);
 
         return $this->fieldTypes[$fieldTypeId];
     }
 
-    public function getKeyIdentityColumnName($keyId): string
+    public function getKeyIdentityColumnName(string $keyId): string
     {
         return $this->keys[$keyId]->getIdColumnName();
     }
 
-    public function getKeyIdentityColumnType($keyId): string
+    public function getKeyIdentityColumnType(string $keyId): StorageCodingType
     {
         return $this->keys[$keyId]->getIdColumnType();
     }
 
-    public function getKeyIdentityColumn($keyId): ColumnDefinition
+    public function getKeyIdentityColumn(string $keyId): ColumnDefinition
     {
         return $this->keys[$keyId]->getIdColumn();
     }
 
-    public function getKeyScopeColumnName($keyId): string
+    public function getKeyScopeColumnName(string $keyId): string
     {
         return $this->keys[$keyId]->getScopeColumnName();
     }
 
-    public function getKeyScopeColumnType($keyId): string
+    public function getKeyScopeColumnType(string $keyId): StorageCodingType
     {
         $scopeId = $this->getKeyScopeId($keyId);
 
         return $this->keys[$scopeId]->getIdColumnType();
     }
 
-    public function getKeyScopeColumn($keyId): ColumnDefinition
+    public function getKeyScopeColumn(string $keyId): ColumnDefinition
     {
         return $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))
             ->deriveSameWithName($this->getKeyScopeColumnName($keyId));
     }
 
-    public function getKeyIsolationColumn($keyId): ColumnDefinition
+    public function getKeyIsolationColumn(string $keyId): ColumnDefinition
     {
         return $this->getKeyIdentityColumn($this->getKeyScopeId($keyId))
             ->deriveSameWithName('_iso_'.$this->getKeyScopeColumnName($keyId));
@@ -365,7 +367,7 @@ class SchemaDefinition
     /**
      * @return array|mixed[]
      */
-    public function getKeyIsolations($keyId, $includeSelf = false): array
+    public function getKeyIsolations(string $keyId, bool $includeSelf = false): array
     {
         $scopeIds = [];
 
@@ -445,7 +447,7 @@ class SchemaDefinition
         return false;
     }
 
-    public function isKeyReferencedBy($targetKey, $sourceKey): bool
+    public function isKeyReferencedBy(string $targetKey, string $sourceKey): bool
     {
         foreach ($this->getKeyFieldIds($sourceKey) as $fieldId) {
             if ($this->isKeyReferencedByField($targetKey, $sourceKey, $fieldId)) {
@@ -456,12 +458,12 @@ class SchemaDefinition
         return false;
     }
 
-    public function getReferencingKeys($targetKey): array
+    public function getReferencingKeys(string $targetKey): array
     {
         return array_filter($this->getAllKeyIds(), fn ($keyId) => $this->isKeyReferencedBy($targetKey, $keyId));
     }
 
-    public function getReferencingKeyColumns($targetKey, $sourceKey): array
+    public function getReferencingKeyColumns(string $targetKey, string $sourceKey): array
     {
         $result = [];
         foreach ($this->getKeyFieldIds($sourceKey) as $fieldId) {
@@ -475,12 +477,12 @@ class SchemaDefinition
         return $result;
     }
 
-    public function getKeySummary($keyId): SummaryDefinition
+    public function getKeySummary(string $keyId): SummaryDefinition
     {
         return $this->keys[$keyId]->getSummary();
     }
 
-    public function getKeySummaryFieldIds($keyId): array
+    public function getKeySummaryFieldIds(string $keyId): array
     {
         return $this->getKeySummary($keyId)->getFieldIds();
     }

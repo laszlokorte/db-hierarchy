@@ -2,19 +2,19 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-class StorageCodingType
+enum StorageCodingType
 {
-    public const SERIAL = 'SERIAL';
-    public const UUID = 'UUID';
-    public const STRING = 'STRING';
-    public const TEXT = 'TEXT';
-    public const INTEGER = 'INTEGER';
-    public const FLOAT = 'FLOAT';
-    public const DECIMAL = 'DECIMAL';
-    public const BOOL = 'BOOL';
-    public const TIME = 'TIME';
-    public const DATETIME = 'DATETIME';
-    public const DATE = 'DATE';
-    public const BINARY = 'BINARY';
-    public const ENUM = 'ENUM';
+    case SERIAL;
+    case UUID;
+    case STRING;
+    case TEXT;
+    case INTEGER;
+    case FLOAT;
+    case DECIMAL;
+    case BOOL;
+    case TIME;
+    case DATETIME;
+    case DATE;
+    case BINARY;
+    case ENUM;
 }

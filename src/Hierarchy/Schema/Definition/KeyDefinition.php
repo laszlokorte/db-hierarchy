@@ -4,8 +4,6 @@ namespace App\Hierarchy\Schema\Definition;
 
 class KeyDefinition
 {
-    private $templateString = '';
-
     /**
      * @param array<int,mixed> $fields
      */
@@ -16,7 +14,7 @@ class KeyDefinition
         }
     }
 
-    public function fieldExists($fieldId): bool
+    public function fieldExists(string $fieldId): bool
     {
         return array_key_exists($fieldId, $this->fields);
     }
@@ -69,7 +67,7 @@ class KeyDefinition
         return $this->scope->getColumnName();
     }
 
-    public function isScopedInside($keyId): bool
+    public function isScopedInside(string $keyId): bool
     {
         return $this->isScoped() && $this->scope->getScopeKeyId() === $keyId;
     }
@@ -109,7 +107,7 @@ class KeyDefinition
         return $this->storage->getIdColumnName();
     }
 
-    public function getIdColumnType(): string
+    public function getIdColumnType(): StorageCodingType
     {
         return $this->storage->getIdColumnType();
     }
@@ -124,32 +122,32 @@ class KeyDefinition
         return $this->label;
     }
 
-    public function getFieldLabel($fieldId): LabelDefinition
+    public function getFieldLabel(string $fieldId): LabelDefinition
     {
         return $this->fields[$fieldId]->getLabel();
     }
 
-    public function isFieldRequired($fieldId): bool
+    public function isFieldRequired(string $fieldId): bool
     {
         return $this->fields[$fieldId]->isRequired();
     }
 
-    public function isFieldUnique($fieldId): bool
+    public function isFieldUnique(string $fieldId): bool
     {
         return $this->fields[$fieldId]->isUnique();
     }
 
-    public function isFieldVisibleInCollection($fieldId): bool
+    public function isFieldVisibleInCollection(string $fieldId): bool
     {
         return $this->fields[$fieldId]->isVisibleInCollection();
     }
 
-    public function getFieldTypeId($fieldId): string
+    public function getFieldTypeId(string $fieldId): string
     {
         return $this->fields[$fieldId]->getTypeId();
     }
 
-    public function getFieldOptions($fieldId): array
+    public function getFieldOptions(string $fieldId): array
     {
         return $this->fields[$fieldId]->getOptions();
     }

@@ -20,8 +20,6 @@ interface FieldTypeInterface
 
     /**
      * @param array<int,mixed> $fieldOptions
-     *
-     * @return void
      */
     public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed;
 

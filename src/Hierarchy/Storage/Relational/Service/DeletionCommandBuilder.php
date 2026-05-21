@@ -25,14 +25,9 @@ class DeletionCommandBuilder
     {
     }
 
-    // getCommandForDeleteMultipleNodesClosure
-    // getCommandForDeleteMultipleNodes
-    // getSelectForCollectChildByIdReflexive
-    // getSelectForCollectSelfById
-    // getSelectForCollectChildByScopeReflexive
-    // getSelectForCollectChildByScope
-    // getSelectForReferencedNodes
-
+    /**
+     * @param array<int,mixed> $idParams
+     */
     public function getCommandForDeleteMultipleNodes(string $keyId, array $idParams): Delete
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));

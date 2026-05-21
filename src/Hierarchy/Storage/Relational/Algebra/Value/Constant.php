@@ -9,12 +9,12 @@ class Constant implements ValueInterface
     ) {
     }
 
-    public function getValue()
+    public function getValue(): mixed
     {
         return $this->value;
     }
 
-    public function isNull()
+    public function isNull(): bool
     {
         return null === $this->value;
     }

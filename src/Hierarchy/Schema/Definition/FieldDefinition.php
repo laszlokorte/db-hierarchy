@@ -4,24 +4,17 @@ namespace App\Hierarchy\Schema\Definition;
 
 class FieldDefinition
 {
-    private string $typeId;
-    private bool $required = false;
-    private bool $unique = false;
-    private LabelDefinition $label;
-    private array $options;
-    private bool $visibleInCollection;
-
     /**
-     * @param array<int,mixed> $options
+     * @param array<string,mixed> $options
      */
-    public function __construct(LabelDefinition $label, string $typeId, bool $required = false, bool $unique = false, array $options = [], bool $visibleInCollection = true)
+    public function __construct(
+        private LabelDefinition $label,
+        private string $typeId,
+        private bool $required = false,
+        private bool $unique = false,
+        private array $options = [],
+        private bool $visibleInCollection = true)
     {
-        $this->label = $label;
-        $this->typeId = $typeId;
-        $this->required = $required;
-        $this->unique = $unique;
-        $this->options = $options;
-        $this->visibleInCollection = $visibleInCollection;
     }
 
     public function getLabel(): LabelDefinition
@@ -44,6 +37,9 @@ class FieldDefinition
         return $this->visibleInCollection;
     }
 
+    /**
+     * @return array<string,mixed>
+     */
     public function getOptions(): array
     {
         return $this->options;

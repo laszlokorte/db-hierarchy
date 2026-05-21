@@ -13,12 +13,12 @@ class ColumnReference implements ValueInterface
     ) {
     }
 
-    public function getTable()
+    public function getTable(): TableReference
     {
         return $this->table;
     }
 
-    public function getName()
+    public function getName(): Identifier
     {
         return $this->name;
     }

@@ -8,7 +8,7 @@ class Parameter implements ValueInterface
     {
     }
 
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }

@@ -13,17 +13,17 @@ class Join
     ) {
     }
 
-    public function getTable()
+    public function getTable(): TableReference
     {
         return $this->table;
     }
 
-    public function getCondition()
+    public function getCondition(): ValueInterface
     {
         return $this->condition;
     }
 
-    public function getDirection()
+    public function getDirection(): string
     {
         return $this->direction;
     }

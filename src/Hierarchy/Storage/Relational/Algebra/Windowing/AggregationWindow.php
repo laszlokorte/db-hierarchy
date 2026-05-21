@@ -13,12 +13,12 @@ class AggregationWindow implements WindowingInterface
     ) {
     }
 
-    public function getAggregation()
+    public function getAggregation(): AggregationInterface
     {
         return $this->aggregation;
     }
 
-    public function getValue()
+    public function getValue(): ValueInterface
     {
         return $this->aggregatedValue;
     }

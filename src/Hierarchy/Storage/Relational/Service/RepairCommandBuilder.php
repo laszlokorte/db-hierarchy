@@ -27,10 +27,10 @@ class RepairCommandBuilder
     {
     }
 
-    // getRepairableKeys
-    // getCommandForRepairKey
-
-    public function getCommandForRepairKey(string $keyId)
+    /**
+     * @return array|array<string,mixed>
+     */
+    public function getCommandForRepairKey(string $keyId): array
     {
         $result = [];
 
@@ -46,7 +46,7 @@ class RepairCommandBuilder
         return $result;
     }
 
-    public function getDeleteForClosureRepair(string $keyId)
+    public function getDeleteForClosureRepair(string $keyId): Delete
     {
         $closureTable = new TableReference($this->naming->closureTableName($keyId));
         $invalidView = new TableReference($this->naming->closureInvalidViewName($keyId));
@@ -62,7 +62,7 @@ class RepairCommandBuilder
         );
     }
 
-    public function getInsertForClosureRepair(string $keyId)
+    public function getInsertForClosureRepair(string $keyId): Insert
     {
         $closureTableName = $this->naming->closureTableName($keyId);
         $missingView = new TableReference($this->naming->closureMissingViewName($keyId));
@@ -93,7 +93,7 @@ class RepairCommandBuilder
         );
     }
 
-    public function getUpdateForOrderRepair(string $keyId)
+    public function getUpdateForOrderRepair(string $keyId): Update
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
@@ -121,7 +121,7 @@ class RepairCommandBuilder
         );
     }
 
-    public function getSelectForFindKeyClosureMissings($keyId)
+    public function getSelectForFindKeyClosureMissings(string $keyId): Select
     {
         $missingView = new TableReference($this->naming->closureMissingViewName($keyId));
 
@@ -164,7 +164,7 @@ class RepairCommandBuilder
         ], [$missingView]);
     }
 
-    public function getSelectForFindKeyClosureInvalids($keyId)
+    public function getSelectForFindKeyClosureInvalids(string $keyId): Select
     {
         $invalidView = new TableReference($this->naming->closureInvalidViewName($keyId));
 
@@ -200,7 +200,7 @@ class RepairCommandBuilder
         ], [$invalidView]);
     }
 
-    public function getSelectForFindKeyOrderNotNormalized(string $keyId)
+    public function getSelectForFindKeyOrderNotNormalized(string $keyId): Select
     {
         $orderView = new TableReference($this->naming->normalizedOrderViewName($keyId));
         $orderCondition = new BinaryOperation(
@@ -250,18 +250,21 @@ class RepairCommandBuilder
         ], [$orderView], [], $orderCondition);
     }
 
-    public function getSelectForFindDefectsForNode(string $keyId)
+    public function getSelectForFindDefectsForNode(string $keyId): void
     {
     }
 
-    public function getDiagnosableKeys()
+    public function getDiagnosableKeys(): array
     {
         return array_filter($this->schemaDef->getAllKeyIdsTopological(),
             fn ($keyId) => $this->schemaDef->isKeyReflexive($keyId) || $this->schemaDef->isKeyOrdered($keyId)
         );
     }
 
-    public function getDiagnosisQueriesForKey($keyId)
+    /**
+     * @return array|array<string,Select>
+     */
+    public function getDiagnosisQueriesForKey(string $keyId): array
     {
         $result = [];
 

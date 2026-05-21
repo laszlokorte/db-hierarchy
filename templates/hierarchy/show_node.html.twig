@@ -11,9 +11,8 @@
 <h1>
 
 <span data-prefix="{{key.label.singular}}">
-
-    {%- include 'hierarchy/partials/icon.html.twig' with {icon: key.label.icon, prefix: true} only -%}
-    {{ key.summarize(node) }}</span>
+{%- include 'hierarchy/partials/icon.html.twig' with {icon: key.label.icon, prefix: true} only -%}
+{{ key.summarize(node) }}</span>
 </h1>
 
 
