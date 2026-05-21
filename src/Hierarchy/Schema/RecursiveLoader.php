@@ -454,6 +454,17 @@ class RecursiveLoader
                             ['target' => 'role', 'style' => 'expanded', 'explicit' => true]),
                     ], SummaryDefinition::parseSegments('{login}')
                 ),
+
+                'passkey' => new KeyDefinition(
+                    storage: new StorageDefinition('passkey'),
+                    label: new LabelDefinition('Passkey', 'Pass keys'),
+                    scope: new ScopeDefinition('account'), reflexivity: null, order: null, fields: [
+                        'public_key_id' => new FieldDefinition(
+                            new LabelDefinition('Public Key Id', 'Public Key Ids'),
+                            'string', true, false),
+                    ], summary: SummaryDefinition::parseSegments('{public_key_id}')
+                ),
+
                 'role' => new KeyDefinition(
                     new StorageDefinition('role'),
                     new LabelDefinition('Role', 'Roles', null, 'mortar-board'),
