@@ -30,11 +30,10 @@ class UpdateCommandBuilder
     public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder)
     {
     }
-
-    // getSelectForUniquenessCheckEdit
-    // getCommandForUpdateNode
-
-    public function getSelectForUniquenessCheckEdit(string $keyId, Parameter $idParam, $fieldsToCheck): Select
+    /**
+     * @param array<int,mixed> $fieldsToCheck
+     */
+    public function getSelectForUniquenessCheckEdit(string $keyId, Parameter $idParam, array $fieldsToCheck): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId), new Identifier('h1'));

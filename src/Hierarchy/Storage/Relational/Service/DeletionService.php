@@ -4,6 +4,7 @@ namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Changeset\Deletion;
 use App\Hierarchy\Data;
+use App\Hierarchy\Storage\Relational\Exception;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
@@ -15,8 +16,11 @@ class DeletionService
     public function __construct(private SchemaDefinition $schemaDef, private DeletionCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder)
     {
     }
-
-    public function getDeletionPlan($keyId, $nodeId)
+    /**
+     * @param mixed $keyId
+     * @param mixed $nodeId
+     */
+    public function getDeletionPlan($keyId, $nodeId): Deletion
     {
         $cascadingDeletions = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
 
@@ -39,7 +43,7 @@ class DeletionService
         );
     }
 
-    public function performDeletion(Deletion $deletionPlan)
+    public function performDeletion(Deletion $deletionPlan): void
     {
         if (!$deletionPlan->isNotBlocked()) {
             throw new Exception\DeletionBlockedException('Deletion is blocked');
@@ -76,12 +80,15 @@ class DeletionService
             }
             $this->connection->commit();
         } catch (\Exception $e) {
-            $this->connection->rollback();
+            $this->connection->rollBack();
             throw $e;
         }
     }
-
-    private function collectChildNodesByNodeIds(string $keyId, $nodeIds)
+    /**
+     * @param array<int,mixed> $nodeIds
+     * @return array
+     */
+    private function collectChildNodesByNodeIds(string $keyId, array $nodeIds) : array
     {
         if (empty($nodeIds)) {
             return [];
@@ -122,8 +129,11 @@ class DeletionService
 
         return $ids;
     }
-
-    private function collectChildNodesByScopeIds(string $keyId, $scopeIds)
+    /**
+     * @param mixed $scopeIds
+     * @return array|array<<missing>,<missing>>
+     */
+    private function collectChildNodesByScopeIds(string $keyId, array $scopeIds) : array
     {
         if (empty($scopeIds)) {
             return [];
@@ -158,8 +168,12 @@ class DeletionService
 
         return $ids;
     }
-
-    private function collectReferencedNodesByIds($keyId, $nodeIds)
+    /**
+     * @param mixed $keyId
+     * @param mixed $nodeIds
+     * @return array
+     */
+    private function collectReferencedNodesByIds(string $keyId,  array $nodeIds) : array
     {
         $leafs = [];
         $inners = [];

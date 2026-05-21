@@ -217,7 +217,7 @@ class DeletionCommandBuilder
     /**
      * @param array<int,mixed> $idParams
      */
-    public function getSelectForReferencedNodes(string $keyId, $columns, array $idParams): Select
+    public function getSelectForReferencedNodes(string $keyId, array $columns, array $idParams): Select
     {
         $nodeTable = new TableReference($this->naming->nodeTableName($keyId));
 

@@ -7,6 +7,7 @@ use App\Hierarchy\Schema\Definition\ReferenceCoding;
 use App\Hierarchy\Schema\Definition\ReferenceCodingCascade;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\StorageCoding;
+use App\Hierarchy\Schema\Definition\StorageCodingType;
 use App\Hierarchy\Storage\Relational\Algebra\CreateTable;
 use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
@@ -308,7 +309,7 @@ class InstallationCommandBuilder
         return $fieldType->getColumns($fieldId, $required, $options);
     }
 
-    private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition, $keepSerial = false): TableColumn
+    private function fieldColumnToTableColumn(ColumnDefinition $columnDefinition, bool $keepSerial = false): TableColumn
     {
         return new TableColumn(
             $this->fieldColumnToName($columnDefinition),
@@ -322,7 +323,7 @@ class InstallationCommandBuilder
 
     /**
      * @return <missing>|string*/
-    private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding)
+    private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding) : string
     {
         if ($storageCoding instanceof ReferenceCoding) {
             $targetKey = $storageCoding->getTarget();
@@ -330,11 +331,11 @@ class InstallationCommandBuilder
             return $this->columnCodingToSqlType($this->schemaDef->getKeyIdentityColumn($targetKey)->getCoding());
         }
         switch ($storageCoding->getType()) {
-            case 'INTEGER':
+            case StorageCodingType::INTEGER:
                 return 'INTEGER SIGNED';
-            case 'SERIAL':
+            case StorageCodingType::SERIAL:
                 return 'SERIAL';
-            case 'UUID':
+            case StorageCodingType::UUID:
                 return 'BINARY(16)';
             default:
                 return 'VARCHAR(120)';
