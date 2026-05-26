@@ -8,6 +8,8 @@ use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
+use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\NullIf;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Disjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Projection;
@@ -20,6 +22,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Value\AssociativeOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\BinaryOperation;
 use App\Hierarchy\Storage\Relational\Algebra\Value\ColumnReference;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Constant;
+use App\Hierarchy\Storage\Relational\Algebra\Value\FunctionApplication;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Tuple;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
@@ -30,6 +33,7 @@ class UpdateCommandBuilder
     public function __construct(private SchemaDefinition $schemaDef, private Naming $naming, private ColumnCoder $coder)
     {
     }
+
     /**
      * @param array<int,mixed> $fieldsToCheck
      */
@@ -101,9 +105,13 @@ class UpdateCommandBuilder
 
         foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
             foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+                $ref = new ColumnReference($table, $this->naming->fieldColumnToName($column));
+                $value =
+                $this->coder->wrapColumnParameter($column, new Parameter($column->getName()));
                 $setters[] = new Setter(
-                    new ColumnReference($table, $this->naming->fieldColumnToName($column)),
-                    $this->coder->wrapColumnParameter($column, new Parameter($column->getName()))
+                    $ref,
+                    new FunctionApplication(new Coalesce(), [
+                        new FunctionApplication(new NullIf(), [$value, new Constant('')]), $ref])
                 );
             }
         }

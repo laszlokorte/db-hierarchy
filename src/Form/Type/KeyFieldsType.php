@@ -28,6 +28,7 @@ class KeyFieldsType extends AbstractType
         'enum' => HierarchyField\EnumType::class,
         'float' => HierarchyField\FloatType::class,
         'hash' => HierarchyField\HashType::class,
+        'password' => HierarchyField\PasswordType::class,
         'integer' => HierarchyField\IntegerType::class,
         'json' => HierarchyField\JsonType::class,
         'time' => HierarchyField\TimeType::class,
@@ -46,13 +47,14 @@ class KeyFieldsType extends AbstractType
         $storageConnection = $options['storageConnection'];
 
         foreach ($key->getFields() as $field) {
-            $type = $field->getType();
+            $type = $field->getTypeId();
             if (isset($this->fieldMapping[$type])) {
                 $builder->add($field->getId(), $this->fieldMapping[$type], [
                     'field' => $field,
+                    'existing' => $options['existing'],
                 ]);
             } else {
-                switch ($field->getType()) {
+                switch ($field->getTypeId()) {
                     case 'reference':
                         $builder
                         ->add($field->getId(), ReferenceType::class, [
@@ -61,6 +63,7 @@ class KeyFieldsType extends AbstractType
                             'nodeId' => null,
                         ]);
                         break;
+
                     case 'timeRange':
                         $range = $builder->create($field->getId(), FormType::class, [
                             'label' => $field->getLabel()->getString(),
@@ -122,7 +125,7 @@ class KeyFieldsType extends AbstractType
                         $builder->add($range);
                         break;
                     default:
-                        throw new \Exception('unknown field type '.$field->getType());
+                        throw new \Exception('unknown field type '.$field->getTypeId());
                 }
             }
         }
@@ -130,6 +133,8 @@ class KeyFieldsType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('existing');
+        $resolver->setDefaults(['existing' => false]);
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setRequired('storageConnection');

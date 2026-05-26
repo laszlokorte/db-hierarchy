@@ -79,7 +79,7 @@ class ColumnCoder
         return $this->decodeColumnType($column->getCoding()->getType(), new ColumnReference($tableRef, $this->naming->fieldColumnToName($column)));
     }
 
-    public function wrapColumnParameter(ColumnDefinition $column, $parameter): ValueInterface
+    public function wrapColumnParameter(ColumnDefinition $column, Parameter|Constant $parameter): ValueInterface
     {
         if ($column->isReference()) {
             $refType = $this->schemaDef->getKeyIdentityColumnType($column->getCoding()->getTarget());

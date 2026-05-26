@@ -46,7 +46,10 @@ class NestingType extends AbstractType
         $resolver->setRequired('storageConnection');
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
     }
-
+    /**
+     * @param mixed $options
+     * @return object[]
+     */
     private function createChoiceList($options): array
     {
         $key = $options['key'];

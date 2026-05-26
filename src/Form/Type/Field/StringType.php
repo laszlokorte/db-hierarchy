@@ -13,6 +13,8 @@ class StringType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('existing');
+        $resolver->setDefaults(['existing' => false]);
         $resolver->setRequired('field', true);
         $resolver->setAllowedTypes('field', Field::class);
 
@@ -39,7 +41,7 @@ class StringType extends AbstractType
             $field = $options['field'];
 
             return $field->isRequired() ? [
-                new Assert\NotBlank(message: sprintf('%s must not be blank', $options['field']->getLabel()->getString())),
+                new Assert\NotBlank(message: sprintf('%s must not be blank', $field->getLabel()->getString())),
                 ...$previousValue,
             ] : $previousValue;
         });

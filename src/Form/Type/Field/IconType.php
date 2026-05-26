@@ -13,6 +13,8 @@ class IconType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('existing');
+        $resolver->setDefaults(['existing' => false]);
         $resolver->setRequired('field', true);
         $resolver->setAllowedTypes('field', Field::class);
 
@@ -35,9 +37,12 @@ class IconType extends AbstractType
             return $field->getLabel()->getDescription();
         });
         $resolver->setDefault('choices', function (Options $options) {
+            /** @var Field $field */
+            $field = $options['field'];
+
             return array_combine(
-                $options['field']->getOption('values'),
-                $options['field']->getOption('values')
+                $field->getOption('values'),
+                $field->getOption('values')
             );
         });
         $resolver->setDefault('constraints', function (Options $options, $previousValue) {

@@ -27,7 +27,7 @@ class ReferenceType implements FieldTypeInterface
 
     public function fieldDataToColumnData(string $fieldId, array $fieldOptions, mixed $fieldData): array
     {
-        return [$fieldData ?: null];
+        return [$fieldData ? $fieldData['id'] : null];
     }
 
     public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed

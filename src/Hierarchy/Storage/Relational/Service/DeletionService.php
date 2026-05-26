@@ -4,11 +4,11 @@ namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Changeset\Deletion;
 use App\Hierarchy\Data;
-use App\Hierarchy\Storage\Relational\Exception;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Value\Parameter;
 use App\Hierarchy\Storage\Relational\ColumnCoder;
 use App\Hierarchy\Storage\Relational\Dialect\DialectInterface;
+use App\Hierarchy\Storage\Relational\Exception;
 use Doctrine\DBAL\Connection;
 
 class DeletionService
@@ -16,10 +16,7 @@ class DeletionService
     public function __construct(private SchemaDefinition $schemaDef, private DeletionCommandBuilder $commandBuilder, private Connection $connection, private DialectInterface $dialect, private ColumnCoder $coder)
     {
     }
-    /**
-     * @param mixed $keyId
-     * @param mixed $nodeId
-     */
+
     public function getDeletionPlan($keyId, $nodeId): Deletion
     {
         $cascadingDeletions = $this->collectChildNodesByNodeIds($keyId, [$nodeId]);
@@ -84,11 +81,11 @@ class DeletionService
             throw $e;
         }
     }
+
     /**
      * @param array<int,mixed> $nodeIds
-     * @return array
      */
-    private function collectChildNodesByNodeIds(string $keyId, array $nodeIds) : array
+    private function collectChildNodesByNodeIds(string $keyId, array $nodeIds): array
     {
         if (empty($nodeIds)) {
             return [];
@@ -129,11 +126,13 @@ class DeletionService
 
         return $ids;
     }
+
     /**
      * @param mixed $scopeIds
+     *
      * @return array|array<<missing>,<missing>>
      */
-    private function collectChildNodesByScopeIds(string $keyId, array $scopeIds) : array
+    private function collectChildNodesByScopeIds(string $keyId, array $scopeIds): array
     {
         if (empty($scopeIds)) {
             return [];
@@ -168,12 +167,12 @@ class DeletionService
 
         return $ids;
     }
+
     /**
      * @param mixed $keyId
      * @param mixed $nodeIds
-     * @return array
      */
-    private function collectReferencedNodesByIds(string $keyId,  array $nodeIds) : array
+    private function collectReferencedNodesByIds(string $keyId, array $nodeIds): array
     {
         $leafs = [];
         $inners = [];

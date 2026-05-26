@@ -22,6 +22,8 @@ class ReferenceType extends AbstractType
         $nodeId = $options['nodeId'];
 
         $builder->setAttribute('choice_list', new NodeCollectionIterator($storageConnection->getQueryService()->findAllNodes($field->getOption('target'))));
+        $builder->addViewTransformer(
+         new ReferenceTransformer());
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -61,11 +63,9 @@ class ReferenceType extends AbstractType
 
             return $field->isRequired() ? [new Assert\NotBlank()] : [];
         });
-        $resolver->setDefault('constraints', function (Options $options) {
-            /** @var Field $field */
-            $field = $options['field'];
 
-            return $field->isRequired() ? [new Assert\NotBlank()] : [];
+
+        $resolver->setDefault('transformer', function (Options $options) {
         });
     }
 

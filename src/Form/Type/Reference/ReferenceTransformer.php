@@ -11,9 +11,11 @@ class ReferenceTransformer implements DataTransformerInterface
 {
     public function transform(mixed $value): mixed
     {
+        return $value ? $value['id'] : null;
     }
 
     public function reverseTransform(mixed $value): mixed
     {
+        return $value ? ['id' => $value] : null;
     }
 }

@@ -6,6 +6,7 @@ use App\Hierarchy\Data\Node;
 use App\Hierarchy\Data\NodeField;
 use App\Hierarchy\Schema\Definition\LabelDefinition;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
+use App\Hierarchy\Schema\FieldType\FieldTypeInterface;
 
 class Field
 {
@@ -26,9 +27,14 @@ class Field
         return new Key($this->def, $this->keyId);
     }
 
-    public function getType(): string
+    public function getTypeId(): string
     {
         return $this->def->getKeyFieldTypeId($this->keyId, $this->fieldId);
+    }
+
+    public function getType(): FieldTypeInterface
+    {
+        return $this->def->getKeyFieldType($this->keyId, $this->fieldId);
     }
 
     public function getLabel(): LabelDefinition

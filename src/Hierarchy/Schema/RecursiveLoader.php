@@ -106,6 +106,7 @@ class RecursiveLoader
             'integerRange' => new FieldType\RangeType(new FieldType\IntegerType()),
             'floatRange' => new FieldType\RangeType(new FieldType\FloatType()),
             'decimalRange' => new FieldType\RangeType(new FieldType\DecimalType()),
+            'password' => new FieldType\RepeatType(new FieldType\HashType()),
         ];
 
         $this->predefinedHierarchies = [
@@ -441,7 +442,7 @@ class RecursiveLoader
                             'string', true, true),
                         'password' => new FieldDefinition(
                             new LabelDefinition('Password'),
-                            'hash', true, false),
+                            'password', true, false),
                         'full_name' => new FieldDefinition(
                             new LabelDefinition('Full Name'),
                             'string', false, false),
@@ -519,7 +520,7 @@ class RecursiveLoader
                 ),
                 'collection' => new KeyDefinition(
                     new StorageDefinition('collection'),
-                    new LabelDefinition('Collection'),
+                    new LabelDefinition('Collection', 'Collections', null, 'list-unordered'),
                     new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', 'DESC'), [
                         'slug' => new FieldDefinition(
                             new LabelDefinition('Slug'), 'string', true, true, [], false),

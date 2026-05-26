@@ -13,6 +13,8 @@ class DateType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('existing');
+        $resolver->setDefaults(['existing' => false]);
         $resolver->setRequired('field', true);
         $resolver->setAllowedTypes('field', Field::class);
 

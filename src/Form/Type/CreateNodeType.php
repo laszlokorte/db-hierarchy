@@ -42,6 +42,7 @@ class CreateNodeType extends AbstractType
 
         $builder->add(
             $builder->create('fields', KeyFieldsType::class, [
+                'existing' => false,
                 'by_reference' => false,
                 'label' => false,
                 'key' => $options['key'],

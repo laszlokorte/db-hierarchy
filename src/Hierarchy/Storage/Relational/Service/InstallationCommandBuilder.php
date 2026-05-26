@@ -323,7 +323,7 @@ class InstallationCommandBuilder
 
     /**
      * @return <missing>|string*/
-    private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding) : string
+    private function columnCodingToSqlType(StorageCoding|ReferenceCoding $storageCoding): string
     {
         if ($storageCoding instanceof ReferenceCoding) {
             $targetKey = $storageCoding->getTarget();

@@ -1,0 +1,8 @@
+
+{% block cell %}
+    {{ block('cell', 'hierarchy/types/'~ field.type.baseType.getTemplateName(field.id, []) ~'.html.twig') }}
+{% endblock %}
+
+{% block display %}
+{{ block('display', 'hierarchy/types/'~ field.type.baseType.getTemplateName(field.id, []) ~'.html.twig') }}
+{% endblock %}

@@ -5,30 +5,30 @@ namespace App\Form\Type\Field;
 use App\Hierarchy\Schema\Field;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType as SymfonyPasswordType;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class DateTimeType extends AbstractType
+class PasswordType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('field', true);
         $resolver->setRequired('existing');
         $resolver->setDefaults(['existing' => false]);
-        $resolver->setRequired('field', true);
         $resolver->setAllowedTypes('field', Field::class);
-
-        $resolver->setDefaults([
-            'date_label' => false,
-            'time_label' => false,
-        ]);
+        $resolver->setAllowedTypes('existing', 'bool');
 
         $resolver->setDefault('required', function (Options $options) {
             /** @var Field $field */
             $field = $options['field'];
 
-            return $field->isRequired();
+            return !$options['existing'] && $field->isRequired();
         });
+        $resolver->setDefault('type', SymfonyPasswordType::class);
+        $resolver->setDefault('first_options', ['label' => 'New Password']);
+        $resolver->setDefault('second_options', ['label' => 'Confirmation']);
         $resolver->setDefault('label', function (Options $options) {
             /** @var Field $field */
             $field = $options['field'];
@@ -45,7 +45,7 @@ class DateTimeType extends AbstractType
             /** @var Field $field */
             $field = $options['field'];
 
-            return $field->isRequired() ? [
+            return !$options['existing'] && $field->isRequired() ? [
                 new Assert\NotBlank(),
                 ...$previousValue,
             ] : $previousValue;
@@ -54,11 +54,11 @@ class DateTimeType extends AbstractType
 
     public function getParent(): string
     {
-        return Type\DateTimeType::class;
+        return Type\RepeatedType::class;
     }
 
     public function getBlockPrefix(): string
     {
-        return 'hierarchy_date_time';
+        return 'hierarchy_hash';
     }
 }

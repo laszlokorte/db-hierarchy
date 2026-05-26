@@ -307,7 +307,7 @@ class SchemaDefinition
         return $fieldType->getColumns($fieldId, $required, $fieldOptions);
     }
 
-    public function convertKeyFieldDataToColumnData(string $keyId, string $fieldId, string $fieldData): mixed
+    public function convertKeyFieldDataToColumnData(string $keyId, string $fieldId, mixed $fieldData): mixed
     {
         $fieldType = $this->getKeyFieldType($keyId, $fieldId);
         $fieldOptions = $this->getKeyFieldOptions($keyId, $fieldId);
