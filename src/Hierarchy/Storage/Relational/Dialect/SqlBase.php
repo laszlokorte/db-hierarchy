@@ -505,16 +505,22 @@ abstract class SqlBase implements DialectInterface
                 }
                 // no break
             case Windowing\ValueWindow::class:
+                /**
+                 * @var Windowing\ValueWindow $windowing
+                 */
                 $v = $this->valueToString($windowing->getValue());
                 $f = $windowing->getFunction();
                 switch (get_class($f)) {
                     case Windowing\Value\FirstValue::class:
                         return 'FIRST_VALUE('.$v.')';
-                    case Windowing\Value\lastValue::class:
+                    case Windowing\Value\LastValue::class:
                         return 'LAST_VALUE('.$v.')';
                     case Windowing\Value\Lag::class:
+                        /**
+                        * @var  Windowing\Value\Lag $f
+                        */
                         return 'LAG('.$v
-                        .(G(1 != $f->getOffset() || null !== $f->getDefault()) ? ', '.$f->getOffset() : '')
+                        .((1 != $f->getOffset() || null !== $f->getDefault()) ? ', '.$f->getOffset() : '')
                         .(null !== $f->getDefault() ? ', '.$this->valueToString($f->getDefault()) : '')
                         .')';
                     case Windowing\Value\Lead::class:
@@ -663,7 +669,7 @@ abstract class SqlBase implements DialectInterface
         return $query;
     }
 
-    protected function tableColumnToString(TableColumn $column)
+    protected function tableColumnToString(TableColumn $column) : string
     {
         $result = $this->escapeIdentifier($column->getName());
         $result .= ' '.$this->dataTypeToString($column->getType());
@@ -679,7 +685,7 @@ abstract class SqlBase implements DialectInterface
         return $result;
     }
 
-    protected function dataTypeToString($type): string
+    protected function dataTypeToString(string $type): string
     {
         return $type;
     }
@@ -688,7 +694,9 @@ abstract class SqlBase implements DialectInterface
     {
         return sprintf('PRIMARY KEY(%s)', $this->escapeIdentifier($column->getName()));
     }
-
+    /**
+     * @param array<int,mixed> $columnNames
+     */
     protected function uniqueIndexToString(array $columnNames): string
     {
         return 'UNIQUE('.implode(', ', array_map(
@@ -721,9 +729,9 @@ abstract class SqlBase implements DialectInterface
         return 'DROP TABLE IF EXISTS '.$this->escapeIdentifier($createTable->getName()).';';
     }
 
-    abstract protected function escapeIdentifier(Identifier $identifier);
+    abstract protected function escapeIdentifier(Identifier $identifier) : string;
 
-    protected function escapeLiteral(mixed $literal)
+    protected function escapeLiteral(mixed $literal) : string
     {
         if (null === $literal) {
             return 'NULL';

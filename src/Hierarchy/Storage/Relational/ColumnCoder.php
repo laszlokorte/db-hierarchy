@@ -186,7 +186,7 @@ class ColumnCoder
         }
     }
 
-    public function decodeColumnType(StorageCodingType $type, ValueInterface $value): ValueInterface
+    public function decodeColumnType(string|StorageCodingType $type, ValueInterface $value): ValueInterface
     {
         switch ($type) {
             case StorageCodingType::SERIAL:
@@ -198,7 +198,7 @@ class ColumnCoder
         }
     }
 
-    public function encodeColumnType(StorageCodingType $type, Parameter|Constant $value): ValueInterface
+    public function encodeColumnType(string|StorageCodingType $type, Parameter|Constant $value): ValueInterface
     {
         if ($value instanceof Constant && $value->isNull()) {
             return $value;

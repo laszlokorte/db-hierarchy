@@ -26,7 +26,7 @@ class InstallationService
         return $schema;
     }
 
-    public function createSchema($dropOld, $onlyViews): void
+    public function createSchema(bool $dropOld, bool $onlyViews): void
     {
         $turnOffFk = $this->dialect->stringSwitchForeignKey(false);
         $turnOnFk = $this->dialect->stringSwitchForeignKey(true);

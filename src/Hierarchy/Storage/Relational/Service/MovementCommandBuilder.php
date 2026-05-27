@@ -7,6 +7,7 @@ use App\Hierarchy\Storage\Relational\Algebra\Delete;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\JoinDirection;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
@@ -40,7 +41,7 @@ class MovementCommandBuilder
     {
     }
 
-    public function getSelectForFindHierarchyCousins(string $keyId, Parameter|Constant $idParam)
+    public function getSelectForFindHierarchyCousins(string $keyId, Parameter|Constant $idParam) : Select
     {
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
         $tableN = new TableReference($this->naming->nodeTableName($keyId));
@@ -97,7 +98,7 @@ class MovementCommandBuilder
         return new Select($projections, [$tableN], $joins, $condition);
     }
 
-    public function getSelectForFindHierarchy(string $keyId, Parameter|Constant|null $scope, Parameter|Constant|null $parent)
+    public function getSelectForFindHierarchy(string $keyId, Parameter|Constant|null $scope, Parameter|Constant|null $parent): Select
     {
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
         $tableN = new TableReference($this->naming->nodeTableName($keyId));
@@ -143,7 +144,7 @@ class MovementCommandBuilder
         return new Select($projections, [$tableN], $joins, $condition, $orders);
     }
 
-    public function getSelectForScopeParentCheck($keyId, Parameter $scopeParam, Parameter $parentParam)
+    public function getSelectForScopeParentCheck(string $keyId, Parameter $scopeParam, Parameter $parentParam): Select
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
 
@@ -164,7 +165,7 @@ class MovementCommandBuilder
         );
     }
 
-    public function getSelectForMoveTargetValid(string $keyId, Parameter $idParam, Parameter $parentParam)
+    public function getSelectForMoveTargetValid(string $keyId, Parameter $idParam, Parameter $parentParam): Select
     {
         $closureTable = new TableReference($this->naming->closureTableName($keyId));
 
@@ -186,7 +187,7 @@ class MovementCommandBuilder
         );
     }
 
-    public function getUpdateForMoveOwnScope(string $keyId, Parameter $idParam, Parameter $scopeParam)
+    public function getUpdateForMoveOwnScope(string $keyId, Parameter $idParam, Parameter $scopeParam): Update
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $scopeTable = new TableReference($this->naming->scopeTablename($keyId), new Identifier('scope'));
@@ -234,7 +235,7 @@ class MovementCommandBuilder
         );
     }
 
-    public function getUpdateForMoveClosureScope(string $keyId, Parameter $idParam, Parameter $scopeParam)
+    public function getUpdateForMoveClosureScope(string $keyId, Parameter $idParam, Parameter $scopeParam): Update
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $closureTable = new TableReference($this->naming->closureTableName($keyId));
@@ -262,7 +263,7 @@ class MovementCommandBuilder
         );
     }
 
-    public function getUpdateForMoveClosureParents(string $keyId, Parameter $idParam, Parameter $scopeParam)
+    public function getUpdateForMoveClosureParents(string $keyId, Parameter $idParam, Parameter $scopeParam): Update
     {
         $table = new TableReference($this->naming->nodeTableName($keyId));
         $closureTable = new TableReference($this->naming->closureTableName($keyId));
@@ -289,7 +290,7 @@ class MovementCommandBuilder
         );
     }
 
-    public function getDeleteForMoveClosureOldParents(string $keyId, Parameter $idParam)
+    public function getDeleteForMoveClosureOldParents(string $keyId, Parameter $idParam): Delete
     {
         // IDEA:
         // DROP all transitive edges pointing higher than nodeId AND
@@ -314,7 +315,7 @@ class MovementCommandBuilder
                 new Equal(),
                 new ColumnReference($closureTableOk, $this->naming->closureChildColumnName($keyId)),
                 new ColumnReference($closureTableBad, $this->naming->closureChildColumnName($keyId))
-            ), 'LEFT')], new BinaryOperation(
+            ), JoinDirection::LEFT)], new BinaryOperation(
                 new Conjunction(),
                 new BinaryOperation(
                     new Equal(),
@@ -330,7 +331,7 @@ class MovementCommandBuilder
         ));
     }
 
-    public function getInsertForMoveClosureParents(string $keyId, Parameter $idParam, Parameter $scopeParam, Parameter $parentParam)
+    public function getInsertForMoveClosureParents(string $keyId, Parameter $idParam, Parameter $scopeParam, Parameter $parentParam): Insert
     {
         // INSERT INTO site_closure(child_id, parent_id, depth)
         // SELECT low.child_id,

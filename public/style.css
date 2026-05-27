@@ -15,6 +15,11 @@ textarea {
     resize: vertical;
 }
 
+.site-nav [aria-current="page"] {
+    background-color: var(--accent-primary, black);
+    color: #fff;
+}
+
 .html-body {
     height: 100%;
     margin: 0;
@@ -39,9 +44,6 @@ textarea {
 
 .data-table-caption {
     display: none;
-}
-
-.data-table-row {
 }
 
 .data-table-cell {

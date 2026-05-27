@@ -31,7 +31,7 @@ class Insert
     /**
      * @return mixed[]|Select
      */
-    public function getRows(): array
+    public function getRows(): array|Select
     {
         return $this->rows;
     }

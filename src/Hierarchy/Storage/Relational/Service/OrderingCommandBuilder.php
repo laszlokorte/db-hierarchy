@@ -5,6 +5,7 @@ namespace App\Hierarchy\Storage\Relational\Service;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\JoinDirection;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\LessThan;
@@ -133,7 +134,7 @@ class OrderingCommandBuilder
                 new Tuple([
                     new ColumnReference($normalizedViewSiblings, $this->naming->normalizedOrderScopeColumnName($keyId)),
                     new ColumnReference($normalizedViewSiblings, $this->naming->normalizedOrderParentColumnName($keyId))])
-            ), 'LEFT'),
+            ), JoinDirection::LEFT),
         ], new BinaryOperation(new Equal(), $idSelf, $this->coder->wrapPrimaryKeyParameter($keyId, $idParam))));
     }
 }
