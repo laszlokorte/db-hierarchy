@@ -3,6 +3,7 @@
 namespace App\Hierarchy\Storage\Relational\Service;
 
 use App\Hierarchy\Schema\Definition\ColumnDefinition;
+use App\Hierarchy\Schema\Definition\OrderDirection;
 use App\Hierarchy\Schema\Definition\ReferenceCoding;
 use App\Hierarchy\Schema\Definition\ReferenceCodingCascade;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
@@ -13,6 +14,7 @@ use App\Hierarchy\Storage\Relational\Algebra\CreateView;
 use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\JoinDirection;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\GreaterThan;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
@@ -487,7 +489,7 @@ class InstallationCommandBuilder
                     new Equal(),
                     $scopeRef,
                     $idRefScope
-                ), 'INNER');
+                ), JoinDirection::INNER);
         } else {
             $scopeProjection = new Projection(new Constant(null), $this->naming->hierarchyScopeColumnName($keyId));
         }
@@ -520,21 +522,21 @@ class InstallationCommandBuilder
                     new Equal(),
                     new Tuple([$depthRefRelexive, $childRefRelexive, $parentRefRelexive]),
                     new Tuple([new Constant(0), $idRef, $idRef])
-                ), 'INNER');
+                ), JoinDirection::INNER);
 
             $joins[] = new Join($tableClosure,
                 new BinaryOperation(
                     new Equal(),
                     new Tuple([$childRefClosure, $depthRefClosure]),
                     new Tuple([$idRef, new Constant(1)])
-                ), 'LEFT');
+                ), JoinDirection::LEFT);
 
             $joins[] = new Join($tableParent,
                 new BinaryOperation(
                     new Equal(),
                     $idRefParent,
                     $parentRefClosure
-                ), 'LEFT');
+                ), JoinDirection::LEFT);
 
             $orders[] = new Order($idRefParent, true);
         } else {
@@ -547,7 +549,7 @@ class InstallationCommandBuilder
 
             $orderProjection = new Projection($orderRef, $this->naming->hierarchyOrderColumnName($keyId));
 
-            $orders[] = new Order($orderRef, 'ASC' === $this->schemaDef->getKeyOrderDirection($keyId));
+            $orders[] = new Order($orderRef, OrderDirection::ASC === $this->schemaDef->getKeyOrderDirection($keyId));
         } else {
             $orderProjection = new Projection(new Constant(null), $this->naming->hierarchyOrderColumnName($keyId));
         }
@@ -754,7 +756,7 @@ class InstallationCommandBuilder
                             $parentRef,
                         ])
                     ),
-                    'LEFT'
+                    JoinDirection::LEFT
                 ),
                 new Join($tableY,
                     new BinaryOperation(
@@ -768,7 +770,7 @@ class InstallationCommandBuilder
                             $childRef,
                         ])
                     ),
-                    'LEFT'
+                    JoinDirection::LEFT
                 ),
             ];
         } else {
@@ -779,7 +781,7 @@ class InstallationCommandBuilder
                         new ColumnReference($tableX, $this->naming->nodeTablePKName($keyId)),
                         $parentRef,
                     ),
-                    'LEFT'
+                    JoinDirection::LEFT
                 ),
                 new Join($tableY,
                     new BinaryOperation(
@@ -787,7 +789,7 @@ class InstallationCommandBuilder
                         new ColumnReference($tableY, $this->naming->nodeTablePKName($keyId)),
                         $childRef,
                     ),
-                    'LEFT'
+                    JoinDirection::LEFT
                 ),
             ];
         }
@@ -952,7 +954,7 @@ class InstallationCommandBuilder
                         new ColumnReference($tableY, $this->naming->closureTableDepthName($keyId)),
                     ]),
                 ),
-                'LEFT'
+                JoinDirection::LEFT
             ),
         ], new BinaryOperation(
             new Equal(true),

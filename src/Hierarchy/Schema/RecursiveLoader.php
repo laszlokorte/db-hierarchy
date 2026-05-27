@@ -6,6 +6,7 @@ use App\Hierarchy\Schema\Definition\FieldDefinition;
 use App\Hierarchy\Schema\Definition\KeyDefinition;
 use App\Hierarchy\Schema\Definition\LabelDefinition;
 use App\Hierarchy\Schema\Definition\OrderDefinition;
+use App\Hierarchy\Schema\Definition\OrderDirection;
 use App\Hierarchy\Schema\Definition\ReflexivityDefinition;
 use App\Hierarchy\Schema\Definition\SchemaDefinition;
 use App\Hierarchy\Schema\Definition\ScopeDefinition;
@@ -390,7 +391,7 @@ class RecursiveLoader
                         'What is a hierarchy?',
                         'archive'
                     ),
-                    null, null, new OrderDefinition('priority', 'DESC'), [
+                    null, null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(
                             new LabelDefinition('Slug'),
                             'string', true, true, [], false
@@ -521,7 +522,7 @@ class RecursiveLoader
                 'collection' => new KeyDefinition(
                     new StorageDefinition('collection'),
                     new LabelDefinition('Collection', 'Collections', null, 'list-unordered'),
-                    new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('hierarchy', null, true), null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(
                             new LabelDefinition('Slug'), 'string', true, true, [], false),
                         'table_name' => new FieldDefinition(
@@ -608,7 +609,7 @@ class RecursiveLoader
                 'field' => new KeyDefinition(
                     new StorageDefinition('field'),
                     new LabelDefinition('Field'),
-                    new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('collection', null, true), null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(
                             new LabelDefinition('Slug'),
                             'string', true, true, [], false),
@@ -814,7 +815,7 @@ class RecursiveLoader
                 'route' => new KeyDefinition(
                     new StorageDefinition('route'),
                     new LabelDefinition('Route', null, null, 'stack'),
-                    new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(
                             new LabelDefinition('Slug'),
                             'string', true, true, [], false
@@ -825,7 +826,7 @@ class RecursiveLoader
                 'content' => new KeyDefinition(
                     new StorageDefinition('content'),
                     new LabelDefinition('Content', 'Content', null, 'package'),
-                    new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(
                             new LabelDefinition('Slug'),
                             'string', true, true, [], false

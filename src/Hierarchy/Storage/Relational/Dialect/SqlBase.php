@@ -10,6 +10,7 @@ use App\Hierarchy\Storage\Relational\Algebra\ForeignKey;
 use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Insert;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
+use App\Hierarchy\Storage\Relational\Algebra\JoinDirection;
 use App\Hierarchy\Storage\Relational\Algebra\Operator;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\FunctionInterface;
 use App\Hierarchy\Storage\Relational\Algebra\Order;
@@ -39,7 +40,7 @@ abstract class SqlBase implements DialectInterface
         $this->depth -= $delta;
     }
 
-    protected function i($extra = 0): string
+    protected function i(int $extra = 0): string
     {
         return str_repeat(self::INDENT, $this->depth + $extra);
     }
@@ -122,7 +123,7 @@ abstract class SqlBase implements DialectInterface
         return $query;
     }
 
-    protected function projectionToString(Projection $p)
+    protected function projectionToString(Projection $p) : string
     {
         $valueString = $this->valueToString($p->getValue());
 
@@ -133,7 +134,7 @@ abstract class SqlBase implements DialectInterface
         return $valueString;
     }
 
-    protected function tableReferenceToString(TableReference $t)
+    protected function tableReferenceToString(TableReference $t) : string
     {
         $tableName = $this->escapeIdentifier($t->getName());
 
@@ -144,30 +145,35 @@ abstract class SqlBase implements DialectInterface
         return $tableName;
     }
 
-    protected function joinToString(Join $j)
+    protected function joinToString(Join $j) : string
     {
         return $this->joinDirectionToString($j->getDirection()).' JOIN '.$this->tableReferenceToString($j->getTable()).PHP_EOL.
             $this->i().'ON '.$this->valueToString($j->getCondition());
     }
 
-    protected function joinDirectionToString($dir)
+    protected function joinDirectionToString(JoinDirection $dir) : string
     {
         switch ($dir) {
-            case 'INNER':
-            case 'LEFT':
-            case 'RIGHT':
-            case 'OUTER':
-                return $dir;
-            default:
-                throw new \Exception('unknown join direction:'.$dir);
+            case JoinDirection::INNER:
+                return 'INNER';
+            case JoinDirection::LEFT:
+            return 'LEFT';
+            case JoinDirection::RIGHT:
+            return 'RIGHT';
+            case JoinDirection::OUTER:
+            return 'OUTER';
         }
     }
 
-    protected function valueToString(ValueInterface $v)
+    protected function valueToString(ValueInterface $v) : string
     {
         switch (get_class($v)) {
             case TableReference::class:
-                return sprintf('%s.*', $this->escapeIdentifier($v->getUsageName()));
+                /**
+                * @var TableReference $ref
+                */
+                $ref = $v;
+                return sprintf('%s.*', $this->escapeIdentifier($ref->getUsageName()));
             case Value\DefaultValue::class:
                 return 'DEFAULT';
             case Value\Aggregation::class:
@@ -199,7 +205,11 @@ abstract class SqlBase implements DialectInterface
             case Value\Cases::class:
                 return $this->casesToString($v);
             case Value\Selection::class:
-                return '('.$this->selectToString($v->getSelect()).')';
+                /**
+                * @var Value\Selection $ref
+                */
+                $ref = $v;
+                return '('.$this->selectToString($ref->getSelect()).')';
             default:
                 throw new \Exception('unknown value:'.get_class($v));
         }
@@ -210,7 +220,7 @@ abstract class SqlBase implements DialectInterface
         return sprintf('%s(%s)', $this->aggregationName($aggregation->getAggregation()), $this->valueToString($aggregation->getValue()));
     }
 
-    protected function aggregationName($aggregation)
+    protected function aggregationName(Aggregation\AggregationInterface $aggregation) : string
     {
         switch (get_class($aggregation)) {
             case Aggregation\Average::class:
@@ -224,19 +234,22 @@ abstract class SqlBase implements DialectInterface
             case Aggregation\Sum::class:
                 return 'SUM';
             default:
-                throw new \Exception('unknown aggregation:'.get_class($a));
+                throw new \Exception('unknown aggregation:'.get_class($aggregation));
         }
     }
 
-    protected function associativeOperationToString(Value\AssociativeOperation $associativeOperation)
+    protected function associativeOperationToString(Value\AssociativeOperation $associativeOperation) : string
     {
         return '('.implode(' '.$this->operatorSymbol($associativeOperation->getOperator()).PHP_EOL.$this->i(), array_map(fn ($v) => $this->valueToString($v), $associativeOperation->getOperands())).')';
     }
 
-    protected function operatorSymbol($operator)
+    protected function operatorSymbol(Operator\BinaryInterface|Operator\UnaryInterface $operator) : string
     {
         switch (get_class($operator)) {
             case Operator\Comparison\Equal::class:
+                /**
+                 * @var Operator\Comparison\Equal $operator
+                 */
                 if ($operator->allowNull()) {
                     return '<=>';
                 }
@@ -296,12 +309,12 @@ abstract class SqlBase implements DialectInterface
         );
     }
 
-    protected function constantToString(Value\Constant $constant)
+    protected function constantToString(Value\Constant $constant) : string
     {
         return $this->escapeLiteral($constant->getValue());
     }
 
-    protected function existenceToString(Value\Existence $existence)
+    protected function existenceToString(Value\Existence $existence) : string
     {
         $this->indent();
         $sub = $this->selectToString($existence->getSelect());
@@ -310,7 +323,7 @@ abstract class SqlBase implements DialectInterface
         return 'EXISTS ('.PHP_EOL.$sub.PHP_EOL.$this->i().')';
     }
 
-    protected function elementOfToString(Value\ElementOf $elementOf)
+    protected function elementOfToString(Value\ElementOf $elementOf) : string
     {
         $this->indent();
         if ($elementOf->getSelect() instanceof Select) {
@@ -324,7 +337,7 @@ abstract class SqlBase implements DialectInterface
         return '('.$this->valueToString($elementOf->getValue()).') IN ('.PHP_EOL.$sub.PHP_EOL.$this->i().')';
     }
 
-    protected function functionApplicationToString(Value\FunctionApplication $functionApplication)
+    protected function functionApplicationToString(Value\FunctionApplication $functionApplication) : string
     {
         $function = $functionApplication->getFunction();
         $args = $functionApplication->getArguments();
@@ -337,7 +350,7 @@ abstract class SqlBase implements DialectInterface
         ')';
     }
 
-    protected function functionToString(FunctionInterface $function)
+    protected function functionToString(FunctionInterface $function) : string
     {
         switch (get_class($function)) {
             case Operator\Function\Coalesce::class:
@@ -351,6 +364,9 @@ abstract class SqlBase implements DialectInterface
             case Operator\Function\NullIf::class:
                 return 'NULLIF';
             case Operator\Function\NamedFunction::class:
+                /**
+                * @var Operator\Function\NamedFunction $function
+                */
                 return $function->getName();
             default:
                 throw new \Exception('unknown function '.get_class($function));
@@ -362,7 +378,7 @@ abstract class SqlBase implements DialectInterface
         return ':_'.substr(md5($parameter->getName()), 0, 5).preg_replace('/[^a-z]/i', '', $parameter->getName());
     }
 
-    protected function projectedToString(Value\Projected $projected)
+    protected function projectedToString(Value\Projected $projected) : string
     {
         $projection = $projected->getProjection();
 
@@ -388,7 +404,7 @@ abstract class SqlBase implements DialectInterface
         );
     }
 
-    protected function casesToString(Value\Cases $cases)
+    protected function casesToString(Value\Cases $cases) : string
     {
         if ($cases->count() > 0) {
             $result = $this->i().'CASE';
@@ -412,7 +428,7 @@ abstract class SqlBase implements DialectInterface
         return $this->valueToString($cases->getFallback());
     }
 
-    protected function windowingToString(Value\Windowing $windowing)
+    protected function windowingToString(Value\Windowing $windowing) : string
     {
         $function = $windowing->getWindowFunction();
         $partitions = $windowing->getPartionValues();
@@ -439,28 +455,34 @@ abstract class SqlBase implements DialectInterface
         return $result;
     }
 
-    protected function windowFunctionToString(WindowingInterface $windowing)
+    protected function windowFunctionToString(WindowingInterface $windowing) : string
     {
         switch (get_class($windowing)) {
             case Windowing\AggregationWindow::class:
+                /**
+                * @var Windowing\AggregationWindow $windowing
+                */
                 $v = $this->valueToString($windowing->getValue());
                 $a = $windowing->getAggregation();
                 switch (get_class($a)) {
-                    case Windowing\Aggregation\Average::class:
+                    case Aggregation\Average::class:
                         return 'AVG('.$v.')';
-                    case Windowing\Aggregation\Count::class:
+                    case Aggregation\Count::class:
                         return 'COUNT('.$v.')';
-                    case Windowing\Aggregation\Maximum::class:
+                    case Aggregation\Maximum::class:
                         return 'MAX('.$v.')';
-                    case Windowing\Aggregation\Minimum::class:
+                    case Aggregation\Minimum::class:
                         return 'MIN('.$v.')';
-                    case Windowing\Aggregation\Sum::class:
+                    case Aggregation\Sum::class:
                         return 'SUM('.$v.')';
                     default:
                         throw new \Exception('unknown aggregating window function '.get_class($a));
                 }
                 // no break
             case Windowing\RankWindow::class:
+                /**
+                * @var Windowing\RankWindow $windowing
+                */
                 $r = $windowing->getRank();
                 switch (get_class($r)) {
                     case Windowing\Rank\CumulativeDistance::class:
@@ -468,6 +490,9 @@ abstract class SqlBase implements DialectInterface
                     case Windowing\Rank\DenseRank::class:
                         return 'DENSE_RANK()';
                     case Windowing\Rank\NTile::class:
+                        /**
+                        * @var  Windowing\Rank\NTile $r
+                        */
                         return 'NTILE('.$r->getBuckets().')';
                     case Windowing\Rank\PercentRank::class:
                         return 'PERCENT_RANK()';

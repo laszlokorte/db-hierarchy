@@ -43,7 +43,7 @@ class Loader
                 'route' => new KeyDefinition(
                     new StorageDefinition('route'),
                     new LabelDefinition('Route'),
-                    new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('site'), new ReflexivityDefinition(), new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
@@ -57,7 +57,7 @@ class Loader
                 'content' => new KeyDefinition(
                     new StorageDefinition('content'),
                     new LabelDefinition('Content'),
-                    new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('route'), new ReflexivityDefinition(), new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
@@ -78,7 +78,7 @@ class Loader
                 'menu_item' => new KeyDefinition(
                     new StorageDefinition('menu_item'),
                     new LabelDefinition('Menu Item'),
-                    new ScopeDefinition('menu'), new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('menu'), new ReflexivityDefinition(), new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
@@ -113,21 +113,21 @@ class Loader
                 'sorted_parent' => new KeyDefinition(
                     new StorageDefinition('sorted_parent'),
                     new LabelDefinition('Sorted Parent'),
-                    null, null, new OrderDefinition('priority', 'DESC'), [
+                    null, null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
                 'sorted_child' => new KeyDefinition(
                     new StorageDefinition('sorted_child'),
                     new LabelDefinition('Sorted Child'),
-                    new ScopeDefinition('sorted_parent'), null, new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('sorted_parent'), null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
                 'sorted_tree' => new KeyDefinition(
                     new StorageDefinition('sorted_tree'),
                     new LabelDefinition('Sorted Tree'),
-                    null, new ReflexivityDefinition(), new OrderDefinition('priority', 'DESC'), [
+                    null, new ReflexivityDefinition(), new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
@@ -148,14 +148,14 @@ class Loader
                 'grid_column' => new KeyDefinition(
                     new StorageDefinition('grid_column'),
                     new LabelDefinition('Grid Column'),
-                    new ScopeDefinition('grid'), null, new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('grid'), null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),
                 'grid_row' => new KeyDefinition(
                     new StorageDefinition('grid_row'),
                     new LabelDefinition('Grid Row'),
-                    new ScopeDefinition('grid'), null, new OrderDefinition('priority', 'DESC'), [
+                    new ScopeDefinition('grid'), null, new OrderDefinition('priority', OrderDirection::DESC), [
                         'slug' => new FieldDefinition(new LabelDefinition('Slug'), 'string', true, false),
                     ], new SummaryDefinition(['%slug'])
                 ),

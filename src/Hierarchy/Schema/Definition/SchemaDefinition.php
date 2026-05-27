@@ -155,7 +155,7 @@ class SchemaDefinition
         return $this->keys[$keyId]->getOrderColumnName();
     }
 
-    public function getKeyOrderDirection(string $keyId): string
+    public function getKeyOrderDirection(string $keyId): OrderDirection
     {
         return $this->keys[$keyId]->getOrderDirection();
     }

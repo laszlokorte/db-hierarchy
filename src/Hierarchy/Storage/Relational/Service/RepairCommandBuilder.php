@@ -156,7 +156,7 @@ class RepairCommandBuilder
             ),
             new Projection(
                 $this->coder->decodeColumnType(
-                    'VARCHAR',
+                    StorageCodingType::STRING,
                     new ColumnReference($missingView, $this->naming->closureMissingReasonColumn($keyId))
                 ),
                 $this->naming->closureMissingReasonColumn($keyId)

@@ -42,15 +42,6 @@ class DsnType extends AbstractType
 
             return $field->isRequired() ? [new Assert\NotBlank()] : [];
         });
-        $resolver->setDefault('constraints', function (Options $options, $previousValue) {
-            /** @var Field $field */
-            $field = $options['field'];
-
-            return $field->isRequired() ? [
-                new Assert\NotBlank(),
-                ...$previousValue,
-            ] : $previousValue;
-        });
     }
 
     public function getParent(): string

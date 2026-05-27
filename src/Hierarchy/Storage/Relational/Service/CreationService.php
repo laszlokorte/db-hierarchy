@@ -84,8 +84,10 @@ class CreationService
             $parentErrors
         );
     }
-
-    private function validateRequiredField(&$errors, $keyId, $fieldData): void
+    /**
+     * @param array<int,mixed> $errors
+     */
+    private function validateRequiredField(array &$errors, string $keyId, mixed $fieldData): void
     {
         foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
             if (!$this->schemaDef->isKeyFieldRequired($keyId, $fieldId)) {

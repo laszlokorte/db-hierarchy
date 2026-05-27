@@ -9,7 +9,7 @@ class Join
     public function __construct(
         private TableReference $table,
         private ValueInterface $condition,
-        private string $direction = 'INNER',
+        private JoinDirection $direction = JoinDirection::INNER,
     ) {
     }
 
@@ -23,7 +23,7 @@ class Join
         return $this->condition;
     }
 
-    public function getDirection(): string
+    public function getDirection(): JoinDirection
     {
         return $this->direction;
     }

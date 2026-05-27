@@ -37,7 +37,7 @@ class KeyDefinition
         return $this->order->getColumnName();
     }
 
-    public function getOrderDirection(): string
+    public function getOrderDirection(): OrderDirection
     {
         return $this->order->getDirection();
     }
