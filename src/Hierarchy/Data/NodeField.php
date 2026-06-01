@@ -8,7 +8,7 @@ class NodeField
     {
     }
 
-    public function getColumnValue($colName)
+    public function getColumnValue(string $colName): mixed
     {
         return $this->columns[$colName];
     }

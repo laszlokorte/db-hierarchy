@@ -32,6 +32,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Environment;
 
+#[Route(requirements: ['nodeId' => '[^\(\/]+'])]
 class HierarchyController
 {
     /**
@@ -715,6 +716,62 @@ class HierarchyController
     /**
      * @return array<string,mixed>|RedirectResponse
      */
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}({fieldId})/_edit', name: 'update_node_field', methods: 'POST')]
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}({fieldId})/_edit', name: 'edit_node_field', methods: 'GET')]
+    #[Template('hierarchy/edit_node_field.html.twig')]
+    public function updateNodeField(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, string $fieldId, RedirectHandler $redirectHandler): array|RedirectResponse
+    {
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
+        $updateService = $storageConnection->getUpdateService();
+        $field = $key->getField($fieldId);
+
+        $editForm = $formFactory->create(
+            EditNodeFieldType::class,
+            dump([
+                'fields' => [
+                    $fieldId => $field->readObjectOf($storageConnection->getQueryService()->findNodeField($key->getId(), $nodeId, $fieldId))],
+            ]),
+            [
+                'key' => $key,
+                'nodeId' => $nodeId,
+                'fieldId' => $fieldId,
+                'hierarchySlug' => $hierarchy->getSlug(),
+                'storageConnection' => $storageConnection,
+                'action' => $urlGen->generate('update_node_field', [
+                    'hierarchySlug' => $hierarchy->getSlug(),
+                    'keyId' => $key->getId(),
+                    'nodeId' => $nodeId,
+                    'fieldId' => $fieldId,
+                ]),
+                'method' => 'POST',
+            ]
+        );
+
+        $editForm->handleRequest($request);
+
+        if ($editForm->isSubmitted() && $editForm->isValid()) {
+            $storageConnection->getUpdateService()->updateNodeField($key->getId(), $fieldId, $nodeId, $editForm->getData()['fields'][$fieldId]);
+
+            $then = $request->request->get('_then', null);
+
+            $session->getFlashBag()->add('success', 'Node Updated');
+        } else {
+            return [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'node' => $node,
+                'field' => $key->getField($fieldId),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
+                'editForm' => $editForm->createView(),
+            ];
+        }
+
+        return new RedirectResponse($urlGen->generate('edit_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+    }
+
+    /**
+     * @return array<string,mixed>|RedirectResponse
+     */
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}', name: 'update_node', methods: 'POST')]
     #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_edit', name: 'edit_node', methods: 'GET')]
     #[Template('hierarchy/edit_node.html.twig')]
@@ -776,60 +833,6 @@ class HierarchyController
         }
 
         return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
-    }
-
-    /**
-     * @return array<string,mixed>|RedirectResponse
-     */
-    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_field/{fieldId}', name: 'update_node_field', methods: 'POST')]
-    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_field/{fieldId}', name: 'edit_node_field', methods: 'GET')]
-    #[Template('hierarchy/edit_node_field.html.twig')]
-    public function updateNodeField(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, string $fieldId, RedirectHandler $redirectHandler): array|RedirectResponse
-    {
-        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
-        $updateService = $storageConnection->getUpdateService();
-
-        $editForm = $formFactory->create(
-            EditNodeFieldType::class,
-            [
-                'fields' => $key->getNodeFieldValues($node),
-            ],
-            [
-                'key' => $key,
-                'nodeId' => $nodeId,
-                'fieldId' => $fieldId,
-                'hierarchySlug' => $hierarchy->getSlug(),
-                'storageConnection' => $storageConnection,
-                'action' => $urlGen->generate('update_node_field', [
-                    'hierarchySlug' => $hierarchy->getSlug(),
-                    'keyId' => $key->getId(),
-                    'nodeId' => $nodeId,
-                    'fieldId' => $fieldId,
-                ]),
-                'method' => 'POST',
-            ]
-        );
-
-        $editForm->handleRequest($request);
-
-        if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $storageConnection->getUpdateService()->updateNode($key->getId(), $nodeId, $editForm->getData()['fields']);
-
-            $then = $request->request->get('_then', null);
-
-            $session->getFlashBag()->add('success', 'Node Updated');
-        } else {
-            return [
-                'hierarchy' => $hierarchy,
-                'key' => $key,
-                'node' => $node,
-                'field' => $key->getField($fieldId),
-                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
-                'editForm' => $editForm->createView(),
-            ];
-        }
-
-        return new RedirectResponse($urlGen->generate('edit_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
     }
 
     /**

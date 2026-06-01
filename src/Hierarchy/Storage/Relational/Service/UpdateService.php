@@ -158,6 +158,9 @@ class UpdateService
                 $fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
                 $required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
                 $columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData[$fieldId] ?? null);
+                if ($fieldType->isIsolated()) {
+                    continue;
+                }
 
                 foreach ($fieldType->getColumns($fieldId, $required, $fieldOptions) as $ci => $column) {
                     $stmt->bindValue(
@@ -165,6 +168,38 @@ class UpdateService
                         $columnData[$ci]
                     );
                 }
+            }
+
+            $stmt->bindValue(
+                $this->dialect->parameterToString($idParam),
+                $nodeId, $this->coder->getPrimaryColumnBindingType($keyId)
+            );
+            $stmt->executeQuery();
+
+            $this->connection->commit();
+        }
+    }
+
+    public function updateNodeField(string $keyId, string $fieldId, string $nodeId, mixed $fieldData): void
+    {
+        $idParam = new Parameter('_id');
+        $update = $this->commandBuilder->getCommandForUpdateNodeField($keyId, $fieldId, $idParam);
+
+        if (!$update->isEmpty()) {
+            $this->connection->beginTransaction();
+
+            $stmt = $this->connection->prepare($this->dialect->updateToString($update));
+
+            $fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+            $fieldOptions = $this->schemaDef->getKeyFieldOptions($keyId, $fieldId);
+            $required = $this->schemaDef->isKeyFieldRequired($keyId, $fieldId);
+            $columnData = $fieldType->fieldDataToColumnData($fieldId, $fieldOptions, $fieldData ?? null);
+
+            foreach ($fieldType->getColumns($fieldId, $required, $fieldOptions) as $ci => $column) {
+                $stmt->bindValue(
+                    $this->dialect->parameterToString(new Parameter($column->getName())),
+                    $columnData[$ci]
+                );
             }
 
             $stmt->bindValue(

@@ -8,7 +8,6 @@ use App\Hierarchy\Storage\Relational\Algebra\Identifier;
 use App\Hierarchy\Storage\Relational\Algebra\Join;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\Equal;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Comparison\NotEqual;
-use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\Coalesce;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Function\NullIf;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Conjunction;
 use App\Hierarchy\Storage\Relational\Algebra\Operator\Logic\Disjunction;
@@ -104,16 +103,49 @@ class UpdateCommandBuilder
         $values = [];
 
         foreach ($this->schemaDef->getKeyFieldIds($keyId) as $fieldId) {
+            $fieldType = $this->schemaDef->getKeyFieldType($keyId, $fieldId);
+            if ($fieldType->isIsolated()) {
+                continue;
+            }
             foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
                 $ref = new ColumnReference($table, $this->naming->fieldColumnToName($column));
                 $value =
                 $this->coder->wrapColumnParameter($column, new Parameter($column->getName()));
                 $setters[] = new Setter(
                     $ref,
-                    new FunctionApplication(new Coalesce(), [
-                        new FunctionApplication(new NullIf(), [$value, new Constant('')]), $ref])
+                    new FunctionApplication(new NullIf(), [$value, new Constant('')])
                 );
             }
+        }
+
+        $condition = new BinaryOperation(
+            new Equal(),
+            new ColumnReference($table, $this->naming->nodeTablePKName($keyId)),
+            $this->coder->wrapPrimaryKeyParameter($keyId, $idParam)
+        );
+
+        return new Update(
+            $table,
+            $setters,
+            $condition
+        );
+    }
+
+    public function getCommandForUpdateNodeField(string $keyId, string $fieldId, Parameter $idParam): Update
+    {
+        $table = new TableReference($this->naming->nodeTableName($keyId));
+
+        $setters = [];
+        $values = [];
+
+        foreach ($this->schemaDef->getKeyFieldColumns($keyId, $fieldId) as $column) {
+            $ref = new ColumnReference($table, $this->naming->fieldColumnToName($column));
+            $value =
+            $this->coder->wrapColumnParameter($column, new Parameter($column->getName()));
+            $setters[] = new Setter(
+                $ref,
+                new FunctionApplication(new NullIf(), [$value, new Constant('')])
+            );
         }
 
         $condition = new BinaryOperation(

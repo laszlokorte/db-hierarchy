@@ -3,6 +3,10 @@
 {{ form_errors(editForm) }}
 
 <dl class="form-container">
+    {% if title is defined %}
+<dt class="form-container-label  form-container-spacer"></dt>
+<dd  class="form-container-field"><h2 style="margin: 0;">{{ title }}</h2></dd>
+    {% endif %}
    {% if editForm._nesting is defined %}
       <dt class="form-container-label">{{ form_label(editForm._nesting) }}</dt>
        <dd class="form-container-field">
@@ -33,7 +37,7 @@
       {% for field in editForm.buttons %}
           {{ form_widget(field) }}
       {% endfor %}
-      
+
 		{% if cancel is defined %}
 			{% if cancel is same as(true) %}
 				<button class="link-button" type="reset">Reset</button>
