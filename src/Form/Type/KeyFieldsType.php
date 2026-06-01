@@ -13,6 +13,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class KeyFieldsType extends AbstractType
 {
@@ -41,6 +42,10 @@ class KeyFieldsType extends AbstractType
         'icon' => HierarchyField\IconType::class,
     ];
 
+    public function __construct(private UrlGeneratorInterface $urlGenerator)
+    {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $key = $options['key'];
@@ -48,10 +53,20 @@ class KeyFieldsType extends AbstractType
 
         foreach ($key->getFields() as $field) {
             $type = $field->getTypeId();
-            if (isset($this->fieldMapping[$type])) {
+            if (!empty($options['nodeId']) && $field->getType()->isIsolated()) {
+                $builder->add($field->getId(), HierarchyField\IsolatedFieldType::class, [
+                    'field' => $field,
+                    'url' => $this->urlGenerator->generate('edit_node_field', [
+                        'keyId' => $key->getId(),
+                        'hierarchySlug' => $options['hierarchySlug'],
+                        'nodeId' => $options['nodeId'],
+                        'fieldId' => $field->getId(),
+                    ]),
+                ]);
+            } elseif (isset($this->fieldMapping[$type])) {
                 $builder->add($field->getId(), $this->fieldMapping[$type], [
                     'field' => $field,
-                    'existing' => $options['existing'],
+                    'nodeId' => $options['nodeId'],
                 ]);
             } else {
                 switch ($field->getTypeId()) {
@@ -133,8 +148,9 @@ class KeyFieldsType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setRequired('existing');
-        $resolver->setDefaults(['existing' => false]);
+        $resolver->setRequired('hierarchySlug');
+        $resolver->setRequired('nodeId');
+        $resolver->setDefaults(['nodeId' => null]);
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setRequired('storageConnection');

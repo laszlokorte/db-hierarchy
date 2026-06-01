@@ -21,7 +21,7 @@ interface FieldTypeInterface
     /**
      * @param array<int,mixed> $fieldOptions
      */
-    public function columnDataToFieldData(string $fieldId, array $fieldOptions, $columnData): mixed;
+    public function columnDataToFieldData(string $fieldId, array $fieldOptions, mixed $columnData): mixed;
 
     /**
      * @param array<int,mixed> $fieldOptions
@@ -44,4 +44,6 @@ interface FieldTypeInterface
      * @return void
      */
     public function getDefaultOptions(): array;
+
+    public function isIsolated(): bool;
 }

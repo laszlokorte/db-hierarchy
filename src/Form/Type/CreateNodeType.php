@@ -42,9 +42,9 @@ class CreateNodeType extends AbstractType
 
         $builder->add(
             $builder->create('fields', KeyFieldsType::class, [
-                'existing' => false,
                 'by_reference' => false,
                 'label' => false,
+                'hierarchySlug' => $options['hierarchySlug'],
                 'key' => $options['key'],
                 'storageConnection' => $options['storageConnection'],
             ])
@@ -81,6 +81,7 @@ class CreateNodeType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('hierarchySlug');
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
         $resolver->setRequired('storageConnection');

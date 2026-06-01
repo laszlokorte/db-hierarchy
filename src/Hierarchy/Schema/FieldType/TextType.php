@@ -8,11 +8,11 @@ use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class TextType implements FieldTypeInterface
 {
-    private $config;
-
-    public function __construct($config = [])
+    /**
+     * @param mixed $config
+     */
+    public function __construct(private array $config = [])
     {
-        $this->config = $config;
     }
 
     public function getColumns(string $fieldId, bool $required, array $fieldOptions): array
@@ -49,5 +49,10 @@ class TextType implements FieldTypeInterface
     public function getDefaultOptions(): array
     {
         return [];
+    }
+
+    public function isIsolated(): bool
+    {
+        return false;
     }
 }

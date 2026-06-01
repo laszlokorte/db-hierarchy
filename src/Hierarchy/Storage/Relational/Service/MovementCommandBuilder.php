@@ -41,7 +41,7 @@ class MovementCommandBuilder
     {
     }
 
-    public function getSelectForFindHierarchyCousins(string $keyId, Parameter|Constant $idParam) : Select
+    public function getSelectForFindHierarchyCousins(string $keyId, Parameter|Constant $idParam): Select
     {
         $tableH = new TableReference($this->naming->hierarchyViewName($keyId));
         $tableN = new TableReference($this->naming->nodeTableName($keyId));

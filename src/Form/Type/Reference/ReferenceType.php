@@ -23,7 +23,7 @@ class ReferenceType extends AbstractType
 
         $builder->setAttribute('choice_list', new NodeCollectionIterator($storageConnection->getQueryService()->findAllNodes($field->getOption('target'))));
         $builder->addViewTransformer(
-         new ReferenceTransformer());
+            new ReferenceTransformer());
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -63,7 +63,6 @@ class ReferenceType extends AbstractType
 
             return $field->isRequired() ? [new Assert\NotBlank()] : [];
         });
-
 
         $resolver->setDefault('transformer', function (Options $options) {
         });

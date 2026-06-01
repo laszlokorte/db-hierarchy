@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Form\Type\CreateChildNodeType;
 use App\Form\Type\CreateNodeType;
 use App\Form\Type\DeleteNodeType;
+use App\Form\Type\EditNodeFieldType;
 use App\Form\Type\EditNodeType;
 use App\Form\Type\MoveNodeType;
 use App\Form\Type\OrderNodeType;
@@ -523,6 +524,7 @@ class HierarchyController
             [],
             [
                 'key' => $key,
+                'hierarchySlug' => $hierarchy->getSlug(),
                 'storageConnection' => $storageConnection,
                 'action' => $urlGen->generate('create_node', [
                     'hierarchySlug' => $hierarchy->getSlug(),
@@ -617,6 +619,7 @@ class HierarchyController
             [],
             [
                 'key' => $childKey,
+                'hierarchySlug' => $hierarchy->getSlug(),
                 'storageConnection' => $storageConnection,
                 'action' => $urlGen->generate('create_child_node', [
                     'hierarchySlug' => $hierarchy->getSlug(),
@@ -727,6 +730,8 @@ class HierarchyController
             ],
             [
                 'key' => $key,
+                'nodeId' => $nodeId,
+                'hierarchySlug' => $hierarchy->getSlug(),
                 'storageConnection' => $storageConnection,
                 'action' => $urlGen->generate('update_node', [
                     'hierarchySlug' => $hierarchy->getSlug(),
@@ -771,6 +776,60 @@ class HierarchyController
         }
 
         return new RedirectResponse($urlGen->generate('show_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
+    }
+
+    /**
+     * @return array<string,mixed>|RedirectResponse
+     */
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_field/{fieldId}', name: 'update_node_field', methods: 'POST')]
+    #[Route('/{hierarchySlug}/{keyId}/{nodeId}/_field/{fieldId}', name: 'edit_node_field', methods: 'GET')]
+    #[Template('hierarchy/edit_node_field.html.twig')]
+    public function updateNodeField(Hierarchy $hierarchy, StorageConnection $storageConnection, UrlGeneratorInterface $urlGen, FormFactoryInterface $formFactory, Session $session, Request $request, Environment $twig, Key $key, string $nodeId, string $fieldId, RedirectHandler $redirectHandler): array|RedirectResponse
+    {
+        $node = $storageConnection->getQueryService()->findNode($key->getId(), $nodeId);
+        $updateService = $storageConnection->getUpdateService();
+
+        $editForm = $formFactory->create(
+            EditNodeFieldType::class,
+            [
+                'fields' => $key->getNodeFieldValues($node),
+            ],
+            [
+                'key' => $key,
+                'nodeId' => $nodeId,
+                'fieldId' => $fieldId,
+                'hierarchySlug' => $hierarchy->getSlug(),
+                'storageConnection' => $storageConnection,
+                'action' => $urlGen->generate('update_node_field', [
+                    'hierarchySlug' => $hierarchy->getSlug(),
+                    'keyId' => $key->getId(),
+                    'nodeId' => $nodeId,
+                    'fieldId' => $fieldId,
+                ]),
+                'method' => 'POST',
+            ]
+        );
+
+        $editForm->handleRequest($request);
+
+        if ($editForm->isSubmitted() && $editForm->isValid()) {
+            $storageConnection->getUpdateService()->updateNode($key->getId(), $nodeId, $editForm->getData()['fields']);
+
+            $then = $request->request->get('_then', null);
+
+            $session->getFlashBag()->add('success', 'Node Updated');
+        } else {
+            return [
+                'hierarchy' => $hierarchy,
+                'key' => $key,
+                'node' => $node,
+                'field' => $key->getField($fieldId),
+                'parentNodes' => $storageConnection->getQueryService()->findParentNodes($key->getId(), $nodeId),
+                'editForm' => $editForm->createView(),
+            ];
+        }
+
+        return new RedirectResponse($urlGen->generate('edit_node', ['hierarchySlug' => $hierarchy->getSlug(), 'keyId' => $key->getId(), 'nodeId' => $nodeId]));
     }
 
     /**

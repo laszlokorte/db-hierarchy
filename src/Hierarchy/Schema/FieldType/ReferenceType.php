@@ -56,4 +56,9 @@ class ReferenceType implements FieldTypeInterface
     {
         return [];
     }
+
+    public function isIsolated(): bool
+    {
+        return false;
+    }
 }

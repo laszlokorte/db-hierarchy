@@ -15,16 +15,15 @@ class PasswordType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setRequired('field', true);
-        $resolver->setRequired('existing');
-        $resolver->setDefaults(['existing' => false]);
+        $resolver->setRequired('nodeId');
+        $resolver->setDefaults(['nodeId' => null]);
         $resolver->setAllowedTypes('field', Field::class);
-        $resolver->setAllowedTypes('existing', 'bool');
 
         $resolver->setDefault('required', function (Options $options) {
             /** @var Field $field */
             $field = $options['field'];
 
-            return !$options['existing'] && $field->isRequired();
+            return $field->isRequired();
         });
         $resolver->setDefault('type', SymfonyPasswordType::class);
         $resolver->setDefault('first_options', ['label' => 'New Password']);
@@ -45,7 +44,7 @@ class PasswordType extends AbstractType
             /** @var Field $field */
             $field = $options['field'];
 
-            return !$options['existing'] && $field->isRequired() ? [
+            return !$options['nodeId'] && $field->isRequired() ? [
                 new Assert\NotBlank(),
                 ...$previousValue,
             ] : $previousValue;

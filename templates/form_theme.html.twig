@@ -346,6 +346,9 @@
     {%- set type = type|default('tel') -%}
     {{ block('form_widget_simple') }}
 {%- endblock tel_widget -%}
+{%- block isolated_widget -%}
+<a href="{{ url }}">Edit {{ field.label.singular }}</a>
+{%- endblock isolated_widget -%}
 
 {%- block color_widget -%}
     {%- set type = type|default('color') -%}

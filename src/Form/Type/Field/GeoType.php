@@ -22,8 +22,8 @@ class GeoType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setRequired('existing');
-        $resolver->setDefaults(['existing' => false]);
+        $resolver->setRequired('nodeId');
+        $resolver->setDefaults(['nodeId' => null]);
         $resolver->setDefaults([
             'compound' => true,
         ]);

@@ -47,4 +47,9 @@ class IntegerType implements FieldTypeInterface
     {
         return [];
     }
+
+    public function isIsolated(): bool
+    {
+        return false;
+    }
 }

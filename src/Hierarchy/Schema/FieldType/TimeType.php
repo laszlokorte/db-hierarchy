@@ -47,4 +47,9 @@ class TimeType implements FieldTypeInterface
     {
         return [];
     }
+
+    public function isIsolated(): bool
+    {
+        return false;
+    }
 }

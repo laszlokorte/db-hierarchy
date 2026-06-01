@@ -2,8 +2,8 @@
 
 namespace App\Hierarchy\Storage\Relational\Algebra;
 
-
-enum JoinDirection {
+enum JoinDirection
+{
     case LEFT;
     case RIGHT;
     case OUTER;

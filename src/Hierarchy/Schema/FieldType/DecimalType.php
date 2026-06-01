@@ -47,4 +47,9 @@ class DecimalType implements FieldTypeInterface
     {
         return [];
     }
+
+    public function isIsolated(): bool
+    {
+        return false;
+    }
 }

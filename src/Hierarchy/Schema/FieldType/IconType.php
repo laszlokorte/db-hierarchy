@@ -47,4 +47,9 @@ class IconType implements FieldTypeInterface
     {
         return ['values' => $this->icons];
     }
+
+    public function isIsolated(): bool
+    {
+        return false;
+    }
 }

@@ -13,8 +13,8 @@ class SvgType extends AbstractType
 {
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setRequired('existing');
-        $resolver->setDefaults(['existing' => false]);
+        $resolver->setRequired('nodeId');
+        $resolver->setDefaults(['nodeId' => null]);
         $resolver->setRequired('field', true);
         $resolver->setAllowedTypes('field', Field::class);
 

@@ -2,7 +2,8 @@
 
 namespace App\Hierarchy\Schema\Definition;
 
-enum OrderDirection {
+enum OrderDirection
+{
     case ASC;
     case DESC;
 }

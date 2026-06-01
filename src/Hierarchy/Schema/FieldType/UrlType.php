@@ -8,6 +8,9 @@ use App\Hierarchy\Schema\Definition\StorageCodingType;
 
 class UrlType implements FieldTypeInterface
 {
+    /**
+     * @param array<int,mixed> $config
+     */
     public function __construct(private array $config = [])
     {
     }
@@ -46,5 +49,10 @@ class UrlType implements FieldTypeInterface
     public function getDefaultOptions(): array
     {
         return [];
+    }
+
+    public function isIsolated(): bool
+    {
+        return false;
     }
 }

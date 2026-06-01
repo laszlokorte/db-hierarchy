@@ -19,10 +19,12 @@ class EditNodeType extends AbstractType
 
         $builder->add(
             $builder->create('fields', KeyFieldsType::class, [
-                'existing' => true,
+                'nodeId' => $options['nodeId'],
+                'hierarchySlug' => $options['hierarchySlug'],
                 'by_reference' => false,
                 'label' => false,
                 'key' => $options['key'],
+                'nodeId' => $options['nodeId'],
                 'storageConnection' => $options['storageConnection'],
             ])
         );
@@ -46,8 +48,10 @@ class EditNodeType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setRequired('hierarchySlug');
         $resolver->setRequired('key');
         $resolver->setAllowedTypes('key', Key::class);
+        $resolver->setRequired('nodeId');
         $resolver->setRequired('storageConnection');
         $resolver->setAllowedTypes('storageConnection', StorageConnection::class);
     }

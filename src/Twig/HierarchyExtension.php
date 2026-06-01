@@ -9,6 +9,7 @@ use App\Form\Type\EditNodeType;
 use App\Hierarchy\Data\Node;
 use App\Hierarchy\Schema\RecursiveLoader;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -19,7 +20,7 @@ class HierarchyExtension extends AbstractExtension
     {
     }
 
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [
             new TwigFunction('creationForm', [$this, 'buildCreationForm']),
@@ -29,13 +30,14 @@ class HierarchyExtension extends AbstractExtension
         ];
     }
 
-    public function buildCreationForm($hierarchy, $keyId)
+    public function buildCreationForm($hierarchy, $keyId): FormView
     {
         $creationForm = $this->formFactory->create(
             CreateNodeType::class,
             [],
             [
                 'key' => $hierarchy->getKey($keyId),
+                'hierarchySlug' => $hierarchy->getSlug(),
                 'storageConnection' => $this->schemaLoader->loadStorageConnection($hierarchy->getSlug()),
                 'action' => $this->urlGen->generate('create_node', [
                     'hierarchySlug' => $hierarchy->getSlug(),
@@ -48,13 +50,14 @@ class HierarchyExtension extends AbstractExtension
         return $creationForm->createView();
     }
 
-    public function buildChildCreationForm($hierarchy, $keyId, $nodeId, $childKeyId)
+    public function buildChildCreationForm($hierarchy, $keyId, $nodeId, $childKeyId): FormView
     {
         $creationForm = $this->formFactory->create(
             CreateChildNodeType::class,
             [],
             [
                 'key' => $hierarchy->getKey($childKeyId),
+                'hierarchySlug' => $hierarchy->getSlug(),
                 'storageConnection' => $this->schemaLoader->loadStorageConnection($hierarchy->getSlug()),
                 'action' => $this->urlGen->generate('create_child_node', [
                     'hierarchySlug' => $hierarchy->getSlug(),
@@ -69,7 +72,7 @@ class HierarchyExtension extends AbstractExtension
         return $creationForm->createView();
     }
 
-    public function buildEditForm($hierarchy, Node $node)
+    public function buildEditForm($hierarchy, Node $node): FormView
     {
         $key = $hierarchy->getKey($node->getKey());
         $editForm = $this->formFactory->create(
@@ -79,6 +82,8 @@ class HierarchyExtension extends AbstractExtension
             ],
             [
                 'key' => $key,
+                'hierarchySlug' => $hierarchy->getSlug(),
+                'nodeId' => $node->getId(),
                 'storageConnection' => $this->schemaLoader->loadStorageConnection($hierarchy->getSlug()),
                 'action' => $this->urlGen->generate('update_node', [
                     'hierarchySlug' => $hierarchy->getSlug(),
@@ -92,7 +97,7 @@ class HierarchyExtension extends AbstractExtension
         return $editForm->createView();
     }
 
-    public function buildDeletionForm($hierarchy, $keyId, $nodeId)
+    public function buildDeletionForm($hierarchy, $keyId, $nodeId): FormView
     {
         $deletionForm = $this->formFactory->create(
             DeleteNodeType::class,
