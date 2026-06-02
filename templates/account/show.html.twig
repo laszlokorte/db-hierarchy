@@ -11,4 +11,90 @@
 
 <h1>My Account</h1>
 
+
+<h2>Password</h2>
+
+{{ form_start(passwordForm) }}
+
+{{ form_errors(passwordForm) }}
+
+<dl class="form-container">
+
+   {% for field in passwordForm.fields %}
+       <dt class="form-container-label">{{ form_label(field) }}</dt>
+       <dd class="form-container-field">
+       {{ form_widget(field) }}
+       {{ form_errors(field) }}
+       </dd>
+       {% if field.vars.help is not empty %}
+       <dd class="form-container-info">
+       <i class="icon-link info tooltipped" aria-label="{{field.vars.help}}" target="_blank">{% include 'hierarchy/partials/icon.html.twig' with {icon: 'question'} only %}</i>
+       </dd>
+       {% endif %}
+   {% endfor %}
+   <dt class="form-container-label form-container-spacer"></dt>
+   <dd class="form-container-buttons">
+      {% for field in passwordForm.buttons %}
+          {{ form_widget(field) }}
+      {% endfor %}
+
+		{% if cancel is defined %}
+			{% if cancel is same as(true) %}
+				<button class="link-button" type="reset">Reset</button>
+			{% else %}
+				<a class="link-button" href="{{ cancel }}" title="">Cancel</a>
+			{% endif %}
+		{% endif %}
+		{% if cancel_tab is defined %}
+			<label class="link-button" for="{{ cancel_tab }}" title="">Cancel</label>
+		{% endif %}
+   </dd>
+</dl>
+
+{{ form_end(passwordForm) }}
+
+<h2>Pass Keys</h2>
+<table class="data-table">
+        <caption class="data-table-caption">List of Pass keys</caption>
+        <colgroup>
+                <col class="data-table-col">
+        </colgroup>
+                <colgroup>
+                        <col class="data-table-col">
+                    </colgroup>
+                <colgroup>
+        <col class="data-table-col">
+        </colgroup>
+                <colgroup>
+        <col class="data-table-col">
+        </colgroup>
+        <thead class="data-table-head">
+            <tr class="data-table-head-row">
+                                <th class="data-table-head-cell" width="5%">ID</th>
+                                                <th class="data-table-head-cell">Public Key Id</th>
+                                <th class="data-table-head-cell" width="50%"></th>
+                                <th class="data-table-head-cell spacer sticky-end" align="right">Actions</th>
+            </tr>
+        </thead>
+                    <tbody>
+                <tr class="data-table-empty-row">
+                                        <td class="data-table-empty-cell" colspan="4">
+                    <div>
+                    Empty
+                    </div>
+                    </td>
+                                    </tr>
+            </tbody>
+                <tfoot class="data-table-foot">
+            <tr class="data-table-foot-row">
+                                                        <td class="data-table-foot-cell sticky-start" colspan="2">
+
+                    </td>
+                                        <td class="data-table-foot-cell" colspan="0"></td>
+                                        <td class="data-table-foot-cell sticky-end" colspan="2" align="right">
+                    </td>
+                            </tr>
+        </tfoot>
+    </table>
+
 {% endblock %}

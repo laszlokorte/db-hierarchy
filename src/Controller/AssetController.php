@@ -16,7 +16,7 @@ class AssetController
     #[Route('/favicon-{hierarchySlug}.svg', name: 'hierarchy_favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
     #[Route('/favicon.svg', name: 'favicon_svg', methods: 'GET', priority: 1000, defaults: ['hierarchySlug' => 'system'])]
     #[Cache(expires: 'tomorrow', public: true)]
-    public function favicon(Request $request, Environment $twig, Hierarchy $hierarchy)
+    public function favicon(Request $request, Environment $twig, Hierarchy $hierarchy): Response
     {
         $response = new Response($twig->render('asset/favicon.svg.twig', [
             'color' => $hierarchy->getLabel()->getColor(),
@@ -32,7 +32,7 @@ class AssetController
     }
 
     #[Route('/favicon.ico', name: 'favicon_ico', methods: 'GET', priority: 1000)]
-    public function faviconFallback(UrlGeneratorInterface $urlGen)
+    public function faviconFallback(UrlGeneratorInterface $urlGen): RedirectResponse
     {
         return new RedirectResponse($urlGen->generate('favicon_svg'));
     }

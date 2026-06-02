@@ -26,8 +26,9 @@ class PasswordType extends AbstractType
             return $field->isRequired();
         });
         $resolver->setDefault('type', SymfonyPasswordType::class);
-        $resolver->setDefault('first_options', ['label' => 'New Password']);
-        $resolver->setDefault('second_options', ['label' => 'Confirmation']);
+        $resolver->setDefault('first_options', ['label' => 'New Password', 'attr' => ['autocomplete' => 'new-password'], 'always_empty' => false]);
+        $resolver->setDefault('second_options', ['label' => 'Confirmation',  'always_empty' => false]);
+        $resolver->setDefault('always_empty', false);
         $resolver->setDefault('label', function (Options $options) {
             /** @var Field $field */
             $field = $options['field'];

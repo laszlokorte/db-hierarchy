@@ -7,8 +7,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class HierarchyAccountUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    public function __construct(private string $identifier, private string $password)
+    public function __construct(private ?string $identifier = null, private ?string $password = null)
     {
+    }
+
+    public function getIdentifier(): ?string
+    {
+        return $this->identifier;
     }
 
     public function getRoles(): array

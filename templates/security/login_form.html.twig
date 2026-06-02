@@ -3,10 +3,10 @@
 {% block html_body %}
     <div class="prompt-container" {% if error %} style="--color-a: #f00;--color-b: #533"{% endif %}>
 
-      
+
     	<div class="prompt-box">
     		<h2 class="prompt-titel">
-    		<svg 
+    		<svg
     		class="site-title-icon" viewBox="0 0 128 128" width="100" height="100" preserveAspectRatio="xMinYMid meet">
 	            {% include 'asset/favicon.svg.twig' with {color: 'currentColor'} only %}
 	        </svg>
@@ -14,7 +14,7 @@
     		</h2>
 
     		<form action="{{ path('security_login') }}" method="post" accept-charset="utf-8">
-    			
+
     		{% if error %}
     			<p class="prompt-error">
     				{{ error.messageKey|trans(error.messageData, 'security') }}
@@ -29,7 +29,7 @@
 				        </dd>
 				        <dt class="form-container-label dense"><label for="">Password</label></dt>
 				        <dd class="form-container-field">
-				        	<input class="form-field" type="password" name="_password">
+				        	<input class="form-field" type="password" name="_password" autocomplete="current-password">
 				        </dd>
 				        <dt class="form-container-label form-container-spacer"></dt>
 				        <dd class="form-container-buttons">
